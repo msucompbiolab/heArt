@@ -1,3 +1,2 @@
 # __init__.py
-from Holzapfel_uniaxial_stretching import *  
-
+from .Holzapfel_uniaxial_stretching import *

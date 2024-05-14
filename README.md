@@ -51,3 +51,4 @@ Demo python scripts are also provided to simulate
 - [closed loop simulation of BiV](./demo/BiVelectromechanics.py)
 
 ### Simulation protocols
+ Cardiac Simulator

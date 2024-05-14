@@ -25,7 +25,8 @@ if '__version__' in data:
 if '__globals__' in data:
     del data['__globals__']
 
-dict_LVV = {'twoc': 0.0, 'threec': 0.02, 'fourc': 0.04, 'fivec': 0.06,             'sixc': 0.08, 'sixcfourg': 0.09, 'sevenc': 0.1, 'sevencfourg': 0.11, 'eightc': 0.12,             'eightcfourg': 0.13, 'ninec': 0.14, 'ninecfourg': 0.15, 'baseline': 0.08}
+dict_LVV = {'twoc': 0.0, 'threec': 0.02, 'fourc': 0.04, 'fivec': 0.06, 'sixc': 0.08, 'sixcfourg': 0.09, 'sevenc': 0.1,
+        'sevencfourg': 0.11, 'eightc': 0.12, 'eightcfourg': 0.13, 'ninec': 0.14, 'ninecfourg': 0.15, 'baseline': 0.08}
 
 init_LV = 0.18
 
@@ -90,7 +91,7 @@ while True:
     Cparam = Cparam_p * dict_LVP[preload][0] / LVP_sim
 
     if content.find('Passive params') != -1: # update Cparam (a material parameter) to its 'current' value
-        content = content.replace('"Cparam": Constant(' + str(Cparam_p) + ')', '"Cparam": Constant(' +                                   str(Cparam) + ')')
+        content = content.replace('"Cparam": Constant(' + str(Cparam_p) + ')', '"Cparam": Constant(' + str(Cparam) + ')')
     Cparam_p = Cparam
     with open(scriptfile, 'w') as file: # write changes to the script file
         file.write(content)

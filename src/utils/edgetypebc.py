@@ -1,7 +1,7 @@
 from fenics import *
 import numpy as np
 
-__all__ = [ "pick_endoring_bc" ]
+__all__ = ["pick_endoring_bc"]
 
 _endoring_code = """
 class EdgeTypeBC : public SubDomain
@@ -28,7 +28,7 @@ public:
           edge_coords[0][0], edge_coords[0][1], edge_coords[0][2],
           edge_coords[1][0], edge_coords[1][1], edge_coords[1][2], dist);
     }
-  
+
   }
 
   /// Return true for points inside the sub domain
@@ -54,8 +54,9 @@ public:
 
 """
 
-class _EdgeTypeBC(SubDomain) :
-    def __init__(self, rfun, marker) :
+
+class _EdgeTypeBC(SubDomain):
+    def __init__(self, rfun, marker):
         super(EdgeTypeBC, self).__init__()
 
         # marked edges
@@ -65,31 +66,32 @@ class _EdgeTypeBC(SubDomain) :
         # points for each edge
         mesh.init(1, 0)
         topo = mesh.topology()(1, 0)
-        self._coords = [ mesh.coordinates()[topo(e)] for e in eids ]
+        self._coords = [mesh.coordinates()[topo(e)] for e in eids]
 
-    def inside(self, x, on_boundary) :
-        for pts in self._coords :
+    def inside(self, x, on_boundary):
+        for pts in self._coords:
             v1 = pts[0, :]
             v2 = pts[1, :]
-            if self._is_between(v1, x, v2) :
+            if self._is_between(v1, x, v2):
                 return True
         return False
 
-    def _is_between(self, a, c, b) :
-        distance = lambda v1, v2 : np.linalg.norm(v1 - v2)
+    def _is_between(self, a, c, b):
+        distance = lambda v1, v2: np.linalg.norm(v1 - v2)
         return distance(a, c) + distance(c, b) - distance(a, b) < DOLFIN_EPS
 
-def pick_endoring_bc(method = "cpp") :
-    if method == "cpp" :
-        module = compile_extension_module(\
-            _endoring_code, additional_system_headers=[\
-                "dolfin/mesh/SubsetIterator.h"])
+
+def pick_endoring_bc(method="cpp"):
+    if method == "cpp":
+        module = compile_extension_module(
+            _endoring_code, additional_system_headers=["dolfin/mesh/SubsetIterator.h"]
+        )
         return module.EdgeTypeBC
-    else :
+    else:
         return _EdgeTypeBC
 
-if __name__ == "__main__" :
 
+if __name__ == "__main__":
     set_log_level(DBG)
 
     ndiv = 8
@@ -108,5 +110,5 @@ if __name__ == "__main__" :
 
     A = assemble(a)
 
-    bc = DirichletBC(V, Constant(0.0), endoring, method = "pointwise")
+    bc = DirichletBC(V, Constant(0.0), endoring, method="pointwise")
     bc.apply(A)

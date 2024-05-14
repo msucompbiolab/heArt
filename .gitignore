@@ -1,4 +1,3 @@
-
 *.swp
 *.pvtp
 *.vtp
@@ -15,6 +14,7 @@ demo/outputs_BiVelectromechanics/BiVelectromechanics/Data.h5
 demo/outputs_91690BiVelectromechanics/91690BiVelectromechanics/Data.h5
 demo/outputs_91690BiVelectromechanics/91690BiVelectromechanics/Data.h5
 studies/echo_vs_MRI.zip
+demo/outputs/
 demo/output_deformation/
 demo/outputs_LVelectromechanics/
 volume_tst/
@@ -22,6 +22,10 @@ vtk_fchamber/
 u-p/
 Langendorff_exmpl/
 demo/Langendorff_msh/
+w_aorta/
 *.pyc
 *.img
 *.npz
+demo/outputs_LV_waorta/
+LV_waorta/simulator/
+LV_waorta/test/
