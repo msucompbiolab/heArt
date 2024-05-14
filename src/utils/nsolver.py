@@ -2,38 +2,34 @@ from dolfin import *
 import math
 import petsc4py
 
+
 class NSolver(object):
-
-
     def __init__(self, params):
-
         self.parameters = params
-        self.isfirstiteration = 0;
-
+        self.isfirstiteration = 0
 
         Ftotal = self.parameters["F"]
         w = self.parameters["w"]
         bcs = self.parameters["boundary_conditions"]
         Jac = self.parameters["Jacobian"]
 
-        self.problem = NonlinearVariationalProblem(Ftotal,w,bcs=bcs,J=Jac, form_compiler_parameters={"representation":"uflacs"})
+        self.problem = NonlinearVariationalProblem(
+            Ftotal,
+            w,
+            bcs=bcs,
+            J=Jac,
+            form_compiler_parameters={"representation": "uflacs"},
+        )
         self.nsolver = NonlinearVariationalSolver(self.problem)
-        self.nsolver.parameters['nonlinear_solver'] = 'newton'
-
+        self.nsolver.parameters["nonlinear_solver"] = "newton"
 
     def default_parameters(self):
-        return {"rel_tol" : 1e-7,
-                "abs_tol" : 1e-7,
-                "max_iter": 50}
-
+        return {"rel_tol": 1e-7, "abs_tol": 1e-7, "max_iter": 200}
 
     def solvenonlinear(self):
-
-
-
-        if("abs_tol" in self.parameters.keys()):
+        if "abs_tol" in list(self.parameters.keys()):
             abs_tol = self.parameters["abs_tol"]
-        if("rel_tol" in self.parameters.keys()):
+        if "rel_tol" in list(self.parameters.keys()):
             rel_tol = self.parameters["rel_tol"]
 
         maxiter = self.default_parameters()["max_iter"]
@@ -48,35 +44,33 @@ class NSolver(object):
         comm = w.function_space().mesh().mpi_comm()
 
         # DEBUGGING PURPOSES ############################# (Everytime at each time point, File handler will be destroyed and reconstructed - FIXME)
-        #Q = FunctionSpace(mesh,'CG',1)
-        #Quadelem = FiniteElement("Quadrature", mesh.ufl_cell(), degree=4, quad_scheme="default")
-        #Quadelem._quad_scheme = 'default'
-        #Quad = FunctionSpace(mesh, Quadelem)
-        #Param1 = Function(Q)
-        #Param1.rename("Param1", "Param1")
-        #Param2 = Function(Q)
-        #Param2.rename("Param2", "Param2")
-        #Param3 = Function(Q)
-        #Param3.rename("Param3", "Param3")
-        #Param4 = Function(Q)
-        #Param4.rename("Param4", "Param4")
-        #Param1Quad = Function(Quad)
+        # Q = FunctionSpace(mesh,'CG',1)
+        # Quadelem = FiniteElement("Quadrature", mesh.ufl_cell(), degree=4, quad_scheme="default")
+        # Quadelem._quad_scheme = 'default'
+        # Quad = FunctionSpace(mesh, Quadelem)
+        # Param1 = Function(Q)
+        # Param1.rename("Param1", "Param1")
+        # Param2 = Function(Q)
+        # Param2.rename("Param2", "Param2")
+        # Param3 = Function(Q)
+        # Param3.rename("Param3", "Param3")
+        # Param4 = Function(Q)
+        # Param4.rename("Param4", "Param4")
+        # Param1Quad = Function(Quad)
 
-
-        #t_a = self.parameters["t_a"]
-        #activeforms = self.parameters["ActiveForm"]
+        # t_a = self.parameters["t_a"]
+        # activeforms = self.parameters["ActiveForm"]
         ##################################################
 
-
-        if(solvertype == 0):
-            #solve(Ftotal == 0, w, bcs, J = Jac, \
-            #solver_parameters={"newton_solver":{"relative_tolerance":1e-9, "absolute_tolerance":1e-9, "maximum_iterations":maxiter, "linear_solver":"umfpack"}}#,\
-            #form_compiler_parameters={"representation":"uflacs"}
-            #)
+        if solvertype == 0:
+            # solve(Ftotal == 0, w, bcs, J = Jac, \
+            # solver_parameters={"newton_solver":{"relative_tolerance":1e-9, "absolute_tolerance":1e-9, "maximum_iterations":maxiter, "linear_solver":"umfpack"}}#,\
+            # form_compiler_parameters={"representation":"uflacs"}
+            # )
             set_log_level(20)
-            #set_log_level(30)
+            # set_log_level(30)
 
-            #solve(Ftotal == 0, w, bcs, J = Jac,\
+            # solve(Ftotal == 0, w, bcs, J = Jac,\
             #      form_compiler_parameters={"representation":"uflacs"}, \
             #      solver_parameters={"newton_solver":{"linear_solver":"mumps",\
             #                                          "relative_tolerance":1e-9, \
@@ -84,35 +78,40 @@ class NSolver(object):
             #                                          "maximum_iterations":maxiter
             #                        }})
 
-            #parameters["form_compiler"]["representation"] = "uflacs"
-            if("abs_tol" in self.parameters.keys()):
+            self.nsolver.parameters["newton_solver"]["linear_solver"] = "mumps"
+            if "abs_tol" in list(self.parameters.keys()):
                 self.nsolver.parameters["newton_solver"]["absolute_tolerance"] = abs_tol
-            if("rel_tol" in self.parameters.keys()):
+            if "rel_tol" in list(self.parameters.keys()):
                 self.nsolver.parameters["newton_solver"]["relative_tolerance"] = rel_tol
-            self.nsolver.parameters["newton_solver"]["maximum_iterations"] = 100
+
+            self.nsolver.parameters["newton_solver"]["maximum_iterations"] = maxiter
+            # self.nsolver.parameters["newton_solver"]["relaxation_parameter"] = 0.5
             self.nsolver.solve()
 
         else:
-
             it = 0
-            if(self.isfirstiteration  == 0):
-                A, b = assemble_system(Jac, -Ftotal, bcs, \
-                                       form_compiler_parameters={"representation":"uflacs"}\
-                                       )
+            if self.isfirstiteration == 0:
+                A, b = assemble_system(
+                    Jac,
+                    -Ftotal,
+                    bcs,
+                    form_compiler_parameters={"representation": "uflacs"},
+                )
                 resid0 = b.norm("l2")
-                rel_res = b.norm("l2")/resid0
+                rel_res = b.norm("l2") / resid0
                 res = resid0
-                if(MPI.rank(comm) == 0 and mode > 0):
-                    print "Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res)
+                if MPI.rank(comm) == 0 and mode > 0:
+                    print(
+                        "Iteration: %d, Residual: %.3e, Relative residual: %.3e"
+                        % (it, res, rel_res)
+                    )
                 solve(A, w.vector(), b)
 
                 it += 1
 
             self.isfirstiteration = 1
 
-            B = assemble(Ftotal,\
-                         form_compiler_parameters={"representation":"uflacs"}\
-                        )
+            B = assemble(Ftotal, form_compiler_parameters={"representation": "uflacs"})
             for bc in bcs:
                 bc.apply(B)
 
@@ -120,8 +119,11 @@ class NSolver(object):
             res = B.norm("l2")
             resid0 = res
 
-            if(MPI.rank(comm) == 0 and mode > 0):
-                print "Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res)
+            if MPI.rank(comm) == 0 and mode > 0:
+                print(
+                    "Iteration: %d, Residual: %.3e, Relative residual: %.3e"
+                    % (it, res, rel_res)
+                )
 
             dww = w.copy(deepcopy=True)
             dww.vector()[:] = 0.0
@@ -129,14 +131,17 @@ class NSolver(object):
             while (rel_res > rel_tol and res > abs_tol) and it < maxiter:
                 it += 1
 
-                A, b = assemble_system(Jac, -Ftotal, bcs, \
-                                       form_compiler_parameters={"representation":"uflacs"}\
-                                      )
+                A, b = assemble_system(
+                    Jac,
+                    -Ftotal,
+                    bcs,
+                    form_compiler_parameters={"representation": "uflacs"},
+                )
                 solve(A, dww.vector(), b)
                 w.vector().axpy(1.0, dww.vector())
 
                 # DEBUGGING PURPOSES #############################
-                #if(t_a.t_a >= 170 and t_a.t_a <= 172):
+                # if(t_a.t_a >= 170 and t_a.t_a <= 172):
                 #       print "DEBUGGING"
                 #       Param1.vector()[:] = project(activeforms.w1(), Q).vector().array()[:]
                 #       self.parameters["FileHandler"][0] << Param1
@@ -180,23 +185,23 @@ class NSolver(object):
                 #       print >>self.parameters["FileHandler"][4], project(activeforms.PK1Stress(), Quad).vector().array()[:]
                 #       print >>self.parameters["FileHandler"][4], project(activeforms.PK1Stress(), Q).vector().array()[:]
 
-
-
                 ###################################################
 
-
-                B = assemble(Ftotal, \
-                             form_compiler_parameters={"representation":"uflacs"}\
-                             )
+                B = assemble(
+                    Ftotal, form_compiler_parameters={"representation": "uflacs"}
+                )
                 for bc in bcs:
                     bc.apply(B)
 
-                rel_res = B.norm("l2")/resid0
+                rel_res = B.norm("l2") / resid0
                 res = B.norm("l2")
 
-                if(MPI.rank(comm) == 0 and mode > 0):
-                    print "Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res)
+                if MPI.rank(comm) == 0 and mode > 0:
+                    print(
+                        "Iteration: %d, Residual: %.3e, Relative residual: %.3e"
+                        % (it, res, rel_res)
+                    )
 
-            if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
-                #self.parameters["FileHandler"][4].close()
+            if (rel_res > rel_tol and res > abs_tol) or math.isnan(res):
+                # self.parameters["FileHandler"][4].close()
                 raise RuntimeError("Failed Convergence")
