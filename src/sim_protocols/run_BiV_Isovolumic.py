@@ -3,6 +3,13 @@ import os as os
 import numpy as np
 from mpi4py import MPI as pyMPI
 
+import warnings
+from ffc.quadrature.deprecation \
+import QuadratureRepresentationDeprecationWarning
+warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
+
+
+
 from dolfin import *
 # from fenicstools import *
 
@@ -26,7 +33,7 @@ from ..mechanics.MEmodel_isov import MEmodel
 def run_BiV_Isovolumic(IODet, SimDet):
     deg = 4
     flags = ["-O3", "-ffast-math", "-march=native"]
-    parameters["form_compiler"]["representation"] = "uflacs"
+    parameters["form_compiler"]["representation"] = "quadrature"
     parameters["form_compiler"]["quadrature_degree"] = deg
 
     casename = IODet["casename"]
