@@ -341,12 +341,12 @@ class MEmodel(object):
 
         # endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
 
-        #        bcedge = DirichletBC(
-        #            W.sub(0),
-        #            Expression(("0.0", "0.0", "0.0"), degree=0),
-        #            endoring,
-        #            method="pointwise",
-        #        )
+        # bcedge = DirichletBC(
+        #    W.sub(0),
+        #    Expression(("0.0", "0.0", "0.0"), degree=0),
+        #    endoring,
+        #    method="pointwise",
+        # )
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             bcs = [bctop]
         else:
