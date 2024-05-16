@@ -61,6 +61,7 @@ class Forms(object):
     def Fe(self):
         Fg = self.parameters["growth_tensor"]
         F = self.Fmat()
+        i, j, k = indices(3)
         if Fg is None:
             Fe = F
         else:
@@ -284,7 +285,7 @@ class Forms(object):
         own_range = dofmap.ownership_range()
 
         try:
-            val_local = w.vector()[val_dof][0]
+            val_local = w.vector().get_local()[val_dof]
         except IndexError:
             val_local = 0.0
 
@@ -387,6 +388,7 @@ class Forms(object):
         f0 = self.parameters["fiber"]
         Emat = self.Emat()
 
+        i, j = indices(2)
         f = f0[i] * Sca[i, j] * f0[j]
         s = f0[i] * Emat[i, j] * f0[j]
 
@@ -408,6 +410,7 @@ class Forms(object):
         s = F * s0 / sqrt(inner(F * s0, F * s0))
         n = F * n0 / sqrt(inner(F * n0, F * n0))
 
+        i, j = indices(2)
         Ipressure = s[i] * Tca[i, j] * s[j]
 
         return Ipressure
@@ -428,6 +431,7 @@ class Forms(object):
         s = F * s0 / sqrt(inner(F * s0, F * s0))
         n = F * n0 / sqrt(inner(F * n0, F * n0))
 
+        i, j = indices(2)
         Ipressure = 0.5 * (s[i] * Tca[i, j] * s[j] + n[i] * Tca[i, j] * n[j])
 
         return Ipressure
@@ -444,6 +448,7 @@ class Forms(object):
         )
         n = F * N / sqrt(inner(F * N, F * N))
 
+        i, j = indices(2)
         Ipressure = -n[i] * PK1[i, j] * N[j] * ds(self.parameters["LVendoid"])
 
         return Ipressure
@@ -460,6 +465,7 @@ class Forms(object):
         )
         n = F * N / sqrt(inner(F * N, F * N))
 
+        i, j = indices(2)
         Ipressure = -n[i] * PK1[i, j] * N[j] * ds(self.parameters["epiid"])
 
         return Ipressure
@@ -484,6 +490,7 @@ class Forms(object):
         )
         n = F * N / sqrt(inner(F * N, F * N))
 
+        i, j = indices(2)
         return (J * inv(F.T) * N)[i] * n[i] * ds(self.parameters["endoid"])
 
     def areaepi(self):
@@ -506,4 +513,5 @@ class Forms(object):
         )
         n = F * N / sqrt(inner(F * N, F * N))
 
+        i, j = indices(2)
         return (J * inv(F.T) * N)[i] * n[i] * ds(self.parameters["epiid"])

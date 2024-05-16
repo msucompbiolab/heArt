@@ -3,11 +3,17 @@ import os as os
 import numpy as np
 from mpi4py import MPI as pyMPI
 
+import warnings
+from ffc.quadrature.deprecation \
+import QuadratureRepresentationDeprecationWarning
+warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
+
 from dolfin import *
 from fenicstools import *
 
 import vtk_py3
 import vtk
+import warnings
 
 from ..utils.oops_objects_MRC2 import printout
 from ..utils.oops_objects_MRC2 import biventricle_mesh as biv_mechanics_mesh
@@ -52,8 +58,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     facetboundaries_ep = MeshFunction("size_t", mesh_ep, 2)
     f.read(facetboundaries_ep, casename + "/" + "facetboundaries")
 
-    matid_ep = CellFunction("size_t", mesh_ep)
-    AHAid_ep = CellFunction("size_t", mesh_ep)
+    matid_ep = MeshFunction('size_t', mesh_ep, 3, mesh_ep.domains()) 
+    AHAid_ep = MeshFunction('size_t', mesh_ep, 3, mesh_ep.domains()) 
     if f.has_dataset(casename + "/" + "matid"):
         f.read(matid_ep, casename + "/" + "matid")
     else:
@@ -211,7 +217,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             F_ED.vector()[:] = (
                 project(MEmodel_.GetFmat(), MEmodel_.TF, solver_type="mumps")
                 .vector()
-                .array()[:]
+                .get_local()[:]
             )
 
     # No unloading
@@ -285,7 +291,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             F_ED.vector()[:] = (
                 project(MEmodel_.GetFmat(), MEmodel_.TF, solver_type="mumps")
                 .vector()
-                .array()[:]
+                .get_local()[:]
             )
 
     if "isunloadingonly" in list(SimDet.keys()):
@@ -295,7 +301,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
     # Declare communicator based on mpi4py
-    comm_me_ = comm_me.tompi4py()
+    comm_me_ = MPI.comm_world
     eCC, eRR, eLL, deformedMesh, deformedBoundary = MEmodel_.GetDeformedBasis({})
 
     fStrain = MEmodel_.GetFiberstrain(F_ED)
@@ -430,7 +436,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         # Update deformation at F_ED
         if state_obj.cycle > prev_cycle:
             F_ED.vector()[:] = (
-                project(MEmodel_.GetFmat(), MEmodel_.TF).vector().array()[:]
+                project(MEmodel_.GetFmat(), MEmodel_.TF).vector().get_local()[:]
             )
 
         prev_cycle = state_obj.cycle
@@ -773,7 +779,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         )
         potential_ref.rename("v_ref", "v_ref")
 
-        potential_me.vector()[:] = potential_ref.vector().array()[:]
+        potential_me.vector()[:] = potential_ref.vector().get_local()[:]
 
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
         if MPI.rank(comm_ep) == 0:

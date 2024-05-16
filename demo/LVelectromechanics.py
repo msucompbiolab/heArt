@@ -48,7 +48,7 @@ GuccioneParams = {
         "Ca0max": 4.35,
         "lr": 1.85,
     },
-    "HomogenousActivation": False,
+    "HomogenousActivation": True,
     "deg": 4,
     "Kappa": 1e5,
     "incompressible": True,

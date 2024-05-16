@@ -83,7 +83,7 @@ class _EdgeTypeBC(SubDomain):
 
 def pick_endoring_bc(method="cpp"):
     if method == "cpp":
-        module = compile_extension_module(
+        module = compile_cpp_code(
             _endoring_code, additional_system_headers=["dolfin/mesh/SubsetIterator.h"]
         )
         return module.EdgeTypeBC
