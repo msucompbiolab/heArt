@@ -1,5 +1,7 @@
 # Simulate Uniaxial Passive Stretching of the tissue
 from dolfin import *
+import dolfin
+import ufl
 
 # from mshr import *
 # import fenicstools as ft
@@ -206,7 +208,8 @@ def run_uniaxial_test(IODet, SimDet):
                 solver_parameters=solver_options,
             )
             pload_ = assemble((PK1pas[0, 0]) * ds(2))
-            lbda = project(f0[i] * Fe[i, j] * f0[j], QDG).vector().array()[:]
+            i,j = ufl.indices(2)
+            lbda = project(f0[i] * Fe[i, j] * f0[j], QDG).vector().get_local()[:]
         else:
             print(("Applied load = ", pload.val))
             loadstep = maxload / nload
@@ -219,7 +222,8 @@ def run_uniaxial_test(IODet, SimDet):
                 form_compiler_parameters=ffc_options,
                 solver_parameters=solver_options,
             )
-            lbda = project(f0[i] * Fe[i, j] * f0[j], QDG).vector().array()[:]
+            i,j = ufl.indices(2)
+            lbda = project(f0[i] * Fe[i, j] * f0[j], QDG).vector().get_local()[:]
             pload_ = pload.val / lbda[0]
 
         pload_arr.append(pload_)
