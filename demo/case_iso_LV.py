@@ -3,6 +3,9 @@ from dolfin import *
 
 sys.path.append("/mnt/Research")
 
+# sys.path.append("/home/ziaeirad")
+# sys.path.append("/home/ziaeirad/heArt_git")
+
 from heArt.src.sim_protocols.run_BiV_Isovolumic import (
     run_BiV_Isovolumic as run_BiV_Isovolumic,
 )
