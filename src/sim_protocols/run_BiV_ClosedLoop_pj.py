@@ -5,7 +5,7 @@ from mpi4py import MPI as pyMPI
 from dolfin import * 
 import dolfin
 from fenicstools import *
-import vtk_py
+import vtk_py3
 import vtk
 sys.path.append('/mnt/home/hagersan/src')
 from ..utils.oops_objects_MRC2 import printout
@@ -38,10 +38,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
 
 
-	#####################################################################
-	########### Define  FHN  Problem for Purkinjee Fibres ###############
-	#####################################################################
-	# Convert line mesh in vtu to fenics mesh    
+    #####################################################################
+    ########### Define  FHN  Problem for Purkinjee Fibres ###############
+    #####################################################################
+    # Convert line mesh in vtu to fenics mesh    
     ugrid = vtk_py.readXMLUGrid(PJ_meshfilename)
     ncells = ugrid.GetNumberOfCells()
     npts = ugrid.GetNumberOfPoints()
@@ -74,19 +74,19 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if(pts.GetNumberOfIds() == 2):
             editor.add_cell(cnt, pts.GetId(0),  pts.GetId(1))
             cnt = cnt + 1
-		
-    editor.close()	
+        
+    editor.close()  
 
     # Define BCS
     string = 'on_boundary && near(x[0], %18.10f, 1e-10) && near(x[1],%18.10f, 1e-10) && near(x[2], %18.10f, 1e-10)' %(term_nodes_coord[0][0], term_nodes_coord[0][1], term_nodes_coord[0][2])
     AVnode = CompiledSubDomain(string)
     boundaries = FacetFunction("size_t", mesh_pj)
     boundaries.set_all(0)
-    AVnode.mark(boundaries,1)	
+    AVnode.mark(boundaries,1)   
 
-	#####################################################################
-	########### Define  FHN  Problem for Myocardiac Tissue ##############
-	#####################################################################
+    #####################################################################
+    ########### Define  FHN  Problem for Myocardiac Tissue ##############
+    #####################################################################
     # Read EP data from HDF5 Files
     mesh_ep = Mesh() 
     comm_common = mesh_ep.mpi_comm()
@@ -149,52 +149,52 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - - 
 
     EPparams = {"EPmesh": mesh_ep,\
-				"PJmesh": mesh_pj,\
-				"boundaries": boundaries,\
+                "PJmesh": mesh_pj,\
+                "boundaries": boundaries,\
                 "deg": 4,\
-				"matid": matid_ep,\
-				"facetboundaries": facetboundaries_ep,\
-				"term_nodes" : term_nodes,\
-				"term_nodes_coord": term_nodes_coord,\
-				"EpiBCid": EpiBCid_ep,\
-				"f0": f0_ep,\
-				"s0": s0_ep,\
-				"n0": n0_ep,\
-				"state_obj": state_obj,\
+                "matid": matid_ep,\
+                "facetboundaries": facetboundaries_ep,\
+                "term_nodes" : term_nodes,\
+                "term_nodes_coord": term_nodes_coord,\
+                "EpiBCid": EpiBCid_ep,\
+                "f0": f0_ep,\
+                "s0": s0_ep,\
+                "n0": n0_ep,\
+                "state_obj": state_obj,\
                 "d_iso": SimDet["d_iso"],\
                 "d_ani_factor": SimDet["d_ani_factor"],\
-				"ploc_tol": SimDet["ploc_tol"],\
-	        	"AHAid": AHAid_ep,\
+                "ploc_tol": SimDet["ploc_tol"],\
+                "AHAid": AHAid_ep,\
                 "matid": matid_ep}
 
-    if("Ischemia" in SimDet.keys()):
+    if("Ischemia" in list(SimDet.keys())):
         EPparams.update({"Ischemia": SimDet["Ischemia"]})
 
     # Define EP model and solver
     EPmodel_ = EPmodel(EPparams)
     EpiBCid_ep = EPmodel_.MarkStimulus()
 
-    solver_FHN_pj = EPmodel_.Solver_pj()	
+    solver_FHN_pj = EPmodel_.Solver_pj()    
     solver_FHN_ep = EPmodel_.Solver_ep()
-	
-	#####################################################################
-	######### Define  Mechanical Problem for Myocardiac Tissue ##########
-	#####################################################################    
+    
+    #####################################################################
+    ######### Define  Mechanical Problem for Myocardiac Tissue ##########
+    #####################################################################    
    #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - - 
     # Mechanics Mesh 
     mesh_me = Mesh() 
-    mesh_me_params = {	"directory" : directory_me, 
-                   		"casename" : casename, 
-                   		"fibre_quad_degree" : 4, 
-                   		"outputfolder" : outputfolder,
-                   		"foldername" : folderName,
-		   		   		"state_obj": state_obj,
-                   		"common_communicator": comm_common,
-                   		"MEmesh": mesh_me,
-		   				"isLV": isLV
-					}
+    mesh_me_params = {  "directory" : directory_me, 
+                        "casename" : casename, 
+                        "fibre_quad_degree" : 4, 
+                        "outputfolder" : outputfolder,
+                        "foldername" : folderName,
+                        "state_obj": state_obj,
+                        "common_communicator": comm_common,
+                        "MEmesh": mesh_me,
+                        "isLV": isLV
+                    }
 
-    MEmodel_ = MEmodel(mesh_me_params, SimDet)	
+    MEmodel_ = MEmodel(mesh_me_params, SimDet)  
     solver_elas = MEmodel_.Solver()
     comm_me = MEmodel_.mesh_me.mpi_comm()
     # Set up export class
@@ -204,8 +204,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     F_ED = Function(MEmodel_.TF)
 
-    if("AHA_segments" in SimDet.keys()):
-    	AHA_segments = SimDet["AHA_segments"]
+    if("AHA_segments" in list(SimDet.keys())):
+        AHA_segments = SimDet["AHA_segments"]
     else:
         AHA_segments = [0]
 
@@ -216,38 +216,38 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     # Unloading LV to get new reference geometry
     isunloading = False
-    if("isunloading" in SimDet.keys()):
-    	if (SimDet["isunloading"] is True)  : 
+    if("isunloading" in list(SimDet.keys())):
+        if (SimDet["isunloading"] is True)  : 
             isunloading = True
 
     if(isunloading): # COMMENTED OUT FOR NOW: READABILITY
-        # printout("Start UnLoading", comm_me)
+         printout("Start UnLoading", comm_me)
 
-        # if("unloadparam" in SimDet.keys()):
-        #     unloadparam = SimDet["unloadparam"]
-        # else:
-        #     unloadparam = {};
-                
-        # nloadstep_, volinc_, V_LV_target, solver_elas = MEmodel_.unloading(unloadparam)
-        # printout("Target EDV = " + str(V_LV_target), comm_me)
-        # printout("Finish UnLoading and Reloading", comm_me)
+         if("unloadparam" in list(SimDet.keys())):
+             unloadparam = SimDet["unloadparam"]
+         else:
+             unloadparam = {};
+               
+         nloadstep_, volinc_, V_LV_target, solver_elas = MEmodel_.unloading(unloadparam)
+         printout("Target EDV = " + str(V_LV_target), comm_me)
+         printout("Finish UnLoading and Reloading", comm_me)
 
-        # export.writePV(MEmodel_, 0);
-        # export.hdf.write(MEmodel_.mesh_me, "ME/mesh")
-        # export.hdf.write(EPmodel_.mesh_ep, "EP/mesh")
+         export.writePV(MEmodel_, 0);
+         export.hdf.write(MEmodel_.mesh_me, "ME/mesh")
+         export.hdf.write(EPmodel_.mesh_ep, "EP/mesh")
 
-        # MEmodel_.LVCavityvol.vol = MEmodel_.GetLVV()
-        # V_LV_unload = MEmodel_.GetLVV()
+         MEmodel_.LVCavityvol.vol = MEmodel_.GetLVV()
+         V_LV_unload = MEmodel_.GetLVV()
 
-        # for it in np.arange(0,nloadstep):
-        #     MEmodel_.LVCavityvol.vol += (V_LV_target - V_LV_unload)/nloadstep
-        #     solver_elas.solvenonlinear() 
-        #     printout("Pressure = " +  str(MEmodel_.GetLVP()*0.0075) +  " Vol = " + str(MEmodel_.GetLVV()), comm_me)
+         for it in np.arange(0,nloadstep):
+             MEmodel_.LVCavityvol.vol += (V_LV_target - V_LV_unload)/nloadstep
+             solver_elas.solvenonlinear() 
+             printout("Pressure = " +  str(MEmodel_.GetLVP()*0.0075) +  " Vol = " + str(MEmodel_.GetLVV()), comm_me)
 
-        #     export.writePV(MEmodel_, 0);
-        #     export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
+             export.writePV(MEmodel_, 0);
+             export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
 
-        #     F_ED.vector()[:] = project(MEmodel_.GetFmat(), MEmodel_.TF, solver_type='mumps').vector().array()[:] 
+             F_ED.vector()[:] = project(MEmodel_.GetFmat(), MEmodel_.TF, solver_type='mumps').vector().array()[:] 
 
     # No unloading
     else:
@@ -257,13 +257,13 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         for lmbda_value in range(0, nloadstep):
 
-            if("V_LV" in SimDet["closedloopparam"].keys()):
+            if("V_LV" in list(SimDet["closedloopparam"].keys())):
                 V_LV_target = SimDet["closedloopparam"]["V_LV"]
                 MEmodel_.LVCavityvol.vol += (V_LV_target - V_LV_unload)/nloadstep
             else:
                 MEmodel_.LVCavityvol.vol += 2.0
 
-            if("V_RV" in SimDet["closedloopparam"].keys()):
+            if("V_RV" in list(SimDet["closedloopparam"].keys())):
                 V_RV_target = SimDet["closedloopparam"]["V_RV"]
                 MEmodel_.RVCavityvol.vol += (V_RV_target - V_RV_unload)/nloadstep
             else:
@@ -274,9 +274,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                 solver_elas.solvenonlinear() 
             except:
                export.hdf.close()
-    	    #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
+            #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 
-	    
+        
             if(isLV):
                 printout("Loading phase step = " + str(lmbda_value) + " LVV = " + str(MEmodel_.GetLVV()) + \
                                         " LVP = " + str(MEmodel_.GetLVP()*0.0075)  \
@@ -291,14 +291,14 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                 export.printout("Loading phase step = " + str(lmbda_value) + " LVV = " + str(MEmodel_.GetLVV())+ \
                                             " RVV = " + str(MEmodel_.GetRVV()))
 
-    	                        	
+                                    
             export.writePV(MEmodel_, 0);
             export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", lmbda_value)
 
             F_ED.vector()[:] = project(MEmodel_.GetFmat(), MEmodel_.TF, solver_type='mumps').vector().array()[:] 
 
-    if("isunloadingonly" in SimDet.keys()):
-    	if (SimDet["isunloadingonly"] is True)  : 
+    if("isunloadingonly" in list(SimDet.keys())):
+        if (SimDet["isunloadingonly"] is True)  : 
             export.hdf.close()
             exit()
 
@@ -332,17 +332,17 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     # Pulmonary circulation
     if(not isLV): # COMMENTED OUT FOR NOW: READABILITY
-        # Cpa = SimDet["closedloopparam"]["Cpa"]
-        # Cpv = SimDet["closedloopparam"]["Cpv"]
-        # Vpa0 = SimDet["closedloopparam"]["Vpa0"]
-        # Vpv0 = SimDet["closedloopparam"]["Vpv0"]
-        # Rpv = SimDet["closedloopparam"]["Rpv"]
-        # Rtv =  SimDet["closedloopparam"]["Rtv"]
-        # Rpa = SimDet["closedloopparam"]["Rpa"]
-        # Rpvv = SimDet["closedloopparam"]["Rpvv"]
-        # V_pv = SimDet["closedloopparam"]["V_pv"]
-        # V_pa = SimDet["closedloopparam"]["V_pa"]
-        # V_RA = SimDet["closedloopparam"]["V_RA"]
+         Cpa = SimDet["closedloopparam"]["Cpa"]
+         Cpv = SimDet["closedloopparam"]["Cpv"]
+         Vpa0 = SimDet["closedloopparam"]["Vpa0"]
+         Vpv0 = SimDet["closedloopparam"]["Vpv0"]
+         Rpv = SimDet["closedloopparam"]["Rpv"]
+         Rtv =  SimDet["closedloopparam"]["Rtv"]
+         Rpa = SimDet["closedloopparam"]["Rpa"]
+         Rpvv = SimDet["closedloopparam"]["Rpvv"]
+         V_pv = SimDet["closedloopparam"]["V_pv"]
+         V_pa = SimDet["closedloopparam"]["V_pa"]
+         V_RA = SimDet["closedloopparam"]["V_RA"]
 
 
     isrestart = 0
@@ -360,35 +360,35 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     Qlvad = 0
     Qlara = 0
 
-    if("Q_av" in SimDet["closedloopparam"].keys()):
+    if("Q_av" in list(SimDet["closedloopparam"].keys())):
         Qav = SimDet["closedloopparam"]["Q_av"] 
-    if("Q_mv" in SimDet["closedloopparam"].keys()):
+    if("Q_mv" in list(SimDet["closedloopparam"].keys())):
         Qmv = SimDet["closedloopparam"]["Q_mv"] 
-    if("Q_sa" in SimDet["closedloopparam"].keys()):
+    if("Q_sa" in list(SimDet["closedloopparam"].keys())):
         Qsa = SimDet["closedloopparam"]["Q_sa"] 
-    if("Q_ad" in SimDet["closedloopparam"].keys()):
+    if("Q_ad" in list(SimDet["closedloopparam"].keys())):
         Qad = SimDet["closedloopparam"]["Q_ad"] 
-    if("Q_sv" in SimDet["closedloopparam"].keys()):
+    if("Q_sv" in list(SimDet["closedloopparam"].keys())):
         Qsv = SimDet["closedloopparam"]["Q_sv"] 
-    if("Q_tv" in SimDet["closedloopparam"].keys()):
+    if("Q_tv" in list(SimDet["closedloopparam"].keys())):
         Qtv = SimDet["closedloopparam"]["Q_tv"] 
-    if("Q_pa" in SimDet["closedloopparam"].keys()):
+    if("Q_pa" in list(SimDet["closedloopparam"].keys())):
         Qpa = SimDet["closedloopparam"]["Q_pa"] 
-    if("Q_pv" in SimDet["closedloopparam"].keys()):
+    if("Q_pv" in list(SimDet["closedloopparam"].keys())):
         Qpv = SimDet["closedloopparam"]["Q_pv"] 
-    if("Q_pvv" in SimDet["closedloopparam"].keys()):
+    if("Q_pvv" in list(SimDet["closedloopparam"].keys())):
         Qpvv = SimDet["closedloopparam"]["Q_pvv"] 
-    if("Q_lvad" in SimDet["closedloopparam"].keys()):
+    if("Q_lvad" in list(SimDet["closedloopparam"].keys())):
         Qlvad = SimDet["closedloopparam"]["Q_lvad"] 
-    if("Q_lara" in SimDet["closedloopparam"].keys()):
+    if("Q_lara" in list(SimDet["closedloopparam"].keys())):
         Qlara = SimDet["closedloopparam"]["Q_lara"] 
 
     #Parameters for LVAD #############################################
     LVADrpm = 0
     LVADscale = 0
-    if("Q_lvad_rpm" in SimDet["closedloopparam"].keys()):
+    if("Q_lvad_rpm" in list(SimDet["closedloopparam"].keys())):
         LVADrpm = SimDet["closedloopparam"]["Q_lvad_rpm"] 
-    if("Q_lvad_characteristic" in SimDet["closedloopparam"].keys()):
+    if("Q_lvad_characteristic" in list(SimDet["closedloopparam"].keys())):
         QLVADFn = SimDet["closedloopparam"]["Q_lvad_characteristic"] 
 
     Qlad = 0
@@ -397,9 +397,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     #Parameters for Shunt #############################################
     Shuntscale =  0.0
     Rsh = 1e9
-    if("Shunt_scale" in SimDet["closedloopparam"].keys()):
+    if("Shunt_scale" in list(SimDet["closedloopparam"].keys())):
         Shuntscale = SimDet["closedloopparam"]["Shunt_scale"] 
-    if("Rsh" in SimDet["closedloopparam"].keys()):
+    if("Rsh" in list(SimDet["closedloopparam"].keys())):
         Rsh = SimDet["closedloopparam"]["Rsh"]
 
     potential_me = Function(FunctionSpace(MEmodel_.mesh_me,'CG',1))
@@ -420,14 +420,14 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
             return out        
 
-    	#################################################################
+        #################################################################
         P_LV = MEmodel_.GetLVP()
         V_LV = MEmodel_.GetLVV()
 
         if(not isLV):
             P_RV = MEmodel_.GetRVP()
             V_RV = MEmodel_.GetRVV()     
-			
+            
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep/state_obj.BCL)
         state_obj.t = state_obj.tstep - state_obj.cycle*state_obj.BCL
@@ -453,7 +453,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         printout("Cycle number = "+str(state_obj.cycle)+" cell time = "+str(state_obj.t)+" tstep = "+str(state_obj.tstep)+" dt = "+str(state_obj.dt.dt), comm_me)
         export.printout("Cycle number = "+str(state_obj.cycle)+" cell time = "+str(state_obj.t)+" tstep = "+str(state_obj.tstep)+" dt = "+str(state_obj.dt.dt))
 
-    	#### For Calculating P_LA ######################################## 
+        #### For Calculating P_LA ######################################## 
         Ees_la = SimDet["closedloopparam"]["Ees_la"]
         A_la = SimDet["closedloopparam"]["A_la"];
         B_la = SimDet["closedloopparam"]["B_la"];
@@ -461,7 +461,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         Tmax_la = SimDet["closedloopparam"]["Tmax_la"];
         tau_la = SimDet["closedloopparam"]["tau_la"];
         tdelay_la = SimDet["closedloopparam"]["tdelay_la"];
-	
+    
         if (state_obj.t < SimDet["HeartBeatLength"] - tdelay_la):
             t_la = state_obj.t + tdelay_la;
         else: 
@@ -492,7 +492,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             printout("P_RA = " +str(PRA*0.0075), comm_me)
             export.printout("P_RA = " +str(PRA ))
 
-	##################################################################################################################################
+    ##################################################################################################################################
         printout("P_sv = "+str(Psv*0.0075), comm_me)
         export.printout("P_sv = "+str(Psv))
         printout("P_LV = " +str(PLV*0.0075), comm_me)
@@ -504,18 +504,18 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         printout("P_LA = " +str(PLA*0.0075), comm_me)
         export.printout("P_LA = " +str(PLA ))
 
-	#### conditions for Valves in LV #######################################
+    #### conditions for Valves in LV #######################################
         if(PLV <= Psa):
             Qav = 0.0;
         else:
             Qav = 1.0/Rav*(PLV - Psa);
-    	
+        
         if(PLV >= PLA):
             Qmv = 0.0;
         else: 
             Qmv = 1.0/Rmv*(PLA - PLV);
 
-	#### Conditions for valves in BIV #######################################
+    #### Conditions for valves in BIV #######################################
         if(not isLV):
 
             if(PRV <= Ppa):  #Pulmonary valve
@@ -529,7 +529,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                     Qtv = 1.0/Rtv*(PRA - PRV);
 
 
-	
+    
         if(isLV):
             Qsa = 1.0/Rsa*(Psa - Pad);
             Qad = 1.0/Rad*(Pad - Psv); 
@@ -564,7 +564,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         imp2 = project( MEmodel_.GetIMP2(), FunctionSpace(MEmodel_.mesh_me,'DG',1), form_compiler_parameters={"representation":"uflacs"})
         imp2.rename("imp2","imp2")
 
-        if("probepts" in SimDet.keys()):
+        if("probepts" in list(SimDet.keys())):
             x = np.array(SimDet["probepts"])
             probesIMP = Probes(x.flatten(), FunctionSpace(MEmodel_.mesh_me,'DG',1))
             probesIMP(imp)
@@ -615,7 +615,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         Qlcx = 0
 
         # Include LVAD
-        if("Q_lvad_characteristic" in SimDet["closedloopparam"].keys()):
+        if("Q_lvad_characteristic" in list(SimDet["closedloopparam"].keys())):
             H = (Psa - PLV)*0.0075 #Pump head in mmHg
             Qlvad = QLVADFn.Flowrate(H, LVADrpm)/60 #Flow rate of LVAD in mL/ms
 
@@ -639,7 +639,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         MEmodel_.LVCavityvol.vol = V_LV
         if(not isLV):
             MEmodel_.RVCavityvol.vol = V_RV
-		
+        
         printout("V_sv = " + str(V_sv), comm_me)
         export.printout("V_sv = " + str(V_sv))
         printout("V_LV = "  + str(V_LV), comm_me)
@@ -666,7 +666,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         try:
             solver_elas.solvenonlinear()
             isrestart = 0
-            state_obj.dt.dt	= delTat
+            state_obj.dt.dt = delTat
 
         except RuntimeError:
             export.printout("Restart time step ********************************************* ")
@@ -691,7 +691,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             isrestart = 1
             if(state_obj.dt.dt < 1e-3):
                 export.printout("Smallest time step reached")
-                exit(1);	
+                exit(1);    
             continue;
 
         if(isrestart == 0):
@@ -714,7 +714,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             MEmodel_.UpdateVar() # For damping
             EPmodel_.UpdateVar()
 
-	# Interpolate phi to mechanics mesh
+    # Interpolate phi to mechanics mesh
         potential_ref = EPmodel_.interpolate_potential_ep2me_phi(V_me = Function(FunctionSpace(MEmodel_.mesh_me,'CG',1)))
         potential_ref.rename("v_ref", "v_ref")
 
@@ -723,20 +723,20 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
         if(MPI.rank(comm_ep) == 0):
-            print 'UPdating isActiveField and tInitiationField'
+            print('UPdating isActiveField and tInitiationField')
         MEmodel_.activeforms.update_activationTime(potential_n = potential_me, comm = comm_me)
 
         F_n = MEmodel_.GetFmat() 
         fstress_DG = project(MEmodel_.Getfstress(), FunctionSpace(MEmodel_.mesh_me,'DG', 0) , form_compiler_parameters={"representation":"uflacs"})
         fstress_DG.rename("fstress", "fstress")
-        if("probepts" in SimDet.keys()):
+        if("probepts" in list(SimDet.keys())):
             probesfstress = Probes(x.flatten(), FunctionSpace(MEmodel_.mesh_me,'DG',1))
             probesfstress(fstress_DG)
 
         Eul_fiber_BiV_DG = project(fStrain_uL, FunctionSpace(MEmodel_.mesh_me,'DG', 0) , form_compiler_parameters={"representation":"uflacs"})
         Eul_fiber_BiV_DG.rename("Eff", "Eff")
-    	
-        if("probepts" in SimDet.keys()):
+        
+        if("probepts" in list(SimDet.keys())):
             probesEul_fiber = Probes(x.flatten(), FunctionSpace(MEmodel_.mesh_me,'DG',1))
             probesEul_fiber(Eul_fiber_BiV_DG)
             probesE_circ_BiV = Probes(x.flatten(), FunctionSpace(MEmodel_.mesh_me,'DG',1))
@@ -754,17 +754,17 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         E_circ_BiV_DG = project(E_circ_BiV_, FunctionSpace(MEmodel_.mesh_me,'DG', 0) , form_compiler_parameters={"representation":"uflacs"})
         E_circ_BiV_DG.rename("Ecc", "Ecc")
-        if("probepts" in SimDet.keys()):
+        if("probepts" in list(SimDet.keys())):
             probesE_circ_BiV(E_circ_BiV_DG)
 
         E_long_BiV_DG = project(E_long_BiV_, FunctionSpace(MEmodel_.mesh_me,'DG', 0) , form_compiler_parameters={"representation":"uflacs"})
         E_long_BiV_DG.rename("Ell", "Ell")
-        if("probepts" in SimDet.keys()):
+        if("probepts" in list(SimDet.keys())):
             probesE_long_BiV(E_long_BiV_DG)
 
         E_radi_BiV_DG = project(E_radi_BiV_, FunctionSpace(MEmodel_.mesh_me,'DG', 0) , form_compiler_parameters={"representation":"uflacs"})
         E_radi_BiV_DG.rename("Err", "Err")
-        if("probepts" in SimDet.keys()):
+        if("probepts" in list(SimDet.keys())):
             probesE_radi_BiV(E_radi_BiV_DG)
 
         if(cnt % SimDet["writeStep"] == 0.0):
@@ -781,12 +781,12 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             export.hdf.write(MEmodel_.GetP(), "ME/imp_constraint", writecnt)
             export.hdf.write(EPmodel_.getphivar(), "EP/phi", writecnt)
             export.hdf.write(EPmodel_.getrvar(), "EP/r", writecnt)
-            export.hdf.write(potential_ref, "EP/potential_ref", writecnt)		
+            export.hdf.write(potential_ref, "EP/potential_ref", writecnt)       
 
             writecnt += 1
 
 
-        if("probepts" in SimDet.keys()):
+        if("probepts" in list(SimDet.keys())):
             fIMP = probesIMP.array()
             fIMP2 = probesIMP2.array()
             fIMP3 = probesIMP3.array()
@@ -812,7 +812,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - - 
 if __name__ == "__main__":
 
-    print 'Testing...'
+    print('Testing...')
     run_BiV_TimedGuccione(IODet=IODetails, SimDet=SimDetails)
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - - 
