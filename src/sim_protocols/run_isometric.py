@@ -1,4 +1,6 @@
 from dolfin import *
+import dolfin
+import ufl
 
 # import fenicstools as ft
 import numpy as np
@@ -117,9 +119,9 @@ def run_isometric(IODet, SimDet):
     n0 = Expression(("0.0", "0.0", "1.0"), degree=1)
 
     # Define Integration domain
-    dx = dolfin.dx(mesh, metadata={"quadrature_degree": deg})
+    dx = dolfin.dx(mesh, metadata={"quadrature_degree": 4})
     ds = dolfin.ds(
-        mesh, subdomain_data=sub_domains, metadata={"quadrature_degree": deg}
+        mesh, subdomain_data=sub_domains, metadata={"quadrature_degree": 4}
     )
 
     # Define function space
@@ -237,9 +239,10 @@ def run_isometric(IODet, SimDet):
             form_compiler_parameters=ffc_options,
             solver_parameters=solver_options,
         )
+        i, j = ufl.indices(2)
         PK1_ = project(f0[i] * (PK1pas[i, j] + PK1act[i, j]) * f0[j], QDG)
         pload_ = assemble((PK1_) * ds(2))
-        lbda = project(f0[i] * Fe[i, j] * f0[j], QDG).vector().array()[:]
+        lbda = project(f0[i] * Fe[i, j] * f0[j], QDG).vector().get_local()[:]
 
     # Active contraction
     load_array = []
@@ -265,7 +268,7 @@ def run_isometric(IODet, SimDet):
         pload_active = assemble((PK1active_) * ds(2))
         active_load_array.append(pload_active)
 
-        lbda = project(f0[i] * Fe[i, j] * f0[j], QDG).vector().array()[:]
+        lbda = project(f0[i] * Fe[i, j] * f0[j], QDG).vector().get_local()[:]
 
     tpt = np.arange(0, len(load_array)) * dt
 

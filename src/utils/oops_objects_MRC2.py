@@ -281,8 +281,8 @@ class lv_mesh(object):
         self.facetboundaries = MeshFunction("size_t", self.mesh, 2)
         f.read(self.facetboundaries, casename + "/" + "facetboundaries")
 
-        # self.edgeboundaries = MeshFunction("size_t", self.mesh, 1)
-        # f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
+        self.edgeboundaries = MeshFunction("size_t", self.mesh, 1)
+        f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
 
         deg = self.parameters["fibre_quad_degree"]
         # VQuadelem = VectorElement(

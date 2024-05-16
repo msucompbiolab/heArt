@@ -1,4 +1,6 @@
 from dolfin import *
+import dolfin
+import ufl
 import math as math
 import numpy as np
 from ..mechanics.forms_MRC2 import Forms
@@ -47,10 +49,10 @@ def run_isotonic_EM(IODet, SimDet):
     state_obj = State_Variables(meshEP.comm, SimDet)
     state_obj.dt.dt = SimDet["dt"]
 
-    AHAid_ep = CellFunction("size_t", meshEP.mesh)
+    AHAid_ep = MeshFunction('size_t', meshEP.mesh, 3, meshEP.mesh.domains()) #CellFunction("size_t", meshEP.mesh)
     AHAid_ep.set_all(0)
 
-    matid_ep = CellFunction("size_t", meshEP.mesh)
+    matid_ep = MeshFunction('size_t', meshEP.mesh, 3, meshEP.mesh.domains()) #CellFunction("size_t", meshEP.mesh)
     matid_ep.set_all(0)
 
     # Define EP model and solver
@@ -108,7 +110,7 @@ def run_isotonic_EM(IODet, SimDet):
         print(
             (
                 "Active contraction =",
-                MEmodel_.t_a.vector().array()[0],
+                MEmodel_.t_a.vector().get_local()[0],
                 " State obj t = ",
                 state_obj.t,
             )
@@ -132,7 +134,7 @@ def run_isotonic_EM(IODet, SimDet):
             V_me=Function(FunctionSpace(MEmodel_.mesh, "CG", 1))
         )
         potential_ref.rename("v_ref", "v_ref")
-        potential_me.vector()[:] = potential_ref.vector().array()[:]
+        potential_me.vector()[:] = potential_ref.vector().get_local()[:]
 
         MEmodel_.activeforms.update_activationTime(
             potential_n=potential_me, comm=meshME.mesh.mpi_comm()
@@ -145,9 +147,8 @@ def run_isotonic_EM(IODet, SimDet):
             F_ActF << MEmodel_.GetSActive()
 
         cnt += 1
-    # tpt = np.arange(0, len(load_array))*dt
 
-    return  # tpt, active_load_array, load_array, lbda_arr, activeforms.matparams, uflforms.matparams
+    return  
 
 
 class createmesh(object):
@@ -321,7 +322,7 @@ class mechanics(object):
             "mesh": mesh,
             "Threshold_Potential": 0.9,
             "growth_tensor": None,
-            "HomogenousActivation": SimDet_["HomogenousActivation"],
+            "HomogenousActivation": SimDet["HomogenousActivation"],
         }
         activeparams.update(active_mat_input)
 
@@ -402,6 +403,7 @@ class mechanics(object):
 
     def GetSActive(self):
         Sactive = self.activeforms.PK2StressTensor()
+        i, j = ufl.indices(2)
         Sactive_ = project(self.f0[i] * Sactive[i, j] * self.f0[j], self.QDG)
         Sactive_.rename("Sact", "Sact")
 
