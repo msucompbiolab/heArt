@@ -7,7 +7,7 @@ import sys
 
 sys.path.append("/mnt/Research")
 
-from heArt.src.sim_protocols.uniaxial_passive_stretch import (
+from heArt.src.sim_protocols.run_uniaxial_passive_stretch import (
     run_uniaxial_test as run_uniaxial_test,
 )
 from heArt.src.bmark_analytical.Holzapfel_uniaxial_stretching import (
