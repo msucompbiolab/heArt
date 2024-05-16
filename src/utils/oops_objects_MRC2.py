@@ -180,19 +180,19 @@ class biventricle_mesh(object):
         self.s0 = self.s0 / sqrt(inner(self.s0, self.s0))
         self.n0 = self.n0 / sqrt(inner(self.n0, self.n0))
 
-        self.matid = CellFunction("size_t", self.mesh)
+        self.matid = MeshFunction('size_t', self.mesh, 3, self.mesh.domains()) 
         if f.has_dataset(casename + "/" + "matid"):
             f.read(self.matid, casename + "/" + "matid")
         else:
             self.matid.set_all(0)
 
-        self.AHAid = CellFunction("size_t", self.mesh)
+        self.AHAid = MeshFunction('size_t', self.mesh, 3, self.mesh.domains()) 
         if f.has_dataset(casename + "/" + "AHAid"):
             f.read(self.AHAid, casename + "/" + "AHAid")
         else:
             self.AHAid.set_all(0)
 
-        EpiBCid = FacetFunction("size_t", self.mesh)
+        EpiBCid = MeshFunction('size_t', self.mesh, 2, self.mesh.domains()) 
         if f.has_dataset(casename + "/" + "EpiBCid_Corr"):
             f.read(EpiBCid, casename + "/" + "EpiBCid_Corr")
         else:

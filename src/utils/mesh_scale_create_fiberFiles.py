@@ -3,6 +3,7 @@ import sys, os
 sys.path.append("/home/fenics/shared/")
 
 from dolfin import *
+import dolfin
 
 # from addfiber_matid import *
 import vtk_py3

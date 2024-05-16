@@ -334,9 +334,9 @@ class MEmodel(object):
 
         f.write(self.Mesh.matid, "UnloadMesh" + "/" + "matid")
 
-        # np.savez(outfolder+"Udata.npz", f0_me_Gauss=f0_me_Gauss.vector().array()[:], \
-        #                               s0_me_Gauss=s0_me_Gauss.vector().array()[:], \
-        #                               n0_me_Gauss=n0_me_Gauss.vector().array()[:], \
+        # np.savez(outfolder+"Udata.npz", f0_me_Gauss=f0_me_Gauss.vector().get_local()[:], \
+        #                               s0_me_Gauss=s0_me_Gauss.vector().get_local()[:], \
+        #                               n0_me_Gauss=n0_me_Gauss.vector().get_local()[:], \
         #        )
         # File(outfolder+"facetboundaries.pvd") << self.facetboundaries_me
         # File(outfolder+"mesh.pvd") << self.mesh_me
@@ -370,14 +370,14 @@ class MEmodel(object):
             W.sub(0).sub(2), Expression(("0.0"), degree=2), facetboundaries, topid
         )
 
-        endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
+        #endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
 
-        bcedge = DirichletBC(
-            W.sub(0),
-            Expression(("0.0", "0.0", "0.0"), degree=0),
-            endoring,
-            method="pointwise",
-        )
+        #bcedge = DirichletBC(
+        #    W.sub(0),
+        #    Expression(("0.0", "0.0", "0.0"), degree=0),
+        #    endoring,
+        #    method="pointwise",
+        #)
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             bcs = [bctop]
         else:
@@ -842,8 +842,8 @@ class MEmodel(object):
         eCC = Function(fiberFS)
         eRR = Function(fiberFS)
         eLL = Function(fiberFS)
-        eCC.vector()[:] = eCC_ED.vector().array()[:]
-        eRR.vector()[:] = eRR_ED.vector().array()[:]
-        eLL.vector()[:] = eLL_ED.vector().array()[:]
+        eCC.vector()[:] = eCC_ED.vector().get_local()[:]
+        eRR.vector()[:] = eRR_ED.vector().get_local()[:]
+        eLL.vector()[:] = eLL_ED.vector().get_local()[:]
 
         return eCC, eRR, eLL, deformedMesh, deformedBoundary
