@@ -1,14 +1,15 @@
 import sys, pdb
 from dolfin import *
 
-sys.path.append("/home/ziaeirad")
 sys.path.append("/mnt/Research")
+
 from heArt.src.sim_protocols.run_BiV_Isovolumic import (
     run_BiV_Isovolumic as run_BiV_Isovolumic,
 )
-#from heArt.src.postprocessing.postprocessdataBiV2 import (
+
+# from heArt.src.postprocessing.postprocessdataBiV2 import (
 #    postprocessdata as postprocessdata,
-#)
+# )
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
