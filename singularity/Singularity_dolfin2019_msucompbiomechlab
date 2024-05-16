@@ -1,0 +1,142 @@
+Bootstrap: docker
+FROM: quay.io/fenicsproject/stable:current
+#From: quay.io/dolfinadjoint/pyadjoint:latest
+#From: quay.io/fenicsproject/stable:2017.1.0
+#FROM quay.io/fenicsproject/stable:2016.1.0
+#FROM quay.io/fenicsproject/stable:2016.2.0
+#FROM quay.io/fenicsproject/stable:2017.2.0
+#FROM quay.io/fenicsproject/stable:current
+
+
+%post -c /bin/bash
+    # Setup a very minimal bashrc file
+    mkdir -p /opt
+    echo 'PS1="Singularity \w> "' > /opt/bashrc
+
+    #################### INSTALLING CMAKE #################################################################################
+    #apt purge cmake
+    # Define CMake version
+    CMAKE_VERSION=3.13.0
+
+    # Download and install CMake
+    cd /tmp
+    wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}.tar.gz
+    tar -xzvf cmake-${CMAKE_VERSION}.tar.gz
+    cd cmake-${CMAKE_VERSION}
+    ./bootstrap
+    make -j$(nproc)
+    make install
+    ########################################################################################################################
+
+
+    apt-get install python3 python3-dev
+    ######################## INSTALLING VTK ################################################################################
+    apt-get update \
+        && apt-get install --yes --no-install-recommends \
+           wget cmake build-essential \
+           libboost-all-dev \
+           libgl1-mesa-dev libxt-dev \
+        && rm -rf /var/lib/apt/lists/*
+    wget https://gitlab.kitware.com/vtk/vtk/-/archive/v9.2.0/vtk-v9.2.0.tar.gz \
+        && tar xf vtk-v9.2.0.tar.gz \
+        && cmake -Hvtk-v9.2.0 -Bvtk-v9.2.0/build \
+                 -DCMAKE_BUILD_TYPE:STRING=Release \
+                 -DVTK_BUILD_SHARED_LIBS:BOOL=ON \
+                 -DVTK_WRAP_PYTHON:BOOL=ON \
+                 -DVTK_PYTHON_VERSION:STRING=3 \
+                 -DVTK_INSTALL_PYTHON_MODULE_DIR:PATH=/usr/local/lib/python3.6/dist-package \
+        && make -j8 -C vtk-v9.2.0/build install \
+        && rm -rf vtk-v9.2.0.tar.gz vtk-v9.2.0
+
+                 #-DCMAKE_BUILD_TYPE=Release \
+                 #-DBUILD_SHARED_LIBS=ON \
+                 #-DBUILD_DOCUMENTATION=OFF \
+                 #-DBUILD_EXAMPLES=OFF \
+                 #-DBUILD_TESTING=OFF \
+
+    ########################################################################################################################
+
+
+    #################### INSTALLING SUNDIALS #########################################################################
+    wget https://github.com/LLNL/sundials/releases/download/v3.2.1/sundials-3.2.1.tar.gz
+    tar -xf sundials-3.2.1.tar.gz 
+    cd sundials-3.2.1 
+    mkdir build; cd build
+    ls /usr/local
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
+          -DCMAKE_LAPACK_ENABLE=ON \
+          -DMPI_ENABLE=ON \
+          -DOPENMP_ENABLE=ON \
+          -DLAPACK_ENABLE=ON \
+          -DPETSC_ENABLE=ON \
+          -DPETSC_DIR=/usr/local/petsc-64 \
+          ..
+    make 
+    make install         
+    ########################################################################################################################
+
+
+#   # # Install fenics
+    apt-get update
+    apt-get -y install libatlas-base-dev
+    apt-get -y install libglu1
+    apt-get -y install libfontconfig1 libxrender1 libxcursor-dev libxft2 libxinerama1 libexpat1 libsm6 libxext
+    apt-get -y install python3-pip
+    apt-get -y install virtualenv
+    apt-get -y install wget
+    apt-get -y install libyaml-dev
+    #apt-get -y install cmake
+    apt-get -y install make
+    apt-get -y install mpich
+    apt-get -y install valgrind
+    apt-get -y install m4
+    apt-get -y install bison
+    apt-get -y install libopenblas-dev
+    apt-get -y install libopenblas-base
+    apt-get -y install swig
+    apt-get -y install libboost-all-dev
+    apt-get -y install flex
+    apt-get -y install git
+    apt-get -y install gnuplot
+    apt-get -y install vim
+    apt-get -y install gsl-bin
+    apt-get -y install libgsl0-dev
+    apt-get -y install libgsl0ldbl
+    apt-get -y install python3-future python3-numpy python3-scipy python3-matplotlib; apt-get clean 
+    pip3 install --user pyquaternion
+
+    ##################### INSTALLING FENICSCHTOOLS #########################################################################
+    wget https://github.com/mikaem/fenicstools/archive/2019.1.tar.gz \
+        && tar xf 2019.1.tar.gz \
+        && cd fenicstools-2019.1 \
+        && python3 setup.py install --prefix=/usr/local \
+        && cd ..
+    ########################################################################################################################
+
+    ##################### INSTALL GMSH   ###################################################################################
+    wget http://gmsh.info/bin/Linux/gmsh-4.12.0-Linux64.tgz \
+        && tar xf gmsh-4.12.0-Linux64.tgz \
+        && cp gmsh-4.12.0-Linux64/bin/gmsh /usr/local/bin/gmsh \
+    ########################################################################################################################
+
+    
+    apt-get update; apt-get -y install gnuplot git; apt-get clean 
+    #rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    
+    #mkdir code
+
+%environment
+    export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.6:/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib
+    export C_INCLUDE_PATH=$C_INCLUDE_PATH:/usr/local/include/vtk-9.2:/usr/include/mpi:/usr/local/include
+    #export PATH=$PATH:/gmsh-2.12.0-Linux/bin
+
+
+
+%runscript
+    echo "Welcome to the Fenics!"
+
+    # Disable annoying sudo message
+    touch ~/.sudo_as_admin_successful
+
+    exec /bin/bash --rcfile /opt/bashrc "$@"
