@@ -49,10 +49,14 @@ def run_isotonic_EM(IODet, SimDet):
     state_obj = State_Variables(meshEP.comm, SimDet)
     state_obj.dt.dt = SimDet["dt"]
 
-    AHAid_ep = MeshFunction('size_t', meshEP.mesh, 3, meshEP.mesh.domains()) #CellFunction("size_t", meshEP.mesh)
+    AHAid_ep = MeshFunction(
+        "size_t", meshEP.mesh, 3, meshEP.mesh.domains()
+    )  # CellFunction("size_t", meshEP.mesh)
     AHAid_ep.set_all(0)
 
-    matid_ep = MeshFunction('size_t', meshEP.mesh, 3, meshEP.mesh.domains()) #CellFunction("size_t", meshEP.mesh)
+    matid_ep = MeshFunction(
+        "size_t", meshEP.mesh, 3, meshEP.mesh.domains()
+    )  # CellFunction("size_t", meshEP.mesh)
     matid_ep.set_all(0)
 
     # Define EP model and solver
@@ -148,7 +152,7 @@ def run_isotonic_EM(IODet, SimDet):
 
         cnt += 1
 
-    return  
+    return
 
 
 class createmesh(object):

@@ -119,10 +119,10 @@ class biventricle_mesh(object):
             "casename": "CRT27",
             "fibre_quad_degree": 4,
             "outputfolder": "../Outputs/",
-            "topid": 7,
-            "LVendoid": 1,
-            "RVendoid": 0,
-            "epiid": 4,
+            "topid": 4,
+            "LVendoid": 2,
+            "RVendoid": 3,
+            "epiid": 1,
         }
 
     def update_parameters(self, params):
@@ -251,9 +251,9 @@ class lv_mesh(object):
             "casename": "CRT27",
             "fibre_quad_degree": 4,
             "outputfolder": "../Outputs/",
-            "topid": 7,
-            "LVendoid": 1,
-            "epiid": 4,
+            "topid": 4,
+            "LVendoid": 3,
+            "epiid": 2,
         }
 
     def update_parameters(self, params):
@@ -285,12 +285,12 @@ class lv_mesh(object):
         f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
 
         deg = self.parameters["fibre_quad_degree"]
-        # VQuadelem = VectorElement(
-        #    "Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default"
-        # )
-        # VQuadelem._quad_scheme = "default"
+        VQuadelem = VectorElement(
+            "Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default"
+        )
+        VQuadelem._quad_scheme = "default"
 
-        VQuadelem = VectorElement("DG", self.mesh.ufl_cell(), degree=0)
+        # VQuadelem = VectorElement("DG", self.mesh.ufl_cell(), degree=0)
         self.fiberFS = FunctionSpace(self.mesh, VQuadelem)
 
         self.f0 = Function(self.fiberFS)

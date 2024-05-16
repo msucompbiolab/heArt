@@ -2,7 +2,8 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/home/ziaeirad")
-sys.path.append("/mnt/Research")
+sys.path.append("/home/ziaeirad/heArt_git")
+
 # from heArt.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
 #    run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 # )
@@ -20,20 +21,20 @@ IODetails = {
     "directory_ep": "../LVMesh/",
     "outputfolder": "./outputs_LVelectromechanics/",
     "folderName": "",
-    "caseID": "LVelectromechanics_EF_sixty2",
+    "caseID": "LVelectromechanics_EF_dev",
     "isLV": True,
 }
 
-contRactility = 250e3
+contRactility = 400e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(120.0),
-        "bff": Constant(29.0),  # 29
-        "bfx": Constant(13.3),  # 13.3
-        "bxx": Constant(26.6),  # 26.6
+        "Cparam": Constant(115.0),
+        "bff": Constant(29.0), #29
+        "bfx": Constant(13.3), #13.3
+        "bxx": Constant(26.6), #26.6
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
@@ -54,7 +55,7 @@ GuccioneParams = {
 }
 
 Circparam = {
-    "Ees_la": 10,
+    "Ees_la": 25, #was 10
     "A_la": 2.67,
     "B_la": 0.019,
     "V0_la": 10,
@@ -66,11 +67,11 @@ Circparam = {
     "Csv": 0.28,
     "Vsa0": 360,
     "Vad0": 40,
-    "Vsv0": 2870.0,  # was 3370.0 -- 1870
-    "Rav": 1500,  # was 500
+    "Vsv0": 2870.0, #was 3370.0 -- 1870
+    "Rav": 1500, #was 500
     "Rsv": 100.0,
-    "Rsa": 18000,
-    "Rad": 85000,  # was 106000
+    "Rsa": 14000, #was 18000
+    "Rad": 40000, #was 106000
     "Rmv": 200.0,
     "V_sv": 3700,
     "V_sa": 740,

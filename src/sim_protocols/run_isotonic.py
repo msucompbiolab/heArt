@@ -121,9 +121,7 @@ def run_isotonic(IODet, SimDet):
 
     # Define Integration domain
     dx = dolfin.dx(mesh, metadata={"quadrature_degree": 4})
-    ds = dolfin.ds(
-        mesh, subdomain_data=sub_domains, metadata={"quadrature_degree": 4}
-    )
+    ds = dolfin.ds(mesh, subdomain_data=sub_domains, metadata={"quadrature_degree": 4})
 
     # Define function space
     Velem = VectorElement("CG", mesh.ufl_cell(), 2, quad_scheme="default")

@@ -138,27 +138,27 @@ class Forms(object):
         area = assemble(1.0 * ds_)
 
         F = self.Fmat()
-        vol_form = (
-            -Constant(1.0 / 3.0)
-            * inner(det(F) * dot(inv(F).T, N), X + u)
-            * (ds(self.parameters["LVendoid"]) + ds(2) + ds(3))
-        )
+        # vol_form = (
+        #    -Constant(1.0 / 3.0)
+        #    * inner(det(F) * dot(inv(F).T, N), X + u)
+        #    * (ds(self.parameters["LVendoid"]) + ds(2) + ds(3))
+        # )
         # vol_form = (
         #    -Constant(1.0 / 3.0)
         #    * inner(det(F) * dot(inv(F).T, N), X)
         #    * ds(self.parameters["LVendoid"])
         # )
 
-        # vol_x = assemble((X[0] + u[0]) * ds(self.parameters["topid"])) / area
-        # vol_y = assemble((X[1] + u[1]) * ds(self.parameters["topid"])) / area
-        # vol_z = assemble((X[2] + u[2]) * ds(self.parameters["topid"])) / area
-        # b = Constant((vol_x, vol_y, vol_z))
+        vol_x = assemble((X[0] + u[0]) * ds(self.parameters["topid"])) / area
+        vol_y = assemble((X[1] + u[1]) * ds(self.parameters["topid"])) / area
+        vol_z = assemble((X[2] + u[2]) * ds(self.parameters["topid"])) / area
+        b = Constant((vol_x, vol_y, vol_z))
 
-        # vol_form = (
-        #     -Constant(1.0 / 3.0)
-        #     * inner(det(F) * dot(inv(F).T, N), X + u - b)
-        #     * ds(self.parameters["LVendoid"])
-        # )
+        vol_form = (
+            -Constant(1.0 / 3.0)
+            * inner(det(F) * dot(inv(F).T, N), X + u - b)
+            * ds(self.parameters["LVendoid"])
+        )
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
 
     def springbc(self):  # for v_base computation

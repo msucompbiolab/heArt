@@ -21,7 +21,7 @@ from ..utils.oops_objects_MRC2 import exportfiles
 # from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
 
 from ..ep.EPmodel import EPmodel
-from ..mechanics.MEmodel_pctrl_ import MEmodel
+from ..mechanics.MEmodel_pctrl import MEmodel
 from .circ import CLmodel
 
 # from ..mechanics.volume_ca import MeshModifier
@@ -305,31 +305,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     EDPtol = default_params["EDPtol"]
     preinc = default_params["preinc"]
 
-    printout("volume before = " + str(MEmodel_.GetVolumeComputation()), comm_me)
     it = 0
     while 1:
-        MEmodel_.LVCavitypres.pres += 50.0
-        # f_p, j_p, bc_p = MEmodel_.Problem()
-        # j_t = assemble(j_p)
-        # f_t = assemble(f_p)
-
-        # printout("jac: size = " + str(j_t.size(0)) + " " + str(j_t.size(1)), comm_me)
-        # printout("f: row0 = " + str(j_t.getrow(10)), comm_me)
-
-        # printout(
-        #    "f: nan = "
-        #    + str(np.isnan(f_t.get_local()).any())
-        #    + " f: size = "
-        #    + str(f_t.size()),
-        #    comm_me,
-        # )
-        # printout("f: all elements = " + str(f_t.get_local()), comm_me)
-        # printout("f: non zero = " + str(np.count_nonzero(f_t.get_local())), comm_me)
-        # printout("f: min = " + str(np.min(f_t.get_local())), comm_me)
-        # printout("f: max = " + str(np.max(f_t.get_local())), comm_me)
-        # import pdb
-
-        # pdb.set_trace()
+        MEmodel_.LVCavitypres.pres += 100.0
 
         solver_elas.solvenonlinear()
 
