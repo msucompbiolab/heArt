@@ -1,4 +1,5 @@
 from dolfin import *
+import dolfin
 
 
 class HolzapfelOgden(object):
