@@ -35,7 +35,7 @@ class MEmodel(object):
 
         self.mesh_me = self.Mesh.mesh
         self.facetboundaries_me = self.Mesh.facetboundaries
-        # self.edgeboundaries_me = self.Mesh.edgeboundaries
+        self.edgeboundaries_me = self.Mesh.edgeboundaries
 
         self.ds_me = self.Mesh.ds
         self.dx_me = self.Mesh.dx
@@ -386,7 +386,7 @@ class MEmodel(object):
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 
         facetboundaries = self.facetboundaries_me
-        # edgeboundaries = self.edgeboundaries_me
+        edgeboundaries = self.edgeboundaries_me
         topid = self.SimDet["topid"]
         W = self.W
 
@@ -397,31 +397,31 @@ class MEmodel(object):
             topid,
         )
 
-        bc_5 = DirichletBC(
-            W.sub(0),
-            Expression(("0.0", "0.0", "0.0"), degree=0),
-            facetboundaries,
-            5,
-        )
-        bc_6 = DirichletBC(
-            W.sub(0), Expression(("0.0", "0.0", "0.0"), degree=0), facetboundaries, 6
-        )
-        bc_10 = DirichletBC(
-            W.sub(0), Expression(("0.0", "0.0", "0.0"), degree=0), facetboundaries, 10
-        )
+        # bc_5 = DirichletBC(
+        #    W.sub(0),
+        #    Expression(("0.0", "0.0", "0.0"), degree=0),
+        #    facetboundaries,
+        #    5,
+        # )
+        # bc_6 = DirichletBC(
+        #    W.sub(0), Expression(("0.0", "0.0", "0.0"), degree=0), facetboundaries, 6
+        # )
+        # bc_10 = DirichletBC(
+        #    W.sub(0), Expression(("0.0", "0.0", "0.0"), degree=0), facetboundaries, 10
+        # )
 
-        #        endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
-        #        bcedge = DirichletBC(
-        #            W.sub(0),
-        #            Expression(("0.0", "0.0", "0.0"), degree=0),
-        #            endoring,
-        #            method="pointwise",
-        #        )
+        # endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
+        # bcedge = DirichletBC(
+        #    W.sub(0),
+        #    Expression(("0.0", "0.0", "0.0"), degree=0),
+        #    endoring,
+        #    method="pointwise",
+        # )
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             bcs = []
         else:
-            bcs = [bctop, bc_5, bc_6, bc_10]
+            bcs = [bctop]
 
         return bcs
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
@@ -667,13 +667,11 @@ class MEmodel(object):
         comm_me = self.mesh_me.mpi_comm()
         Fp_me = uflforms.LVcavitypres()
         Fp = derivative(Fp_me, w_me, wtest_me)
-        # B  = Constant((0.0, 0.0, 0.0))
-        # Fp = dot(B, v_me) * dx_me
 
         # Fp = self.LVCavitypres * inner(n_me, v_me) * ds_me(LVendoid)
         # Fp = derivative(self.LVCavitypres * inner(n_me, u_me) * ds_me(LVendoid), w_me, wtest_me)
 
-        Ftotal = F1 + Fp  # + F4
+        Ftotal = F1 + Fp + F4
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             # F3 = -Kspring * inner(u_me, v_me) * ds_me(epiid)
@@ -718,7 +716,7 @@ class MEmodel(object):
             )
 
             F5 = derivative(Wrigid, w_me, wtest_me) * dx_me
-            ## F5 = derivative(Wrigid, w_me, wtest_me)*ds_me(LVendoid)
+            # F5 = derivative(Wrigid, w_me, wtest_me)*ds_me(LVendoid)
             Ftotal += F5
 
         lhs_u = p_me * J * inv(Fmat) * inv(Fmat.T)
@@ -740,7 +738,7 @@ class MEmodel(object):
             * dx_me
         )
 
-        Fs = res_u + res_p - stab
+        Fs = -stab
         Ftotal += Fs
 
         # cell_volume = CellVolume(mesh_me)
@@ -943,11 +941,11 @@ class MEmodel(object):
         isLV = self.isLV
 
         meshDispFunc = VectorFunctionSpace(mesh_me, "CG", 1)
-        # VQuadelem_me = VectorElement(
-        #    "Quadrature", mesh_me.ufl_cell(), degree=deg_me, quad_scheme="default"
-        # )
-        VQuadelem_me = VectorElement("DG", mesh_me.ufl_cell(), degree=0)
-        # VQuadelem_me._quad_scheme = "default"
+        VQuadelem_me = VectorElement(
+            "Quadrature", mesh_me.ufl_cell(), degree=deg_me, quad_scheme="default"
+        )
+        # VQuadelem_me = VectorElement("DG", mesh_me.ufl_cell(), degree=0)
+        VQuadelem_me._quad_scheme = "default"
         fiberFS = FunctionSpace(mesh_me, VQuadelem_me)
 
         meshDisplacement = project(self.GetDisplacement(), meshDispFunc)

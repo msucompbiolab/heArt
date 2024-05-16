@@ -4,7 +4,9 @@ matplotlib.use('Agg')
 from matplotlib import pylab as plt
 import sys
 
-sys.path.append("/mnt/Research")
+# sys.path.append("/mnt/Research")
+sys.path.append("/home/ziaeirad")
+sys.path.append("/home/ziaeirad/heArt_git")
 
 from heArt.src.sim_protocols.run_isotonic_EM import run_isotonic_EM as run_isotonic_EM
 

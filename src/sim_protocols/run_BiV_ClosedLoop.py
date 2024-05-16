@@ -398,9 +398,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     potential_me = Function(FunctionSpace(MEmodel_.mesh_me, "CG", 1))
     writecnt = 0
-    F_EP = File(outputfolder + folderName + "EP.pvd")  # Temp
-    F_Disp = File(outputfolder + folderName + "Disp.pvd")  # Temp
-    F_ActF = File(outputfolder + folderName + "ActF.pvd")
+    # F_EP = File(outputfolder + folderName + "EP.pvd")  # Temp
+    # F_Disp = File(outputfolder + folderName + "Disp.pvd")  # Temp
+    # F_ActF = File(outputfolder + folderName + "ActF.pvd")
 
     while 1:
         if state_obj.cycle > stop_iter:

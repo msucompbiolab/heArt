@@ -214,17 +214,6 @@ class EPmodel(object):
             if state_obj.t >= time and (state_obj.t <= time + duration):
                 fstim.iStim = 0.3
 
-        # Update Stimulus variable
-        state_obj = self.parameters["state_obj"]
-        pace_time_array = self.parameters["pacing_timing"]
-
-        for fstim, pace_time in zip(self.fstim_array, pace_time_array):
-            fstim.iStim = 0.0
-            time = pace_time[0]
-            duration = pace_time[1]
-            if state_obj.t >= time and (state_obj.t <= time + duration):
-                fstim.iStim = 0.3
-
     def Reset(self):
         self.w_ep.assign(self.w_n_ep)
 
