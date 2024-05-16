@@ -6,7 +6,7 @@ from mpi4py import MPI as pyMPI
 from dolfin import *
 from fenicstools import *
 
-import vtk_py
+import vtk_py3
 import vtk
 
 from ..utils.oops_objects_MRC2 import printout

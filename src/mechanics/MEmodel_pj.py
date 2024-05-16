@@ -9,8 +9,8 @@ from ..utils.oops_objects_MRC2 import PV_Elas
 from ..utils.oops_objects_MRC2 import update_mesh
 from ..utils.oops_objects_MRC2 import printout
 from ..utils.edgetypebc import *
-from forms_MRC2 import Forms
-from activeforms_MRC2 import activeForms 
+from .forms_MRC2 import Forms
+from .activeforms_MRC2 import activeForms 
 from ..utils.mesh_partitionMeshforEP_J import defCPP_Matprop, defCPP_Matprop_DIsch
 from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
 
@@ -49,8 +49,8 @@ class MEmodel(object):
         self.s0_me = s0_me_Gauss
         self.n0_me = n0_me_Gauss
 
-    	self.LVCavityvol = Expression(("vol"), vol=0.0, degree=2)
-    	self.RVCavityvol = Expression(("vol"), vol=0.0, degree=2)
+        self.LVCavityvol = Expression(("vol"), vol=0.0, degree=2)
+        self.RVCavityvol = Expression(("vol"), vol=0.0, degree=2)
 
         self.isincomp = SimDet["GiccioneParams"]["incompressible"]
 
@@ -84,23 +84,23 @@ class MEmodel(object):
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
         if(self.isincomp): 
             if(self.isLV):
-                if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
+                if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
                     self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Qelem, Relem]))
                 else:
                     self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Qelem, Relem, VRelem]))
             else:
-                if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
+                if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
                     self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Qelem, Relem, Relem]))
                 else:
                     self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Qelem, Relem, Relem, VRelem]))
         else:
             if(self.isLV):
-                if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
+                if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
                     self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Relem]))
                 else:
                     self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Relem, VRelem]))
             else:
-                if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
+                if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
                     self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Relem, Relem]))
                 else:
                     self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Relem, Relem, VRelem]))
@@ -122,7 +122,7 @@ class MEmodel(object):
 
     def default_parameters(self):
         return {
-		"probeloc": [3.5, 0.0, -2.0]
+        "probeloc": [3.5, 0.0, -2.0]
                 };
 
     def unloading(self, params):
@@ -165,7 +165,7 @@ class MEmodel(object):
             printout("Pressure = " +  str(LVP) + " Vol = " + str(LVV), comm_me)
 
             if(MPI.rank(comm_me) == 0):
-                print >> fdataPV, it, LVP, LVV
+                print(it, LVP, LVV, file=fdataPV)
 
             hdf.write(self.mesh_me, "unloading"+str(it)+"/mesh")
             hdf.write(self.GetDisplacement(), "unloading"+str(it)+"/u_loading", it_load)
@@ -177,29 +177,29 @@ class MEmodel(object):
                 LVV = self.GetLVV()
 
                 if(LVP > EDP):
-                    print "Decrease load step"
+                    print("Decrease load step")
                     self.LVCavityvol.vol -= volinc
                     volinc = volinc/2.0
                     continue;
-				
+                
                 printout("Loading iteration number = " + str(it_load), comm_me)
                 printout("Pressure = " +  str(LVP) + " Vol = " + str(LVV), comm_me)
 
                 if(MPI.rank(comm_me) == 0):
-                    print >> fdataPV, it, LVP, LVV
+                    print(it, LVP, LVV, file=fdataPV)
 
                 hdf.write(self.GetDisplacement(), "unloading"+str(it)+"/u_loading", it_load)
 
-                if(abs(LVP - EDP) < EDPtol):			
-					#Get Residual
+                if(abs(LVP - EDP) < EDPtol):            
+                    #Get Residual
                     x = project(SpatialCoordinate(self.mesh_me) + self.GetDisplacement(), self.V_CG1).vector()
                     res_new = norm(x - xtarget, 'L2')
                     dres = abs(res_new - res)
                     res = res_new
                     printout("Residual = " + str(res) + " dResidual = " + str(dres), comm_me)
 
-					# Reset volume increment
-                    volinc = default_params["volinc"]	
+                    # Reset volume increment
+                    volinc = default_params["volinc"]   
                     break;
                 it_load += 1
 
@@ -211,20 +211,20 @@ class MEmodel(object):
             else:
                 dispCG1 = project(-alpha*self.GetDisplacement(), self.V_CG1)
                 newmesh, newboundaries = update_mesh(targetmesh, dispCG1, self.facetboundaries_me)
-	
-		        #Update mesh
+    
+                #Update mesh
                 self.Reset()
                 self.mesh_me.coordinates()[:, 0] = newmesh.coordinates()[:, 0]
                 self.mesh_me.coordinates()[:, 1] = newmesh.coordinates()[:, 1]
                 self.mesh_me.coordinates()[:, 2] = newmesh.coordinates()[:, 2]
                 self.facetboundaries_me.set_values(newboundaries.array())
 
-		        # Update LV endo surface area for imposing BC
+                # Update LV endo surface area for imposing BC
                 dsendo = self.ds_me(LVendoid, domain = self.mesh_me, subdomain_data = self.facetboundaries_me)
                 self.LVendo_area_me.val = assemble(Constant(1.0) * dsendo, form_compiler_parameters={"representation":"uflacs"})
                 self.mesh_me.bounding_box_tree().build(self.mesh_me)
 
-		        #Update fiber
+                #Update fiber
                 default_params.update({"meshName":"unloadfiber_"+str(it)})
                 f0_me_Gauss, s0_me_Gauss, n0_me_Gauss, deformedMesh, deformedBoundary = self.GetDeformedBasis(default_params)
                 self.f0_me = f0_me_Gauss
@@ -235,23 +235,23 @@ class MEmodel(object):
                 self.s0_me = self.s0_me/sqrt(inner(self.s0_me, self.s0_me))
                 self.n0_me = self.n0_me/sqrt(inner(self.n0_me, self.n0_me))
 
-				# Restate problem
+                # Restate problem
                 self.Ftotal, self.Jac, self.bcs = self.Problem()
 
                 it += 1
 
-		# Write mesh
+        # Write mesh
         f = HDF5File(comm_me, outfolder + "UnloadMesh.hdf5", 'w')
         f.write(self.mesh_me, "UnloadMesh")
         f.close()
-		
+        
         f = dolfin.HDF5File(comm_me, outfolder + "UnloadMesh.hdf5", 'a') 
         f.write(self.facetboundaries_me, "UnloadMesh"+"/"+"facetboundaries") 
         f.write(self.edgeboundaries_me, "UnloadMesh"+"/"+"edgeboundaries") 
         f.write(f0_me_Gauss, "UnloadMesh"+"/"+"eF") 
         f.write(s0_me_Gauss, "UnloadMesh"+"/"+"eS") 
         f.write(n0_me_Gauss, "UnloadMesh"+"/"+"eN") 
-        pdb.set_trace()  # Execution will pause here	
+        pdb.set_trace()  # Execution will pause here    
         if(hasattr(self.Mesh, "eC0")):
             f.write(self.Mesh.eC0, "UnloadMesh"+"/"+"eC") 
         if(hasattr(self.Mesh, "eL0")):
@@ -284,12 +284,12 @@ class MEmodel(object):
         endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
 
         bcedge = DirichletBC(W.sub(0), Expression(("0.0", "0.0", "0.0"), degree = 0), endoring, method="pointwise")
-    	
-        if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
+        
+        if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
             bcs = [bctop]
         else:
-        	#bcs = [bctop]
-        	bcs = [bctop]
+            #bcs = [bctop]
+            bcs = [bctop]
         #bcs = [] # changing top constraint
 
         return bcs 
@@ -312,21 +312,21 @@ class MEmodel(object):
         s0_me = self.s0_me
         n0_me = self.n0_me
 
-    	N_me = FacetNormal(mesh_me)
-    	W_me = self.W
-    	Q_me = self.Q
-    	TF_me = self.TF
+        N_me = FacetNormal(mesh_me)
+        W_me = self.W
+        Q_me = self.Q
+        TF_me = self.TF
 
-    	w_me = self.w_me
-    	w_me_n = self.w_me_n
-    	dw_me = self.dw_me
-    	wtest_me = self.wtest_me
+        w_me = self.w_me
+        w_me_n = self.w_me_n
+        dw_me = self.dw_me
+        wtest_me = self.wtest_me
 
-    	bcs_elas = self.set_BCs() 
+        bcs_elas = self.set_BCs() 
 
         if(isincomp): 
             if(self.isLV):
-                if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
+                if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
                     du, dp, dlv_pendo = TrialFunctions(W_me)
                     (u_me, p_me, lv_pendo) = split(w_me)
                     (u_me_n, p_me_n, lv_pendo_n) = split(w_me_n)
@@ -343,9 +343,9 @@ class MEmodel(object):
                     rv_pendo = []
                     LVendo_comp = 2
                     RVendo_comp = 1000
-	
+    
             else:
-                if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
+                if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
                     du, dp, dlv_pendo, drv_pendo = TrialFunctions(W_me)
                     (u_me, p_me, lv_pendo, rv_pendo) = split(w_me)
                     (u_me_n, p_me_n, lv_pendo_n, rv_pendo_n) = split(w_me_n)
@@ -360,40 +360,40 @@ class MEmodel(object):
                     (v_me, q_me, lv_qendo, rv_qendo, cq) = TestFunctions(W_me)
                     LVendo_comp = 2
                     RVendo_comp = 3
-				
+                
         else:
-			if(self.isLV):
-				if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
-					du, dlv_pendo = TrialFunctions(W_me)
-					(u_me, lv_pendo) = split(w_me)
-					(v_me, lv_qendo) = TestFunctions(W_me)
-					p_me = Function(Q_me)
-					rv_pendo = []
-					LVendo_comp = 1
-					RVendo_comp = 1000
-				else:
-					du, dlv_pendo, dc = TrialFunctions(W_me)
-					(u_me, lv_pendo, c_me) = split(w_me)
-					(v_me, lv_qendo, cq) = TestFunctions(W_me)
-					p_me = Function(Q_me)
-					rv_pendo = []
-					LVendo_comp = 1
-					RVendo_comp = 1000
-			else:
-				if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
-					du, dlv_pendo, drv_pendo = TrialFunctions(W_me)
-					(u_me, lv_pendo, rv_pendo) = split(w_me)
-					(v_me, lv_qendo, rv_qendo) = TestFunctions(W_me)
-					p_me = Function(Q_me)
-					LVendo_comp = 1
-					RVendo_comp = 2
-				else:
-					du, dlv_pendo, drv_pendo, dc = TrialFunctions(W_me)
-					(u_me, lv_pendo, rv_pendo, c_me) = split(w_me)
-					(v_me, lv_qendo, rv_qendo, cq) = TestFunctions(W_me)
-					p_me = Function(Q_me)
-					LVendo_comp = 1
-					RVendo_comp = 2
+            if(self.isLV):
+                if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
+                    du, dlv_pendo = TrialFunctions(W_me)
+                    (u_me, lv_pendo) = split(w_me)
+                    (v_me, lv_qendo) = TestFunctions(W_me)
+                    p_me = Function(Q_me)
+                    rv_pendo = []
+                    LVendo_comp = 1
+                    RVendo_comp = 1000
+                else:
+                    du, dlv_pendo, dc = TrialFunctions(W_me)
+                    (u_me, lv_pendo, c_me) = split(w_me)
+                    (v_me, lv_qendo, cq) = TestFunctions(W_me)
+                    p_me = Function(Q_me)
+                    rv_pendo = []
+                    LVendo_comp = 1
+                    RVendo_comp = 1000
+            else:
+                if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
+                    du, dlv_pendo, drv_pendo = TrialFunctions(W_me)
+                    (u_me, lv_pendo, rv_pendo) = split(w_me)
+                    (v_me, lv_qendo, rv_qendo) = TestFunctions(W_me)
+                    p_me = Function(Q_me)
+                    LVendo_comp = 1
+                    RVendo_comp = 2
+                else:
+                    du, dlv_pendo, drv_pendo, dc = TrialFunctions(W_me)
+                    (u_me, lv_pendo, rv_pendo, c_me) = split(w_me)
+                    (v_me, lv_qendo, rv_qendo, cq) = TestFunctions(W_me)
+                    p_me = Function(Q_me)
+                    LVendo_comp = 1
+                    RVendo_comp = 2
 
 
         self.t_a = Function(self.Quad)
@@ -422,10 +422,10 @@ class MEmodel(object):
              "sheet": s0_me,
              "sheet-normal": n0_me,
              "growth_tensor": None,
-			 "material model": GuccioneParams["Passive model"],
-	    	 "material params": GuccioneParams["Passive params"],
+             "material model": GuccioneParams["Passive model"],
+             "material params": GuccioneParams["Passive params"],
              "incompressible" : GuccioneParams["incompressible"],
-	    	 "LVendo_area" : LVendo_area_me
+             "LVendo_area" : LVendo_area_me
             }
 
         uflforms = Forms(params)
@@ -446,16 +446,16 @@ class MEmodel(object):
                         "growth_tensor": None,
                        }
 
-        if("Active model" in GuccioneParams.keys()):
-            	activeparams.update({"material model" : GuccioneParams["Active model"]})
+        if("Active model" in list(GuccioneParams.keys())):
+                activeparams.update({"material model" : GuccioneParams["Active model"]})
 
-        if("Active params" in GuccioneParams.keys()):
-            	activeparams.update({"material params" : GuccioneParams["Active params"]})
+        if("Active params" in list(GuccioneParams.keys())):
+                activeparams.update({"material params" : GuccioneParams["Active params"]})
 
-        if("HomogenousActivation" in GuccioneParams.keys()):
-            	activeparams.update({"HomogenousActivation" : GuccioneParams["HomogenousActivation"]})
+        if("HomogenousActivation" in list(GuccioneParams.keys())):
+                activeparams.update({"HomogenousActivation" : GuccioneParams["HomogenousActivation"]})
         else:
-            	activeparams.update({"HomogenousActivation" : True})
+                activeparams.update({"HomogenousActivation" : True})
 
 
         if self.SimDet["Ischemia"] == True:
@@ -481,7 +481,7 @@ class MEmodel(object):
         Wp_me = uflforms.PassiveMatSEF()
         LV_Wvol = uflforms.LVV0constrainedE()
         if(not self.isLV):
-        	RV_Wvol = uflforms.RVV0constrainedE()
+            RV_Wvol = uflforms.RVV0constrainedE()
 
         Sactive = activeforms.PK2StressTensor()
        
@@ -493,29 +493,29 @@ class MEmodel(object):
 
         F1 = derivative(Wp_me, w_me, wtest_me)*dx_me
         if(self.isLV):
-        	F2 = derivative(LV_Wvol, w_me, wtest_me)
+            F2 = derivative(LV_Wvol, w_me, wtest_me)
         else:
-        	F2 = derivative(LV_Wvol + RV_Wvol, w_me, wtest_me)
+            F2 = derivative(LV_Wvol + RV_Wvol, w_me, wtest_me)
 
-        if("active_region" in self.SimDet.keys() and self.SimDet["active_region"]):
-			print "Active region = ", self.SimDet["active_region"]
-			region_cnt = 0
-			for regionid in self.SimDet["active_region"]:
-				if(region_cnt == 0):
-					F4 = inner(Fmat*Sactive, grad(v_me))*(dx_me(int(regionid)))
-					print "Assigning active stress to ", regionid
-				else:
-					F4 += inner(Fmat*Sactive, grad(v_me))*(dx_me(int(regionid)))
-					print "Assigning active stress to ", regionid
+        if("active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]):
+            print("Active region = ", self.SimDet["active_region"])
+            region_cnt = 0
+            for regionid in self.SimDet["active_region"]:
+                if(region_cnt == 0):
+                    F4 = inner(Fmat*Sactive, grad(v_me))*(dx_me(int(regionid)))
+                    print("Assigning active stress to ", regionid)
+                else:
+                    F4 += inner(Fmat*Sactive, grad(v_me))*(dx_me(int(regionid)))
+                    print("Assigning active stress to ", regionid)
 
-				region_cnt += 1
+                region_cnt += 1
 
         else:
-			F4 = inner(Fmat*Sactive, grad(v_me))*dx_me
+            F4 = inner(Fmat*Sactive, grad(v_me))*dx_me
 
         Ftotal = F1 + F2 + F4  
 
-        if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
+        if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
             F3 = -Kspring*inner(u_me,v_me)*ds_me(epiid) 
             Ftotal += F3
         else:
@@ -534,21 +534,21 @@ class MEmodel(object):
         #Jac6 = derivative(F6, w_me, dw_me)
         Jac = Jac1 + Jac2 + Jac4 
 
-        if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
+        if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
             Jac3 = derivative(F3, w_me, dw_me) 
             Jac += Jac3
         else:
             Jac5 = derivative(F5, w_me, dw_me)
             Jac += Jac5
 
-		# Initialize LV cavity volume
+        # Initialize LV cavity volume
         self.LVCavityvol.vol = uflforms.LVcavityvol()
         if(not self.isLV):
-			self.RVCavityvol.vol = uflforms.RVcavityvol()
+            self.RVCavityvol.vol = uflforms.RVcavityvol()
 
         if(not self.isLV):
-				self.RVP_cav = uflforms.RVcavitypressure()
-				self.RVV_cav = uflforms.RVcavityvol()
+                self.RVP_cav = uflforms.RVcavitypressure()
+                self.RVV_cav = uflforms.RVcavityvol()
 
         return Ftotal, Jac, bcs_elas
 
@@ -559,104 +559,104 @@ class MEmodel(object):
                         "F": self.Ftotal,
                         "w": self.w_me,
                         "boundary_conditions": self.bcs,
-            	        "Type": 0,  
-            	        "mesh": self.mesh_me,
-            	        "mode": 1
-            	        }
+                        "Type": 0,  
+                        "mesh": self.mesh_me,
+                        "mode": 1
+                        }
 
-    	if("abs_tol" in self.SimDet.keys()):
-    		solverparams.update({"abs_tol":self.SimDet["abs_tol"]})
-    	if("rel_tol" in self.SimDet.keys()):
-    		solverparams.update({"rel_tol":self.SimDet["rel_tol"]})
+        if("abs_tol" in list(self.SimDet.keys())):
+            solverparams.update({"abs_tol":self.SimDet["abs_tol"]})
+        if("rel_tol" in list(self.SimDet.keys())):
+            solverparams.update({"rel_tol":self.SimDet["rel_tol"]})
  
         solver_eals = NSolver(solverparams)
         return solver_eals
 
     def GetDisplacement(self):
         if(self.isLV):
-            if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
+            if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
                 u, p, lv_pendo = self.w_me.split(deepcopy=True)
                 rv_pendo = []
             else:
                 u, p, lv_pendo, self.c = self.w_me.split(deepcopy=True)
                 rv_pendo = []
         else:
-            if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
-				u, p, lv_pendo, rv_pendo = self.w_me.split(deepcopy=True)
+            if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
+                u, p, lv_pendo, rv_pendo = self.w_me.split(deepcopy=True)
 
             else:
-				u, p, lv_pendo, rv_pendo, self.c = self.w_me.split(deepcopy=True)
+                u, p, lv_pendo, rv_pendo, self.c = self.w_me.split(deepcopy=True)
 
         u.rename("u_", "u_")
         return u
 
     def UpdateVar(self):
-		self.w_me_n.assign(self.w_me)
+        self.w_me_n.assign(self.w_me)
 
-    def Reset(self):	
-		self.w_me.assign(self.w_me_n)
+    def Reset(self):    
+        self.w_me.assign(self.w_me_n)
 
     def GetP(self):
 
-		if(self.isLV):
-			if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
-				u, p, lv_pendo = self.w_me.split(deepcopy=True)
-				rv_pendo = []
-			else:
-				u, p, lv_pendo, self.c = self.w_me.split(deepcopy=True)
-				rv_pendo = []
-		else:
-			if("springbc" in self.SimDet.keys() and self.SimDet["springbc"]):
-				u, p, lv_pendo, rv_pendo = self.w_me.split(deepcopy=True)
-			else:
-				u, p, lv_pendo, rv_pendo, self.c = self.w_me.split(deepcopy=True)
+        if(self.isLV):
+            if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
+                u, p, lv_pendo = self.w_me.split(deepcopy=True)
+                rv_pendo = []
+            else:
+                u, p, lv_pendo, self.c = self.w_me.split(deepcopy=True)
+                rv_pendo = []
+        else:
+            if("springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]):
+                u, p, lv_pendo, rv_pendo = self.w_me.split(deepcopy=True)
+            else:
+                u, p, lv_pendo, rv_pendo, self.c = self.w_me.split(deepcopy=True)
 
-		p.rename("p_", "p_")
-		return p
+        p.rename("p_", "p_")
+        return p
 
 
     def GetFmat(self):
-		return self.uflforms.Fmat()
+        return self.uflforms.Fmat()
 
     def GetFiberstrain(self, F_ref):
-		return self.uflforms.fiberstrain(F_ref=F_ref)
+        return self.uflforms.fiberstrain(F_ref=F_ref)
 
     def GetFiberstrainUL(self):
         F_Identity = Identity(self.GetDisplacement().ufl_domain().geometric_dimension())
         return self.uflforms.fiberstrain(F_ref=F_Identity)
 
     def GetIMP(self):
-		return self.uflforms.IMP()
+        return self.uflforms.IMP()
 
     def GetIMP2(self):
-		return self.uflforms.IMP2()
+        return self.uflforms.IMP2()
 
     def Getfstress(self):
-		return self.uflforms.fiberstress() + self.activeforms.fiberstress()
+        return self.uflforms.fiberstress() + self.activeforms.fiberstress()
 
     def GetFiberNaturalStrain(self, F_ED, basis_dir, AHA_segments):
-		F_n = self.GetFmat()
-		return self.activeforms.CalculateFiberNaturalStrain(F_ = F_n, F_ref = F_ED, e_fiber = basis_dir, VolSeg = AHA_segments)
+        F_n = self.GetFmat()
+        return self.activeforms.CalculateFiberNaturalStrain(F_ = F_n, F_ref = F_ED, e_fiber = basis_dir, VolSeg = AHA_segments)
 
     def GetFiberBiotStrain(self, F_ED, basis_dir, AHA_segments):
-		F_n = self.GetFmat()
-		return self.activeforms.CalculateFiberBiotStrain(F_ = F_n, F_ref = F_ED, e_fiber = basis_dir, VolSeg = AHA_segments)
+        F_n = self.GetFmat()
+        return self.activeforms.CalculateFiberBiotStrain(F_ = F_n, F_ref = F_ED, e_fiber = basis_dir, VolSeg = AHA_segments)
 
     def GetFiberGreenStrain(self, F_ED, basis_dir, AHA_segments):
-		F_n = self.GetFmat()
-		return self.activeforms.CalculateFiberGreenStrain(F_ = F_n, F_ref = F_ED, e_fiber = basis_dir, VolSeg = AHA_segments)
+        F_n = self.GetFmat()
+        return self.activeforms.CalculateFiberGreenStrain(F_ = F_n, F_ref = F_ED, e_fiber = basis_dir, VolSeg = AHA_segments)
 
     def GetLVP(self):
-		return self.uflforms.LVcavitypressure()
+        return self.uflforms.LVcavitypressure()
 
     def GetLVV(self):
-    	return self.uflforms.LVcavityvol()
+        return self.uflforms.LVcavityvol()
 
     def GetRVP(self):
-    	return self.uflforms.RVcavitypressure()
+        return self.uflforms.RVcavitypressure()
 
     def GetRVV(self):
-    	return self.uflforms.RVcavityvol()
+        return self.uflforms.RVcavityvol()
 
     def GetSActive(self):
         Sactive = self.activeforms.PK2StressTensor()
@@ -665,21 +665,20 @@ class MEmodel(object):
         return Sactive_
 
     def GetDeformedBasis(self, params):
-		default_params = {"LVangle":[0,0], "SPangle":[0,0], "RVangle": [0,0], "meshName":'EDfile'}
-		default_params.update(params)
-		LVangle = default_params["LVangle"]
-		SPangle = default_params["SPangle"]
-		RVangle = default_params["RVangle"]
-		meshName = default_params["meshName"]
+        default_params = {"LVangle":[0,0], "SPangle":[0,0], "RVangle": [0,0], "meshName":'EDfile'}
+        default_params.update(params)
+        LVangle = default_params["LVangle"]
+        SPangle = default_params["SPangle"]
+        RVangle = default_params["RVangle"]
+        meshName = default_params["meshName"]
 
-        #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
-    	mesh_me = self.mesh_me
+        mesh_me = self.mesh_me
         facetboundaries_me = self.facetboundaries_me
         deg_me = self.deg_me
         LVendoid = self.SimDet["LVendoid"]
         RVendoid = self.SimDet["RVendoid"]
         epiid = self.SimDet["epiid"]
-		isLV = self.isLV
+        isLV = self.isLV
 
         meshDispFunc = VectorFunctionSpace(mesh_me, "CG", 1)
         VQuadelem_me = VectorElement("Quadrature", 
@@ -695,7 +694,7 @@ class MEmodel(object):
                                                      boundaries = facetboundaries_me)
 
         outputfolder = self.parameters[ "outputfolder"]
-		folderName = self.parameters["foldername"]
+        folderName = self.parameters["foldername"]
 
         EDmeshData = {"epiid": epiid,
              "rvid": RVendoid,
@@ -710,7 +709,7 @@ class MEmodel(object):
              "facets": deformedBoundary,
              "mFileName": outputfolder + folderName + '/deformation_unloadED/' ,
              "isLV": isLV,
-	    	 "meshName": meshName
+             "meshName": meshName
              }
 
         eCC_ED, eLL_ED, eRR_ED = create_EDFibers(EDmeshData)
@@ -723,7 +722,7 @@ class MEmodel(object):
         eRR.vector()[:] = eRR_ED.vector().array()[:]
         eLL.vector()[:] = eLL_ED.vector().array()[:]
 
-		return eCC, eRR, eLL, deformedMesh, deformedBoundary
+        return eCC, eRR, eLL, deformedMesh, deformedBoundary
 
 
 
