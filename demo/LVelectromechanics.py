@@ -1,6 +1,8 @@
 import sys, pdb
 from dolfin import *
 
+sys.path.append("/home/ziaeirad")
+sys.path.append("/home/ziaeirad/heArt_git")
 sys.path.append("/mnt/Research")
 
 from heArt.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
@@ -114,6 +116,8 @@ SimDetails = {
     "isunloading": False,
     "isunloadingonly": False,
     "springbc": 1,
+    "Mechanics Discretization": "P1P1",
+    "ispctrl": True,
 }
 
 # Run Simulation
