@@ -105,7 +105,7 @@ Circparam = {
     "V_RV": 107.18412269,
     "V_pa": 375.714158013,
     "V_RA": 26.1123080465,
-    "stop_iter": 2,
+    "stop_iter": 1,
     # LVAD
     #'Q_lvad_rpm' : 28,
     #'Q_lvad_scale' : 0.0
@@ -126,6 +126,7 @@ SimDetails = {
     "pacing_timing": [[4.0, 20.0]],
     "closedloopparam": Circparam,
     "Ischemia": False,
+    "Mechanics Discretization": "P2P1",
     "isLV": False,
     "topid": 4,
     "LVendoid": 2,
@@ -139,6 +140,6 @@ SimDetails = {
 # Run Simulation
 run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
-postprocessdata(IODet=IODetails, SimDet=SimDetails)
+#postprocessdata(IODet=IODetails, SimDet=SimDetails)
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

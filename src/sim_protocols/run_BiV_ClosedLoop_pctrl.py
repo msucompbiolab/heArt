@@ -21,7 +21,8 @@ from ..utils.oops_objects_MRC2 import exportfiles
 # from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
 
 from ..ep.EPmodel import EPmodel
-from ..mechanics.MEmodel_pctrl import MEmodel
+#from ..mechanics.MEmodel_pctrl import MEmodel
+from ..mechanics.MEmodel3 import MEmodel
 from .circ import CLmodel
 
 # from ..mechanics.volume_ca import MeshModifier

@@ -325,8 +325,6 @@ class lv_mesh(object):
             f.read(self.eR0, casename + "/" + "eR")
             # self.eR0 = self.eC0/sqrt(inner(self.eR0, self.eR0))
 
-        print((self.eC0))
-
         self.f0_ori = self.f0
         self.s0_ori = self.s0
         self.n0_ori = self.n0

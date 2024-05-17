@@ -1,6 +1,7 @@
 import sys, os
 
 sys.path.append("/home/fenics/shared/")
+sys.path.append("/mnt/Research")
 
 from dolfin import *
 import dolfin
@@ -12,7 +13,7 @@ from mpi4py import MPI as pyMPI
 # from meshGeneration.SetBiVFiber_Quad_PyQ import SetBiVFiber_Quad_PyQ
 from vtk_py3 import SetBiVFiber_Quad_PyQ
 
-# from vtk_py3 import addLVfiber_LDRB
+from vtk_py3 import addLVfiber_LDRB
 
 import pdb
 
