@@ -25,13 +25,12 @@ class MEmodel(object):
         if "Mechanics Discretization" in list(self.SimDet.keys()):
             self.discretization = SimDet["Mechanics Discretization"]
         else:
-            self.discretization = "P2P1" # Default
+            self.discretization = "P2P1"  # Default
 
         if "ispctrl" in list(self.SimDet.keys()):
             self.ispctrl = SimDet["ispctrl"]
         else:
-            self.ispctrl = False #Default
-
+            self.ispctrl = False  # Default
 
         if self.isLV:
             self.Mesh = lv_mechanics_mesh(self.parameters, SimDet)
@@ -70,10 +69,14 @@ class MEmodel(object):
         self.isincomp = SimDet["GiccioneParams"]["incompressible"]
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 
-        if(self.discretization == "P1P1"):
-            Velem = VectorElement("CG", self.mesh_me.ufl_cell(), 1, quad_scheme="default")
+        if self.discretization == "P1P1":
+            Velem = VectorElement(
+                "CG", self.mesh_me.ufl_cell(), 1, quad_scheme="default"
+            )
         else:
-            Velem = VectorElement("CG", self.mesh_me.ufl_cell(), 2, quad_scheme="default")
+            Velem = VectorElement(
+                "CG", self.mesh_me.ufl_cell(), 2, quad_scheme="default"
+            )
 
         Qelem = FiniteElement("CG", self.mesh_me.ufl_cell(), 1, quad_scheme="default")
         Qelem._quad_scheme = "default"
@@ -120,14 +123,22 @@ class MEmodel(object):
         if self.isincomp:
             if self.isLV:
                 if self.ispctrl:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
-                        self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Qelem]))
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
+                        self.W = FunctionSpace(
+                            self.mesh_me, MixedElement([Velem, Qelem])
+                        )
                     else:
                         self.W = FunctionSpace(
                             self.mesh_me, MixedElement([Velem, Qelem, VRelem])
                         )
                 else:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         self.W = FunctionSpace(
                             self.mesh_me, MixedElement([Velem, Qelem, Relem])
                         )
@@ -137,47 +148,70 @@ class MEmodel(object):
                         )
             else:
                 if self.ispctrl:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
-                        self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Qelem]))
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
+                        self.W = FunctionSpace(
+                            self.mesh_me, MixedElement([Velem, Qelem])
+                        )
                     else:
                         self.W = FunctionSpace(
                             self.mesh_me, MixedElement([Velem, Qelem, VRelem])
                         )
                 else:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         self.W = FunctionSpace(
                             self.mesh_me, MixedElement([Velem, Qelem, Relem, Relem])
                         )
                     else:
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Qelem, Relem, Relem, VRelem])
+                            self.mesh_me,
+                            MixedElement([Velem, Qelem, Relem, Relem, VRelem]),
                         )
         else:
             if self.isLV:
                 if self.ispctrl:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         self.W = FunctionSpace(self.mesh_me, MixedElement([Velem]))
                     else:
                         self.W = FunctionSpace(
                             self.mesh_me, MixedElement([Velem, VRelem])
                         )
                 else:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
-                        self.W = FunctionSpace(self.mesh_me, MixedElement([Velem, Relem]))
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
+                        self.W = FunctionSpace(
+                            self.mesh_me, MixedElement([Velem, Relem])
+                        )
                     else:
                         self.W = FunctionSpace(
                             self.mesh_me, MixedElement([Velem, Relem, VRelem])
                         )
             else:
                 if self.ispctrl:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         self.W = FunctionSpace(self.mesh_me, MixedElement([Velem]))
                     else:
                         self.W = FunctionSpace(
                             self.mesh_me, MixedElement([Velem, VRelem])
                         )
-                else :
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                else:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         self.W = FunctionSpace(
                             self.mesh_me, MixedElement([Velem, Relem, Relem])
                         )
@@ -225,7 +259,6 @@ class MEmodel(object):
             self.Solver.solvenonlinear()
 
         return preinc
-
 
     def unloading(self, params):
         default_params = {
@@ -442,17 +475,17 @@ class MEmodel(object):
             topid,
         )
 
-        #endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
+        # endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
 
-        #bcedge = DirichletBC(
+        # bcedge = DirichletBC(
         #    W.sub(0),
         #    Expression(("0.0", "0.0", "0.0"), degree=0),
         #    endoring,
         #    method="pointwise",
-        #)
+        # )
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             bcs = []
-            #bcs = [bctop]
+            # bcs = [bctop]
         else:
             # bcs = [bctop]
             bcs = [bctop]
@@ -491,7 +524,10 @@ class MEmodel(object):
         if isincomp:
             if self.isLV:
                 if self.ispctrl:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         du, dp = TrialFunctions(W_me)
                         (u_me, p_me) = split(w_me)
                         (u_me_n, p_me_n) = split(w_me_n)
@@ -512,7 +548,10 @@ class MEmodel(object):
                         RVendo_comp = 1000
 
                 else:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         du, dp, dlv_pendo = TrialFunctions(W_me)
                         (u_me, p_me, lv_pendo) = split(w_me)
                         (u_me_n, p_me_n, lv_pendo_n) = split(w_me_n)
@@ -532,7 +571,10 @@ class MEmodel(object):
 
             else:
                 if self.ispctrl:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         du, dp = TrialFunctions(W_me)
                         (u_me, p_me) = split(w_me)
                         (u_me_n, p_me_n) = split(w_me_n)
@@ -544,7 +586,7 @@ class MEmodel(object):
 
                     else:
                         du, dp, dc = TrialFunctions(W_me)
-                        (u_me, p_me,c_me) = split(w_me)
+                        (u_me, p_me, c_me) = split(w_me)
                         (u_me_n, p_me_n, c_me_n) = split(w_me_n)
                         (v_me, q_me, cq) = TestFunctions(W_me)
                         LVendo_comp = 2
@@ -552,9 +594,11 @@ class MEmodel(object):
                         lv_pendo = []
                         rv_pendo = []
 
-
                 else:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         du, dp, dlv_pendo, drv_pendo = TrialFunctions(W_me)
                         (u_me, p_me, lv_pendo, rv_pendo) = split(w_me)
                         (u_me_n, p_me_n, lv_pendo_n, rv_pendo_n) = split(w_me_n)
@@ -572,7 +616,10 @@ class MEmodel(object):
         else:
             if self.isLV:
                 if self.ispctrl:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         du = TrialFunctions(W_me)
                         (u_me) = split(w_me)
                         (v_me) = TestFunctions(W_me)
@@ -591,7 +638,10 @@ class MEmodel(object):
                         LVendo_comp = 1
                         RVendo_comp = 1000
                 else:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         du, dlv_pendo = TrialFunctions(W_me)
                         (u_me, lv_pendo) = split(w_me)
                         (v_me, lv_qendo) = TestFunctions(W_me)
@@ -609,7 +659,10 @@ class MEmodel(object):
                         RVendo_comp = 1000
             else:
                 if self.ispctrl:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         du = TrialFunctions(W_me)
                         (u_me) = split(w_me)
                         (v_me) = TestFunctions(W_me)
@@ -629,7 +682,10 @@ class MEmodel(object):
                         LVendo_comp = 1
                         RVendo_comp = 2
                 else:
-                    if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                    if (
+                        "springbc" in list(self.SimDet.keys())
+                        and self.SimDet["springbc"]
+                    ):
                         du, dlv_pendo, drv_pendo = TrialFunctions(W_me)
                         (u_me, lv_pendo, rv_pendo) = split(w_me)
                         (v_me, lv_qendo, rv_qendo) = TestFunctions(W_me)
@@ -777,7 +833,6 @@ class MEmodel(object):
 
             Ftotal += Fp
 
-
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             ## epicardial
             Kepi_n = 5e4  # was 2e5 -- 1
@@ -823,7 +878,7 @@ class MEmodel(object):
             Ftotal += F5
 
         # Add stabilization
-        if(self.discretization == "P1P1"):
+        if self.discretization == "P1P1":
 
             lhs_u = p_me * J * inv(Fmat) * inv(Fmat.T)
             res_u = inner(lhs_u, Fmat.T * grad(v_me)) * dx_me
@@ -866,10 +921,9 @@ class MEmodel(object):
             Jac5 = derivative(F5, w_me, dw_me)
             Jac += Jac5
 
-        if(self.discretization == "P1P1"):
+        if self.discretization == "P1P1":
             Jacs = derivative(Fs, w_me, dw_me)
             Jac += Jacs
-
 
         # Initialize LV cavity volume
         if not self.ispctrl:
@@ -921,7 +975,7 @@ class MEmodel(object):
             if self.ispctrl:
                 if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
                     u, p = self.w_me.split(deepcopy=True)
-    
+
                 else:
                     u, p, self.c = self.w_me.split(deepcopy=True)
 
@@ -983,7 +1037,6 @@ class MEmodel(object):
     def GetTmax3(self):
         return self.Tmax3.value
 
-
     def GetFmat(self):
         return self.uflforms.Fmat()
 
@@ -1031,7 +1084,10 @@ class MEmodel(object):
         return self.uflforms.LVcavityvol()
 
     def GetVolumeComputation(self):
-        return self.uflforms.volume_computation()
+        if "waorta" not in list(self.SimDet.keys()) or not self.SimDet["waorta"]:
+            return self.uflforms.LVcavityvol_mvb()
+        else:
+            return self.uflforms.LVcavityvol_waorta()
 
     def GetSpringBC(self):
         return self.uflforms.springbc()

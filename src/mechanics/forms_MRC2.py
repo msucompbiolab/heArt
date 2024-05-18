@@ -119,7 +119,7 @@ class Forms(object):
 
         return PK1volumetric
 
-    def volume_computation(self):  # for volume computation
+    def LVcavityvol_mvb(self):  # cavity volume for lv with moving base
         u = self.parameters["displacement_variable"]
         N = self.parameters["facet_normal"]
         mesh = self.parameters["mesh"]
@@ -136,7 +136,6 @@ class Forms(object):
             subdomain_id=self.parameters["topid"],
             metadata={"quadrature_degree": 4},
         )
-        area = assemble(1.0 * ds_)
 
         F = self.Fmat()
         # vol_form = (
@@ -144,12 +143,8 @@ class Forms(object):
         #    * inner(det(F) * dot(inv(F).T, N), X + u)
         #    * (ds(self.parameters["LVendoid"]) + ds(2) + ds(3))
         # )
-        # vol_form = (
-        #    -Constant(1.0 / 3.0)
-        #    * inner(det(F) * dot(inv(F).T, N), X)
-        #    * ds(self.parameters["LVendoid"])
-        # )
 
+        area = assemble(1.0 * ds_)
         vol_x = assemble((X[0] + u[0]) * ds(self.parameters["topid"])) / area
         vol_y = assemble((X[1] + u[1]) * ds(self.parameters["topid"])) / area
         vol_z = assemble((X[2] + u[2]) * ds(self.parameters["topid"])) / area
@@ -160,6 +155,30 @@ class Forms(object):
             * inner(det(F) * dot(inv(F).T, N), X + u - b)
             * ds(self.parameters["LVendoid"])
         )
+
+        return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
+
+    def LVcavityvol_waorta(self):  # cavity volume for lv with aorta
+        u = self.parameters["displacement_variable"]
+        N = self.parameters["facet_normal"]
+        mesh = self.parameters["mesh"]
+        X = SpatialCoordinate(mesh)
+        ds = dolfin.ds(
+            subdomain_data=self.parameters["facetboundaries"],
+            metadata={"quadrature_degree": 4},
+        )
+
+        F = self.Fmat()
+        vol_form = (
+            -Constant(1.0 / 3.0)
+            * inner(det(F) * dot(inv(F).T, N), X + u)
+            * (
+                ds(self.parameters["LVendoid"])
+                + ds(self.parameters["f_plane"])
+                + ds(self.parameters["s_plane"])
+            )
+        )
+
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
 
     def springbc(self):  # for v_base computation

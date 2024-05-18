@@ -142,7 +142,9 @@ class biventricle_mesh(object):
         f = HDF5File(MPI.comm_world, meshfilename, "r")
         f.read(self.mesh, casename, False)
 
-        self.facetboundaries = MeshFunction("size_t", self.mesh, 2)
+        self.facetboundaries = MeshFunction(
+            "size_t", self.mesh, self.mesh.topology().dim() - 1
+        )
         f.read(self.facetboundaries, casename + "/" + "facetboundaries")
 
         self.edgeboundaries = MeshFunction("size_t", self.mesh, 1)
@@ -180,19 +182,25 @@ class biventricle_mesh(object):
         self.s0 = self.s0 / sqrt(inner(self.s0, self.s0))
         self.n0 = self.n0 / sqrt(inner(self.n0, self.n0))
 
-        self.matid = MeshFunction('size_t', self.mesh, 3, self.mesh.domains()) 
+        self.matid = MeshFunction(
+            "size_t", self.mesh, self.mesh.topology().dim(), self.mesh.domains()
+        )
         if f.has_dataset(casename + "/" + "matid"):
             f.read(self.matid, casename + "/" + "matid")
         else:
             self.matid.set_all(0)
 
-        self.AHAid = MeshFunction('size_t', self.mesh, 3, self.mesh.domains()) 
+        self.AHAid = MeshFunction(
+            "size_t", self.mesh, self.mesh.topology().dim(), self.mesh.domains()
+        )
         if f.has_dataset(casename + "/" + "AHAid"):
             f.read(self.AHAid, casename + "/" + "AHAid")
         else:
             self.AHAid.set_all(0)
 
-        EpiBCid = MeshFunction('size_t', self.mesh, 2, self.mesh.domains()) 
+        EpiBCid = MeshFunction(
+            "size_t", self.mesh, self.mesh.topology().dim() - 1, self.mesh.domains()
+        )
         if f.has_dataset(casename + "/" + "EpiBCid_Corr"):
             f.read(EpiBCid, casename + "/" + "EpiBCid_Corr")
         else:
@@ -252,8 +260,9 @@ class lv_mesh(object):
             "fibre_quad_degree": 4,
             "outputfolder": "../Outputs/",
             "topid": 4,
-            "LVendoid": 3,
-            "epiid": 2,
+            "LVendoid": 2,
+            "epiid": 1,
+            "apxid": 8,
         }
 
     def update_parameters(self, params):
@@ -278,19 +287,24 @@ class lv_mesh(object):
         f = HDF5File(MPI.comm_world, meshfilename, "r")
         f.read(self.mesh, casename, False)
 
-        self.facetboundaries = MeshFunction("size_t", self.mesh, 2)
+        self.facetboundaries = MeshFunction(
+            "size_t", self.mesh, self.mesh.topology().dim() - 1
+        )
         f.read(self.facetboundaries, casename + "/" + "facetboundaries")
 
-        self.edgeboundaries = MeshFunction("size_t", self.mesh, 1)
-        f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
+        self.edgeboundaries = MeshFunction("size_t", self.mesh, 1, 0)
+        if "waorta" not in list(SimDet.keys()) or not SimDet["waorta"]:
+            f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
 
         deg = self.parameters["fibre_quad_degree"]
-        VQuadelem = VectorElement(
-            "Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default"
-        )
+        if "w_aorta" not in list(SimDet.keys()) or not SimDet["w_aorta"]:
+            VQuadelem = VectorElement(
+                "Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default"
+            )
+        else:
+            VQuadelem = VectorElement("DG", self.mesh.ufl_cell(), degree=0)
         VQuadelem._quad_scheme = "default"
 
-        # VQuadelem = VectorElement("DG", self.mesh.ufl_cell(), degree=0)
         self.fiberFS = FunctionSpace(self.mesh, VQuadelem)
 
         self.f0 = Function(self.fiberFS)
@@ -340,6 +354,8 @@ class lv_mesh(object):
         self.matid = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
         if f.has_dataset(casename + "/" + "matid"):
             f.read(self.matid, casename + "/" + "matid")
+        elif f.has_dataset(casename + "/" + "materialregion"):
+            f.read(self.matid, casename + "/" + "materialregion")
         else:
             self.matid.set_all(0)
 
@@ -362,6 +378,7 @@ class lv_mesh(object):
         self.topid = self.parameters["topid"]
         self.LVendoid = self.parameters["LVendoid"]
         self.epiid = self.parameters["epiid"]
+        self.apxid = self.parameters["apxid"]
 
         dx = dolfin.dx(
             self.mesh, subdomain_data=self.matid, metadata={"quadrature_degree": deg}
@@ -650,6 +667,8 @@ class PV_Elas(object):
 
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
+
+
 class FHN(object):
     """
     FHN equations object

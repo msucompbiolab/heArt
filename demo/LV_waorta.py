@@ -1,7 +1,8 @@
 import sys, pdb
 from dolfin import *
 
-sys.path.append("/home/ziaeirad")
+sys.path.append("/mnt/home/ziaeirad/heArt_git")
+sys.path.append("/mnt/home/ziaeirad")
 # from heArt.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
 #    run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 # )
@@ -14,22 +15,22 @@ from heArt.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    "casename": "LV_waorta",
+    "casename": "LV_W_aorta3",
     "directory_me": "../LV_waorta/",
     "directory_ep": "../LV_waorta/",
     "outputfolder": "./outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "LV_waorta_dev",
+    "caseID": "LV_waorta_dev_fix",
     "isLV": True,
 }
 
-contRactility = 150e3
+contRactility = 130e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(300.0),
+        "Cparam": Constant(150.0),
         "bff": Constant(29.0),  # 29
         "bfx": Constant(13.3),  # 13.3
         "bxx": Constant(26.6),  # 26.6
@@ -46,7 +47,7 @@ GuccioneParams = {
         "Ca0max": 4.35,
         "lr": 1.85,
     },
-    "HomogenousActivation": False,
+    "HomogenousActivation": True,
     "deg": 4,
     "Kappa": 1e5,
     "incompressible": True,
@@ -83,7 +84,7 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 40.0,
+    "writeStep": 4.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
@@ -107,15 +108,16 @@ SimDetails = {
     "closedloopparam": Circparam,
     "Ischemia": False,
     "isLV": True,
-    "topid": 7,
-    "LVendoid": 1,
+    "topid": 9, #was 7
+    "LVendoid": 2, #was 1
     "RVendoid": 0,
-    "epiid": 4,
-    "abs_tol": 1e-7,
-    "rel_tol": 1e-7,
+    "epiid": 3, #was 4
+    "apxid": 8, #was 9
+    "abs_tol": 1e-8,
+    "rel_tol": 1e-8,
     "isunloading": False,
-    "isunloadingonly": False  # ,
-    #    "springbc": 1,
+    "isunloadingonly": False,
+    "springbc": 1,
 }
 
 # Run Simulation

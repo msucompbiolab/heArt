@@ -880,7 +880,7 @@ class MEmodel(object):
         return self.uflforms.LVcavityvol()
 
     def GetVolumeComputation(self):
-        return self.uflforms.volume_computation()
+        return self.uflforms.LVcavityvol_mvb()
 
     def GetSpringBC(self):
         return self.uflforms.springbc()
