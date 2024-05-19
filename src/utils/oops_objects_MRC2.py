@@ -14,7 +14,7 @@ import dolfin as dolfin
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 def printout(statement, mpi_comm):
     if MPI.rank(mpi_comm) == 0:
-        print(statement)
+        print(statement, flush=True)
 
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
