@@ -4,7 +4,7 @@ import os as os
 from ..utils.nsolver import NSolver as NSolver
 from ..utils.oops_objects_MRC2 import biventricle_mesh as biv_mechanics_mesh
 from ..utils.oops_objects_MRC2 import lv_mesh as lv_mechanics_mesh
-from ..utils.oops_objects_MRC2 import PV_Elas
+# from ..utils.oops_objects_MRC2 import PV_Elas
 from ..utils.oops_objects_MRC2 import update_mesh
 from ..utils.oops_objects_MRC2 import printout
 from ..utils.edgetypebc import *
@@ -887,28 +887,15 @@ class MEmodel(object):
 
         # Add stabilization
         if self.discretization == "P1P1":
-
-            lhs_u = p_me * J * inv(Fmat) * inv(Fmat.T)
-            res_u = inner(lhs_u, Fmat.T * grad(v_me)) * dx_me
-
-            Kappa = Constant(1.0e5)
-            res_p = ((J - 1) - p_me / Kappa) * q_me * dx_me
-
-            h_elem = CellDiameter(mesh_me)
-            mu = Constant(1.0e4)
-
-            stab = (
-                h_elem
-                * h_elem
-                * Constant(0.5)
-                / mu
-                * J
-                * inner(inv(Fmat.T) * grad(p_me), inv(Fmat.T) * grad(q_me))
+            cell_volume = CellVolume(mesh_me)
+            Fs = (
+                1.0
+                / (CellVolume(mesh_me)) ** (1.0 / 3.0)
+                * (p_me - p_me / CellVolume(mesh_me))
+                * (q_me - q_me / CellVolume(mesh_me))
                 * dx_me
             )
 
-            # Fs = res_u + res_p - stab
-            Fs = -stab
             Ftotal += Fs
 
         Jac = derivative(F1, w_me, dw_me)

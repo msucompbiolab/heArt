@@ -9,7 +9,7 @@ import QuadratureRepresentationDeprecationWarning
 warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
 
 from dolfin import *
-from fenicstools import *
+# from fenicstools import *
 
 import vtk_py3
 import vtk

@@ -2,12 +2,11 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
-
-from heArt.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
-# from heArt.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
@@ -17,20 +16,20 @@ IODetails = {
     "directory_ep": "../LVMesh/",
     "outputfolder": "./outputs_LVelectromechanics/",
     "folderName": "",
-    "caseID": "LVelectromechanics_EF_dev",
+    "caseID": "LVelectromechanics",
     "isLV": True,
 }
 
-contRactility = 400e3
+contRactility = 100e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(115.0),
-        "bff": Constant(29.0),  # 29
-        "bfx": Constant(13.3),  # 13.3
-        "bxx": Constant(26.6),  # 26.6
+        "Cparam": Constant(100.0),
+        "bff": Constant(29.0),
+        "bfx": Constant(13.3),
+        "bxx": Constant(26.6),
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
@@ -44,14 +43,14 @@ GuccioneParams = {
         "Ca0max": 4.35,
         "lr": 1.85,
     },
-    "HomogenousActivation": True,
+    "HomogenousActivation": False,
     "deg": 4,
     "Kappa": 1e5,
     "incompressible": True,
 }
 
 Circparam = {
-    "Ees_la": 25,  # was 10
+    "Ees_la": 10,
     "A_la": 2.67,
     "B_la": 0.019,
     "V0_la": 10,
@@ -59,21 +58,22 @@ Circparam = {
     "tau_la": 25,
     "tdelay_la": 160,
     "Csa": 0.0032,
-    "Cad": 0.033,
+    "Cad": 0.0330,
     "Csv": 0.28,
     "Vsa0": 360,
+    "Vsv0": 3370.0,
     "Vad0": 40,
-    "Vsv0": 2870.0,  # was 3370.0 -- 1870
-    "Rav": 1500,  # was 500
+    "Rav": 500.0,
     "Rsv": 100.0,
-    "Rsa": 14000,  # was 18000
-    "Rad": 40000,  # was 106000
+    "Rsa": 18000,
+    "Rad": 106000,
     "Rmv": 200.0,
+    # volumes
     "V_sv": 3700,
+    "V_LV": 112,
     "V_sa": 740,
     "V_ad": 100,
     "V_LA": 12,
-    "V_LV": 112,
     "stop_iter": 1,
 }
 
@@ -81,7 +81,7 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 40.0,
+    "writeStep": 10.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
@@ -104,18 +104,17 @@ SimDetails = {
     "Isclosed": True,
     "closedloopparam": Circparam,
     "Ischemia": False,
+    "Mechanics Discretization": "P1P1",
     "isLV": True,
     "topid": 4,
     "LVendoid": 2,
     "RVendoid": 0,
     "epiid": 1,
-    "abs_tol": 1e-7,
-    "rel_tol": 1e-7,
+    "abs_tol": 1e-9,
+    "rel_tol": 1e-9,
     "isunloading": False,
     "isunloadingonly": False,
-    "springbc": 1,
-    "Mechanics Discretization": "P1P1",
-    "ispctrl": True,
+    "ispctrl": False,
 }
 
 # Run Simulation
