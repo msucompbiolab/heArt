@@ -3,6 +3,11 @@ import os as os
 import numpy as np
 from mpi4py import MPI as pyMPI
 
+import warnings
+from ffc.quadrature.deprecation import QuadratureRepresentationDeprecationWarning
+warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
+
+
 from dolfin import *
 
 # from fenicstools import *
@@ -18,10 +23,10 @@ from ..utils.oops_objects_MRC2 import State_Variables
 from ..utils.oops_objects_MRC2 import update_mesh
 from ..utils.oops_objects_MRC2 import exportfiles
 
-# from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
+from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
 
 from ..ep.EPmodel import EPmodel
-#from ..mechanics.MEmodel_pctrl import MEmodel
+
 from ..mechanics.MEmodel3 import MEmodel
 from .circ import CLmodel
 
@@ -35,7 +40,7 @@ from ..mechanics.JRp import *
 def run_BiV_ClosedLoop(IODet, SimDet):
     deg = 4
     flags = ["-O3", "-ffast-math", "-march=native"]
-    parameters["form_compiler"]["representation"] = "uflacs"
+    parameters["form_compiler"]["representation"] = "quadrature"
     parameters["form_compiler"]["quadrature_degree"] = deg
 
     casename = IODet["casename"]

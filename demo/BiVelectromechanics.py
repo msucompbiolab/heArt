@@ -126,7 +126,7 @@ SimDetails = {
     "pacing_timing": [[4.0, 20.0]],
     "closedloopparam": Circparam,
     "Ischemia": False,
-    "Mechanics Discretization": "P2P1",
+    "Mechanics Discretization": "P1P1",
     "isLV": False,
     "topid": 4,
     "LVendoid": 2,
