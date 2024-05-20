@@ -468,12 +468,20 @@ class MEmodel(object):
         topid = self.SimDet["topid"]
         W = self.W
 
-        bctop = DirichletBC(
-            W.sub(0),
-            Expression(("0.0", "0.0", "0.0"), degree=0),
-            facetboundaries,
-            topid,
-        )
+        if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+            bctop = DirichletBC(
+                W.sub(0),
+                Expression(("0.0", "0.0", "0.0"), degree=0),
+                facetboundaries,
+                topid,
+            )
+        else:
+            bctop = DirichletBC(
+                W.sub(0).sub(2),
+                Expression(("0.0"), degree=2),
+                facetboundaries,
+                topid,
+            )
 
         # endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
 
