@@ -120,7 +120,7 @@ SimDetails = {
     "isunloadingonly": False,
     "ispctrl": True,
     "iswaorta": True,
-    "springbc": 0,
+    "springbc": 1,
 }
 
 # Run Simulation

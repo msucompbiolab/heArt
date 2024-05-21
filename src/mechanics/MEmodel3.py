@@ -880,36 +880,56 @@ class MEmodel(object):
             Ftotal += Fp
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
-            ## epicardial
-            Kepi_n = 5e4  # was 2e5 -- 1
-            Cepi_n = 5e3  # was 2e4
-            Kepi_t = 5e3  # was 2e4
-            Cepi_t = 5e2  # was 2e3
+            if self.iswaorta:
+                F3 = 0.0
+                Kepi_n = 5.0e3  # was 2e4
+                Cepi_n = 0.0  # was 2e3
+                Kepi_t = 5.0e2  # was 2e3
+                Cepi_t = 0.0  # was 2e2
 
-            # F3_epi = Kepi_n * inner(outer(N_me, N_me) * u_me, v_me) * ds_me(
-            #    epiid
-            # ) + Kepi_t * inner(
-            #    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me)) * u_me, v_me
-            # ) * ds_me(
-            #    epiid
-            # )
+                F3_epi = inner(
+                    outer(N_me, N_me) * (Kepi_n * u_me + Cepi_n * (u_me - u_me_n)), v_me
+                ) * ds_me(epiid) + inner(
+                    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                    * (Kepi_t * u_me + Cepi_t * (u_me - u_me_n)),
+                    v_me,
+                ) * ds_me(
+                    epiid
+                )
 
-            F3_epi = inner(
-                outer(N_me, N_me) * (Kepi_n * u_me + Cepi_n * (u_me - u_me_n)), v_me
-            ) * ds_me(epiid) + inner(
-                (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                * (Kepi_t * u_me + Cepi_t * (u_me - u_me_n)),
-                v_me,
-            ) * ds_me(
-                epiid
-            )
+                F3 = F3_epi
+                Ftotal += F3
+            else:
+                ## epicardial
+                Kepi_n = 5e4  # was 2e5 -- 1
+                # Cepi_n = 5e3  # was 2e4
+                Kepi_t = 5e3  # was 2e4
+                # Cepi_t = 5e2  # was 2e3
 
-            a_, b_ = self.GetSpringBC()
-            F3_base = a_ * inner(b_, v_me) * ds_me(topid)
+                F3_epi = Kepi_n * inner(outer(N_me, N_me) * u_me, v_me) * ds_me(
+                    epiid
+                ) + Kepi_t * inner(
+                    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me)) * u_me, v_me
+                ) * ds_me(
+                    epiid
+                )
 
-            F3 = F3_epi - F3_base
+                # F3_epi = inner(
+                #     outer(N_me, N_me) * (Kepi_n * u_me + Cepi_n * (u_me - u_me_n)), v_me
+                # ) * ds_me(epiid) + inner(
+                #     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                #     * (Kepi_t * u_me + Cepi_t * (u_me - u_me_n)),
+                #     v_me,
+                # ) * ds_me(
+                #     epiid
+                # )
 
-            Ftotal += F3
+                a_, b_ = self.GetSpringBC()
+                F3_base = a_ * inner(b_, v_me) * ds_me(topid)
+
+                F3 = F3_epi - F3_base
+
+                Ftotal += F3
 
         else:
             Wrigid = (
