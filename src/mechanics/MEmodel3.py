@@ -4,6 +4,7 @@ import os as os
 from ..utils.nsolver import NSolver as NSolver
 from ..utils.oops_objects_MRC2 import biventricle_mesh as biv_mechanics_mesh
 from ..utils.oops_objects_MRC2 import lv_mesh as lv_mechanics_mesh
+
 # from ..utils.oops_objects_MRC2 import PV_Elas
 from ..utils.oops_objects_MRC2 import update_mesh
 from ..utils.oops_objects_MRC2 import printout
@@ -31,6 +32,10 @@ class MEmodel(object):
             self.ispctrl = SimDet["ispctrl"]
         else:
             self.ispctrl = False  # Default
+        if "iswaorta" in list(self.SimDet.keys()):
+            self.iswaorta = SimDet["iswaorta"]
+        else:
+            self.iswaorta = False  # Default
 
         if self.isLV:
             self.Mesh = lv_mechanics_mesh(self.parameters, SimDet)
@@ -466,7 +471,33 @@ class MEmodel(object):
         facetboundaries = self.facetboundaries_me
         edgeboundaries = self.edgeboundaries_me
         topid = self.SimDet["topid"]
+
         W = self.W
+
+        if self.iswaorta:
+            aorta_ext_wall = self.SimDet["aorta_ext_wall"]
+            bc_aorta_ext_wall = DirichletBC(
+                W.sub(0),
+                Expression(("0.0", "0.0", "0.0"), degree=2),
+                facetboundaries,
+                aorta_ext_wall,
+            )
+
+            aorta_int_wall = self.SimDet["aorta_int_wall"]
+            bc_aorta_int_wall = DirichletBC(
+                W.sub(0),
+                Expression(("0.0", "0.0", "0.0"), degree=2),
+                facetboundaries,
+                aorta_int_wall,
+            )
+
+            aorta_ring = self.SimDet["aorta_ring"]
+            bc_aorta_ring = DirichletBC(
+                W.sub(0),
+                Expression(("0.0", "0.0", "0.0"), degree=2),
+                facetboundaries,
+                aorta_ring,
+            )
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             bctop = DirichletBC(
@@ -491,13 +522,18 @@ class MEmodel(object):
         #    endoring,
         #    method="pointwise",
         # )
+
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
-            bcs = []
-            # bcs = [bctop]
+            if self.iswaorta:
+                bcs = []
+            else:
+                bcs = []
         else:
-            # bcs = [bctop]
-            bcs = [bctop]
-        # bcs = [] # changing top constraint
+            if self.iswaorta:
+                # bcs = [bc_aorta_ext_wall, bc_aorta_int_wall]
+                bcs = [bc_aorta_ring]
+            else:
+                bcs = [bctop]
 
         return bcs
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
@@ -505,6 +541,7 @@ class MEmodel(object):
     def Problem(self):
         GuccioneParams = self.SimDet["GiccioneParams"]
         topid = self.SimDet["topid"]
+        aorta_vplane = self.SimDet["aorta_vplane"]
         LVendoid = self.SimDet["LVendoid"]
         RVendoid = self.SimDet["RVendoid"]
         epiid = self.SimDet["epiid"]
@@ -734,7 +771,8 @@ class MEmodel(object):
             "LVendoid": LVendoid,
             "RVendoid": RVendoid,
             "epiid": epiid,
-            "topid": topid,  # new
+            "topid": topid,
+            "aorta_vplane": aorta_vplane,
             "LVendo_comp": LVendo_comp,
             "RVendo_comp": RVendo_comp,
             "fiber": f0_me,
@@ -1079,10 +1117,10 @@ class MEmodel(object):
         return self.uflforms.LVcavityvol()
 
     def GetVolumeComputation(self):
-        if "waorta" not in list(self.SimDet.keys()) or not self.SimDet["waorta"]:
-            return self.uflforms.LVcavityvol_mvb()
-        else:
+        if self.iswaorta:
             return self.uflforms.LVcavityvol_waorta()
+        else:
+            return self.uflforms.LVcavityvol_mvb()
 
     def GetSpringBC(self):
         return self.uflforms.springbc()

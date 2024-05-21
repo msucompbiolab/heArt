@@ -262,7 +262,6 @@ class lv_mesh(object):
             "topid": 4,
             "LVendoid": 2,
             "epiid": 1,
-            "apxid": 8,
         }
 
     def update_parameters(self, params):
@@ -292,17 +291,23 @@ class lv_mesh(object):
         )
         f.read(self.facetboundaries, casename + "/" + "facetboundaries")
 
-        self.edgeboundaries = MeshFunction("size_t", self.mesh, 1, 0)
-        if "waorta" not in list(SimDet.keys()) or not SimDet["waorta"]:
+        self.edgeboundaries = MeshFunction("size_t", self.mesh, 1)
+
+        if "iswaorta" in list(SimDet.keys()):
+            self.iswaorta = SimDet["iswaorta"]
+        else:
+            self.iswaorta = False  # Default
+
+        if self.iswaorta is False:
             f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
 
         deg = self.parameters["fibre_quad_degree"]
-        if "w_aorta" not in list(SimDet.keys()) or not SimDet["w_aorta"]:
+        if self.iswaorta:
+            VQuadelem = VectorElement("DG", self.mesh.ufl_cell(), degree=0)
+        else:
             VQuadelem = VectorElement(
                 "Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default"
             )
-        else:
-            VQuadelem = VectorElement("DG", self.mesh.ufl_cell(), degree=0)
         VQuadelem._quad_scheme = "default"
 
         self.fiberFS = FunctionSpace(self.mesh, VQuadelem)
@@ -378,7 +383,6 @@ class lv_mesh(object):
         self.topid = self.parameters["topid"]
         self.LVendoid = self.parameters["LVendoid"]
         self.epiid = self.parameters["epiid"]
-        self.apxid = self.parameters["apxid"]
 
         dx = dolfin.dx(
             self.mesh, subdomain_data=self.matid, metadata={"quadrature_degree": deg}
@@ -1701,7 +1705,6 @@ class exportfiles(object):
         if MEmodel.ispctrl:
             LVP = MEmodel.LVCavitypres.pres
             LVV = MEmodel.GetVolumeComputation()
-
 
         else:
             LVP = MEmodel.GetLVP() * 0.0075
