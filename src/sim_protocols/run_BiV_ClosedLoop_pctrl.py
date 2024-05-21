@@ -179,7 +179,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     # Get Unloaded volumes
     V_LV_unload = MEmodel_.GetLVV()
-
     V_RV_unload = MEmodel_.GetRVV()
 
     nloadstep = SimDet["nLoadSteps"]
@@ -313,22 +312,27 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     it = 0
     while 1:
-        MEmodel_.LVCavitypres.pres += 100.0
+        printout("Loading", comm_me)
+        MEmodel_.LVCavitypres.pres += (EDP/0.0075)/nloadstep
+
 
         solver_elas.solvenonlinear()
 
-        # export.writePV(MEmodel_, 0);
-        # export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
-        # it += 1
+        export.writePV(MEmodel_, 0);
+        export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
+        it += 1
 
-        #        F_ED.vector()[:] = (
-        #            project(MEmodel_.GetFmat(), MEmodel_.TF, solver_type="mumps")
-        #            .vector()
-        #            .get_local()[:]
-        #        )
+        F_ED.vector()[:] = (
+            project(MEmodel_.GetFmat(), MEmodel_.TF, solver_type="mumps")
+            .vector()
+            .get_local()[:]
+        )
 
+        printout("Pressure = " +  str(MEmodel_.LVCavitypres.pres * 0.0075) +  " Vol = " + str(MEmodel_.GetVolumeComputation()), comm_me)
+    
         if MEmodel_.LVCavitypres.pres * 0.0075 >= EDP:
             break
+
 
     if "isunloadingonly" in list(SimDet.keys()):
         if SimDet["isunloadingonly"] is True:
@@ -425,14 +429,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     while 1:
         if state_obj.cycle > stop_iter:
             break
-
-        # Time varying elastance function for LA and RA ##################
-        # def et(t, Tmax, tau):
-        # if (t <= 1.5*Tmax):
-        # out = 0.5*(math.sin((math.pi/Tmax)*t - math.pi/2) + 1);
-        # else:
-        # out = 0.5*math.exp((-t + (1.5*Tmax))/tau);
-        # return out
 
         params = {
             "P_LV": P_LV,
@@ -565,23 +561,25 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
         if MPI.rank(comm_ep) == 0:
             print("UPdating isActiveField and tInitiationField")
+
         MEmodel_.activeforms.update_activationTime(
             potential_n=potential_me, comm=comm_me
         )
 
-        #        F_n = MEmodel_.GetFmat()
-        #        fstress_DG = project(
-        #            MEmodel_.Getfstress(),
-        #            FunctionSpace(MEmodel_.mesh_me, "DG", 0),
-        #            form_compiler_parameters={"representation": "uflacs"},
-        #        )
-        #        fstress_DG.rename("fstress", "fstress")
-        #        if "probepts" in list(SimDet.keys()):
-        #            probesfstress = Probes(
-        #                x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1)
-        #            )
-        #            probesfstress(fstress_DG)
-        #
+        F_n = MEmodel_.GetFmat()
+        fstress_DG = project(
+            MEmodel_.Getfstress(),
+            FunctionSpace(MEmodel_.mesh_me, "DG", 0),
+            form_compiler_parameters={"representation": "uflacs"},
+        )
+        fstress_DG.rename("fstress", "fstress")
+
+        if "probepts" in list(SimDet.keys()):
+            probesfstress = Probes(
+                x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1)
+            )
+            probesfstress(fstress_DG)
+        
         Eul_fiber_BiV_DG = project(
             fStrain_uL,
             FunctionSpace(MEmodel_.mesh_me, "DG", 0),
@@ -596,16 +594,15 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             )
             probesEul_fiber(Eul_fiber_BiV_DG)
 
-        #
-        #            probesE_circ_BiV = Probes(
-        #                x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1)
-        #            )
-        #            probesE_long_BiV = Probes(
-        #                x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1)
-        #            )
-        #            probesE_radi_BiV = Probes(
-        #                x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1)
-        #            )
+            probesE_circ_BiV = Probes(
+                x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1)
+            )
+            probesE_long_BiV = Probes(
+                x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1)
+            )
+            probesE_radi_BiV = Probes(
+                x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1)
+            )
 
         # postprocess and write
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
@@ -617,10 +614,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         E_long_BiV, E_long_BiV_ = MEmodel_.GetFiberNaturalStrain(
             F_ED, eLL, AHA_segments
         )
-        #        E_radi_BiV, E_radi_BiV_ = MEmodel_.GetFiberNaturalStrain(
-        #            F_ED, eRR, AHA_segments
-        #        )
-        #        ## --------------------------------------------------------------------------------------------------------------------
+        E_radi_BiV, E_radi_BiV_ = MEmodel_.GetFiberNaturalStrain(
+            F_ED, eRR, AHA_segments
+        )
+        ## --------------------------------------------------------------------------------------------------------------------
         #
         E_circ_BiV_DG = project(
             E_circ_BiV_,
@@ -640,53 +637,92 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if "probepts" in list(SimDet.keys()):
             probesE_long_BiV(E_long_BiV_DG)
 
-        #
-        #        E_radi_BiV_DG = project(
-        #            E_radi_BiV_,
-        #            FunctionSpace(MEmodel_.mesh_me, "DG", 0),
-        #            form_compiler_parameters={"representation": "uflacs"},
-        #        )
-        #        E_radi_BiV_DG.rename("Err", "Err")
-        #        if "probepts" in list(SimDet.keys()):
-        #            probesE_radi_BiV(E_radi_BiV_DG)
-        #
+        
+        E_radi_BiV_DG = project(
+            E_radi_BiV_,
+            FunctionSpace(MEmodel_.mesh_me, "DG", 0),
+            form_compiler_parameters={"representation": "uflacs"},
+        )
+        E_radi_BiV_DG.rename("Err", "Err")
+        if "probepts" in list(SimDet.keys()):
+            probesE_radi_BiV(E_radi_BiV_DG)
+
+
+
+        # Compute IMP 
+        imp = project(
+            MEmodel_.GetIMP(),
+            FunctionSpace(MEmodel_.mesh_me, "DG", 1),
+            form_compiler_parameters={"representation": "uflacs"},
+        )
+        imp.rename("imp", "imp")
+
+        imp2 = project(
+            MEmodel_.GetIMP2(),
+            FunctionSpace(MEmodel_.mesh_me, "DG", 1),
+            form_compiler_parameters={"representation": "uflacs"},
+        )
+        imp2.rename("imp2", "imp2")
+
+        if "probepts" in list(SimDet.keys()):
+            x = np.array(SimDet["probepts"])
+            probesIMP = Probes(x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1))
+            probesIMP(imp)
+
+            probesIMP2 = Probes(x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1))
+            probesIMP2(imp2)
+
+            probesIMP3 = Probes(x.flatten(), FunctionSpace(MEmodel_.mesh_me, "CG", 1))
+            probesIMP3(MEmodel_.GetP())
+
+            # broadcast from proc 0 to other processes
+            rank = comm_me_.Get_rank()
+            a = probesIMP3.array()  ## probe will only send to rank =0
+            if not rank == 0:
+                a = np.empty(len(x))
+
+            comm_me_.Bcast(a, root=0)
+
+        
+        export.writePV(MEmodel_, state_obj.tstep)
+
         if cnt % SimDet["writeStep"] == 0.0:
-            # export.writetpt(MEmodel_, state_obj.tstep)
+            export.writetpt(MEmodel_, state_obj.tstep)
             export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
-            # export.hdf.write(potential_ref, "ME/potential_ref", writecnt)
+            export.hdf.write(potential_ref, "ME/potential_ref", writecnt)
             export.hdf.write(E_circ_BiV_DG, "ME/Ecc", writecnt)
             export.hdf.write(E_long_BiV_DG, "ME/Ell", writecnt)
-            # export.hdf.write(E_radi_BiV_DG, "ME/Err", writecnt)
-            # export.hdf.write(Eul_fiber_BiV_DG, "ME/Eff", writecnt)
-            # export.hdf.write(fstress_DG, "ME/fstress", writecnt)
-            ## export.hdf.write(imp, "ME/imp", writecnt)
-            ## export.hdf.write(imp2, "ME/imp2",  writecnt)
-            # export.hdf.write(MEmodel_.GetP(), "ME/imp_constraint", writecnt)
+            export.hdf.write(E_radi_BiV_DG, "ME/Err", writecnt)
+            export.hdf.write(Eul_fiber_BiV_DG, "ME/Eff", writecnt)
+            export.hdf.write(fstress_DG, "ME/fstress", writecnt)
+            export.hdf.write(imp, "ME/imp", writecnt)
+            export.hdf.write(imp2, "ME/imp2",  writecnt)
+            export.hdf.write(MEmodel_.GetP(), "ME/imp_constraint", writecnt)
 
-            # export.hdf.write(EPmodel_.getphivar(), "EP/phi", writecnt)
-            # export.hdf.write(EPmodel_.getrvar(), "EP/r", writecnt)
-            # export.hdf.write(potential_ref, "EP/potential_ref", writecnt)
+            export.hdf.write(EPmodel_.getphivar(), "EP/phi", writecnt)
+            export.hdf.write(EPmodel_.getrvar(), "EP/r", writecnt)
+            export.hdf.write(potential_ref, "EP/potential_ref", writecnt)
 
             writecnt += 1
 
         if "probepts" in list(SimDet.keys()):
-            #            fIMP = probesIMP.array()
-            #            fIMP2 = probesIMP2.array()
-            #            fIMP3 = probesIMP3.array()
-            #            fStress = probesfstress.array()
+            fIMP = probesIMP.array()
+            fIMP2 = probesIMP2.array()
+            fIMP3 = probesIMP3.array()
+            fStress = probesfstress.array()
             fStrain_vals = probesEul_fiber.array()
-            #            E_circ_BiV = probesE_circ_BiV.array()
-            #            E_long_BiV = probesE_long_BiV.array()
-            #            E_radi_BiV = probesE_radi_BiV.array()
-            #
-            #            export.writeIMP(MEmodel_, state_obj.tstep, fIMP)
-            #            export.writeIMP2(MEmodel_, state_obj.tstep, fIMP2)
-            #            export.writeIMP3(MEmodel_, state_obj.tstep, fIMP3)
-            #            export.writefStress(MEmodel_, state_obj.tstep, fStress)
+            E_circ_BiV = probesE_circ_BiV.array()
+            E_long_BiV = probesE_long_BiV.array()
+            E_radi_BiV = probesE_radi_BiV.array()
+            
+            export.writeIMP(MEmodel_, state_obj.tstep, fIMP)
+            export.writeIMP2(MEmodel_, state_obj.tstep, fIMP2)
+            export.writeIMP3(MEmodel_, state_obj.tstep, fIMP3)
+            export.writefStress(MEmodel_, state_obj.tstep, fStress)
             export.writefStrain(MEmodel_, state_obj.tstep, fStrain_vals)
-        #            export.writeCStrain(MEmodel_, state_obj.tstep, E_circ_BiV)
-        #            export.writeLStrain(MEmodel_, state_obj.tstep, E_long_BiV)
-        #            export.writeRStrain(MEmodel_, state_obj.tstep, E_radi_BiV)
+            export.writeCStrain(MEmodel_, state_obj.tstep, E_circ_BiV)
+            export.writeLStrain(MEmodel_, state_obj.tstep, E_long_BiV)
+            export.writeRStrain(MEmodel_, state_obj.tstep, E_radi_BiV)
 
         cnt += 1
 

@@ -1698,12 +1698,18 @@ class exportfiles(object):
         isLV = self.isLV
         comm = self.comm_ep
 
-        LVP = MEmodel.GetLVP() * 0.0075
-        LVV = MEmodel.GetLVV()
+        if MEmodel.ispctrl:
+            LVP = MEmodel.LVCavitypres.pres
+            LVV = MEmodel.GetVolumeComputation()
 
-        if not isLV:
-            RVP = MEmodel.GetRVP() * 0.0075
-            RVV = MEmodel.GetRVV()
+
+        else:
+            LVP = MEmodel.GetLVP() * 0.0075
+            LVV = MEmodel.GetLVV()
+
+            if not isLV:
+                RVP = MEmodel.GetRVP() * 0.0075
+                RVV = MEmodel.GetRVV()
 
         if MPI.rank(comm) == 0:
             fdataPV = self.fdataPV
