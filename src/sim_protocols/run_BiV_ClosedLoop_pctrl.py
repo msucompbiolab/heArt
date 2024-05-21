@@ -5,6 +5,7 @@ from mpi4py import MPI as pyMPI
 
 import warnings
 from ffc.quadrature.deprecation import QuadratureRepresentationDeprecationWarning
+
 warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
 
 
@@ -313,12 +314,11 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     it = 0
     while 1:
         printout("Loading", comm_me)
-        MEmodel_.LVCavitypres.pres += (EDP/0.0075)/nloadstep
-
+        MEmodel_.LVCavitypres.pres += (EDP / 0.0075) / nloadstep
 
         solver_elas.solvenonlinear()
 
-        export.writePV(MEmodel_, 0);
+        export.writePV(MEmodel_, 0)
         export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
         it += 1
 
@@ -328,11 +328,16 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             .get_local()[:]
         )
 
-        printout("Pressure = " +  str(MEmodel_.LVCavitypres.pres * 0.0075) +  " Vol = " + str(MEmodel_.GetVolumeComputation()), comm_me)
-    
+        printout(
+            "Pressure = "
+            + str(MEmodel_.LVCavitypres.pres * 0.0075)
+            + " Vol = "
+            + str(MEmodel_.GetVolumeComputation()),
+            comm_me,
+        )
+
         if MEmodel_.LVCavitypres.pres * 0.0075 >= EDP:
             break
-
 
     if "isunloadingonly" in list(SimDet.keys()):
         if SimDet["isunloadingonly"] is True:
@@ -579,7 +584,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                 x.flatten(), FunctionSpace(MEmodel_.mesh_me, "DG", 1)
             )
             probesfstress(fstress_DG)
-        
+
         Eul_fiber_BiV_DG = project(
             fStrain_uL,
             FunctionSpace(MEmodel_.mesh_me, "DG", 0),
@@ -637,7 +642,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if "probepts" in list(SimDet.keys()):
             probesE_long_BiV(E_long_BiV_DG)
 
-        
         E_radi_BiV_DG = project(
             E_radi_BiV_,
             FunctionSpace(MEmodel_.mesh_me, "DG", 0),
@@ -647,9 +651,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if "probepts" in list(SimDet.keys()):
             probesE_radi_BiV(E_radi_BiV_DG)
 
-
-
-        # Compute IMP 
+        # Compute IMP
         imp = project(
             MEmodel_.GetIMP(),
             FunctionSpace(MEmodel_.mesh_me, "DG", 1),
@@ -683,7 +685,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
             comm_me_.Bcast(a, root=0)
 
-        
         export.writePV(MEmodel_, state_obj.tstep)
 
         if cnt % SimDet["writeStep"] == 0.0:
@@ -696,7 +697,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             export.hdf.write(Eul_fiber_BiV_DG, "ME/Eff", writecnt)
             export.hdf.write(fstress_DG, "ME/fstress", writecnt)
             export.hdf.write(imp, "ME/imp", writecnt)
-            export.hdf.write(imp2, "ME/imp2",  writecnt)
+            export.hdf.write(imp2, "ME/imp2", writecnt)
             export.hdf.write(MEmodel_.GetP(), "ME/imp_constraint", writecnt)
 
             export.hdf.write(EPmodel_.getphivar(), "EP/phi", writecnt)
@@ -714,7 +715,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             E_circ_BiV = probesE_circ_BiV.array()
             E_long_BiV = probesE_long_BiV.array()
             E_radi_BiV = probesE_radi_BiV.array()
-            
+
             export.writeIMP(MEmodel_, state_obj.tstep, fIMP)
             export.writeIMP2(MEmodel_, state_obj.tstep, fIMP2)
             export.writeIMP3(MEmodel_, state_obj.tstep, fIMP3)

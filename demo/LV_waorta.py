@@ -1,39 +1,35 @@
 import sys, pdb
 from dolfin import *
 
-sys.path.append("/mnt/home/ziaeirad/heArt_git")
-sys.path.append("/mnt/home/ziaeirad")
-# from heArt.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
-#    run_BiV_ClosedLoop as run_BiV_ClosedLoop,
-# )
-from heArt.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
+sys.path.append("/mnt/Research")
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
-# from heArt.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+# from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    "casename": "LV_W_aorta3",
+    "casename": "LV_w_aorta5",
     "directory_me": "../LV_waorta/",
     "directory_ep": "../LV_waorta/",
     "outputfolder": "./outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "LV_waorta_dev_fix",
+    "caseID": "LV_waorta",
     "isLV": True,
 }
 
-contRactility = 130e3
+contRactility = 100e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(150.0),
-        "bff": Constant(29.0),  # 29
-        "bfx": Constant(13.3),  # 13.3
-        "bxx": Constant(26.6),  # 26.6
+        "Cparam": Constant(100.0),
+        "bff": Constant(29.0),
+        "bfx": Constant(13.3),
+        "bxx": Constant(26.6),
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
@@ -62,17 +58,18 @@ Circparam = {
     "tau_la": 25,  # time constant of relaxation --> ms
     "tdelay_la": 160,  #
     "Csa": 0.0032,  # Proximal aorta compliance --> ml Pa
-    "Cad": 0.033,  # Distal aorta compliance --> ml Pa
+    "Cad": 0.0330,  # Distal aorta compliance --> ml Pa
     "Csv": 0.28,  # Venous compliance -> ml Pa
     "Vsa0": 360,  # Resting volume for proximal aorta --> ml
+    "Vsv0": 3370.0,  # Resting venous volume (pre 3370.0 (2950, 3100, 3370)) --> ml
     "Vad0": 40,  # Resting volume for distal aorta --> ml
-    "Vsv0": 1870.0,  # Resting venous volume (pre 3370.0 (2950, 3100, 3370)) --> ml
-    "Rav": 1500,  # (pre 500 (500)) (aortic valve resistance) --> Pa ms ml-1
+    "Rav": 500.0,  # (pre 500 (500)) (aortic valve resistance) --> Pa ms ml-1
     "Rsv": 100.0,  # Venous resistance --> Pa ms ml-1
     "Rsa": 18000,  # Proximal aorta resistance --> Pa ms ml-1
     "Rad": 106000,  # Distal aorta resistance (info not available) --> Pa ms ml-1
     "Rmv": 200.0,  # Mitral valve resistance --> Pa ms ml-1
     "V_sv": 3700,
+    "V_LV": 112,
     "V_sa": 740,
     "V_ad": 100,
     "V_LA": 12,
@@ -84,7 +81,7 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 4.0,
+    "writeStep": 10.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
@@ -107,16 +104,22 @@ SimDetails = {
     "Isclosed": True,
     "closedloopparam": Circparam,
     "Ischemia": False,
+    "Mechanics Discretization": "P1P1",
     "isLV": True,
-    "topid": 9, #was 7
-    "LVendoid": 2, #was 1
+    "topid": 9,  # x
+    "aorta_ext_wall": 6,
+    "aorta_int_wall": 5,
+    "aorta_ring": 4,
+    "LVendoid": 1,
     "RVendoid": 0,
-    "epiid": 3, #was 4
-    "apxid": 8, #was 9
-    "abs_tol": 1e-8,
-    "rel_tol": 1e-8,
+    "epiid": 3,
+    "aorta_vplane": 2,
+    "abs_tol": 1e-9,
+    "rel_tol": 1e-9,
     "isunloading": False,
     "isunloadingonly": False,
+    "ispctrl": True,
+    "iswaorta": True,
     "springbc": 1,
 }
 

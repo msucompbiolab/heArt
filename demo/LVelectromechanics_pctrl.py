@@ -16,7 +16,7 @@ IODetails = {
     "directory_ep": "../LVMesh/",
     "outputfolder": "./outputs_LVelectromechanics/",
     "folderName": "",
-    "caseID": "LVelectromechanics_EF_dev",
+    "caseID": "LVelectromechanics_pctrl",
     "isLV": True,
 }
 
