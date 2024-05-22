@@ -7,6 +7,7 @@ from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
 )
 
 from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
@@ -81,7 +82,7 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 10.0,
+    "writeStep": 1.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
@@ -116,10 +117,14 @@ SimDetails = {
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
+    "iswaorta": False,
+    "aorta_vplane": None,
 }
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
-# Postprocessing
-# postprocessdata(IODet=IODetails, SimDet=SimDetails)
+#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
+# Postprocessing
+#postprocessdata(IODet=IODetails, SimDet=SimDetails, cycle=0)
+dumpvtk(IODet=IODetails, SimDet=SimDetails)
+

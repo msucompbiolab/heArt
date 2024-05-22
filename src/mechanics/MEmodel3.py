@@ -945,6 +945,29 @@ class MEmodel(object):
 
         # Add stabilization
         if self.discretization == "P1P1":
+
+            #lhs_u = p_me * J * inv(Fmat) * inv(Fmat.T)
+            #res_u = inner(lhs_u, Fmat.T * grad(v_me)) * dx_me
+
+            #Kappa = Constant(1.0e5)
+            #res_p = ((J - 1) - p_me / Kappa) * q_me * dx_me
+
+            #h_elem = CellDiameter(mesh_me)
+            #mu = Constant(1.0e4)
+
+            #stab = (
+            #    h_elem
+            #    * h_elem
+            #    * Constant(0.5)
+            #    / mu
+            #    * J
+            #    * inner(inv(Fmat.T) * grad(p_me), inv(Fmat.T) * grad(q_me))
+            #    * dx_me
+            #)
+
+            #Fs = -stab
+            #Ftotal += Fs
+
             cell_volume = CellVolume(mesh_me)
             Fs = (
                 1.0
@@ -1131,10 +1154,16 @@ class MEmodel(object):
         )
 
     def GetLVP(self):
-        return self.uflforms.LVcavitypressure()
+        if self.ispctrl:
+            return self.LVCavitypres.pres
+        else:
+            return self.uflforms.LVcavitypressure()
 
     def GetLVV(self):
-        return self.uflforms.LVcavityvol()
+        if self.ispctrl:
+            return self.GetVolumeComputation()
+        else:
+            return self.uflforms.LVcavityvol()
 
     def GetVolumeComputation(self):
         if self.iswaorta:
