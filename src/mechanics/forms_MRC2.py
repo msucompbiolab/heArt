@@ -35,7 +35,6 @@ class Forms(object):
         }
 
     def PassiveMatSEF(self):
-        # Wp = self.passiveforms.PassiveMatSEF()  # + self.Wvolumetric()
         Wp = self.passiveforms.PassiveMatSEF() + self.Wvolumetric()
         return Wp
 
@@ -172,11 +171,7 @@ class Forms(object):
         vol_form = (
             -Constant(1.0 / 3.0)
             * inner(det(F) * dot(inv(F).T, N), X + u)
-            * (
-                ds(self.parameters["LVendoid"])
-                + ds(self.parameters["f_plane"])
-                + ds(self.parameters["s_plane"])
-            )
+            * (ds(self.parameters["LVendoid"]) + ds(self.parameters["aorta_vplane"]))
         )
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
