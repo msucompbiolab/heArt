@@ -82,7 +82,7 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 1.0,
+    "writeStep": 5.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,

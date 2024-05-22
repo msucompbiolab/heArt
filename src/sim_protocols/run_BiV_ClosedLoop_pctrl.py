@@ -442,8 +442,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         isrestart = 0
         state_obj.dt.dt = delTat
 
-        if(state_obj.tstep > 10):
-            break
 
         # Reset phi and r in EP at end of diastole
         if state_obj.t < state_obj.dt.dt:
