@@ -21,13 +21,13 @@ IODetails = {
     "isLV": True,
 }
 
-contRactility = 200e3
+contRactility = 100e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(115.0),
+        "Cparam": Constant(100.0),
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
@@ -44,14 +44,14 @@ GuccioneParams = {
         "Ca0max": 4.35,
         "lr": 1.85,
     },
-    "HomogenousActivation": True,
+    "HomogenousActivation": False,
     "deg": 4,
     "Kappa": 1e5,
     "incompressible": True,
 }
 
 Circparam = {
-    "Ees_la": 25,
+    "Ees_la": 10,
     "A_la": 2.67,
     "B_la": 0.019,
     "V0_la": 10,
@@ -62,12 +62,12 @@ Circparam = {
     "Cad": 0.0330,
     "Csv": 0.28,
     "Vsa0": 360,
-    "Vsv0": 2870.0,
+    "Vsv0": 3370.0,
     "Vad0": 40,
-    "Rav": 1500.0,
+    "Rav": 500.0,
     "Rsv": 100.0,
-    "Rsa": 14000,
-    "Rad": 40000,
+    "Rsa": 18000,
+    "Rad": 106000,
     "Rmv": 200.0,
     # volumes
     "V_sv": 3700,
@@ -75,7 +75,7 @@ Circparam = {
     "V_sa": 740,
     "V_ad": 100,
     "V_LA": 12,
-    "stop_iter": 1,
+    "stop_iter": 5,
 }
 
 SimDetails = {
@@ -105,20 +105,20 @@ SimDetails = {
     "Isclosed": True,
     "closedloopparam": Circparam,
     "Ischemia": False,
-    "springbc": True,
+    "springbc": False,
     "Mechanics Discretization": "P1P1",
     "isLV": True,
     "topid": 4,
     "LVendoid": 2,
     "RVendoid": 0,
     "epiid": 1,
-    "abs_tol": 1e-7,
-    "rel_tol": 1e-7,
+    "abs_tol": 1e-9,
+    "rel_tol": 1e-9,
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
     "iswaorta": False,
-    "aorta_vplane": None,
+    "aorta_vplane": None
 }
 
 # Run Simulation

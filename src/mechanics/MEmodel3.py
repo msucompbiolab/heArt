@@ -541,7 +541,10 @@ class MEmodel(object):
     def Problem(self):
         GuccioneParams = self.SimDet["GiccioneParams"]
         topid = self.SimDet["topid"]
-        aorta_vplane = self.SimDet["aorta_vplane"]
+        if self.iswaorta:
+            aorta_vplane = self.SimDet["aorta_vplane"]
+        else:
+            aorta_vplane = None  # Default
         LVendoid = self.SimDet["LVendoid"]
         RVendoid = self.SimDet["RVendoid"]
         epiid = self.SimDet["epiid"]
@@ -883,9 +886,9 @@ class MEmodel(object):
             if self.iswaorta:
                 F3 = 0.0
                 Kepi_n = 5.0e3  # was 2e4
-                Cepi_n = 0.0  # was 2e3
+                Cepi_n = 5.0e2  # was 2e3
                 Kepi_t = 5.0e2  # was 2e3
-                Cepi_t = 0.0  # was 2e2
+                Cepi_t = 5.0e1  # was 2e2
 
                 F3_epi = inner(
                     outer(N_me, N_me) * (Kepi_n * u_me + Cepi_n * (u_me - u_me_n)), v_me
@@ -901,28 +904,28 @@ class MEmodel(object):
                 Ftotal += F3
             else:
                 ## epicardial
-                Kepi_n = 5e4  # was 2e5 -- 1
-                # Cepi_n = 5e3  # was 2e4
+                Kepi_n = 5e4  # was 2e5
+                Cepi_n = 5e3  # was 2e4
                 Kepi_t = 5e3  # was 2e4
-                # Cepi_t = 5e2  # was 2e3
+                Cepi_t = 5e2  # was 2e3
 
-                F3_epi = Kepi_n * inner(outer(N_me, N_me) * u_me, v_me) * ds_me(
-                    epiid
-                ) + Kepi_t * inner(
-                    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me)) * u_me, v_me
+                # F3_epi = Kepi_n * inner(outer(N_me, N_me) * u_me, v_me) * ds_me(
+                #    epiid
+                # ) + Kepi_t * inner(
+                #    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me)) * u_me, v_me
+                # ) * ds_me(
+                #    epiid
+                # )
+
+                F3_epi = inner(
+                    outer(N_me, N_me) * (Kepi_n * u_me + Cepi_n * (u_me - u_me_n)), v_me
+                ) * ds_me(epiid) + inner(
+                    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                    * (Kepi_t * u_me + Cepi_t * (u_me - u_me_n)),
+                    v_me,
                 ) * ds_me(
                     epiid
                 )
-
-                # F3_epi = inner(
-                #     outer(N_me, N_me) * (Kepi_n * u_me + Cepi_n * (u_me - u_me_n)), v_me
-                # ) * ds_me(epiid) + inner(
-                #     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                #     * (Kepi_t * u_me + Cepi_t * (u_me - u_me_n)),
-                #     v_me,
-                # ) * ds_me(
-                #     epiid
-                # )
 
                 a_, b_ = self.GetSpringBC()
                 F3_base = a_ * inner(b_, v_me) * ds_me(topid)
@@ -931,14 +934,13 @@ class MEmodel(object):
 
                 Ftotal += F3
 
-        else:
-            Wrigid = (
+        elif self.isLV:
+            wrigid = (
                 inner(as_vector([c_me[0], c_me[1], 0.0]), u_me)
-                + inner(as_vector([0.0, 0.0, c_me[2]]), cross(X_me, u_me))
-                + inner(as_vector([c_me[3], 0.0, 0.0]), cross(X_me, u_me))
-                + inner(as_vector([0.0, c_me[4], 0.0]), cross(X_me, u_me))
+                + inner(as_vector([0.0, 0.0, c_me[2]]), cross(x_me, u_me))
+                + inner(as_vector([c_me[3], 0.0, 0.0]), cross(x_me, u_me))
+                + inner(as_vector([0.0, c_me[4], 0.0]), cross(x_me, u_me))
             )
-
             F5 = derivative(Wrigid, w_me, wtest_me) * dx_me
             # F5 = derivative(Wrigid, w_me, wtest_me)*ds_me(LVendoid)
             Ftotal += F5
@@ -946,16 +948,16 @@ class MEmodel(object):
         # Add stabilization
         if self.discretization == "P1P1":
 
-            #lhs_u = p_me * J * inv(Fmat) * inv(Fmat.T)
-            #res_u = inner(lhs_u, Fmat.T * grad(v_me)) * dx_me
+            # lhs_u = p_me * J * inv(Fmat) * inv(Fmat.T)
+            # res_u = inner(lhs_u, Fmat.T * grad(v_me)) * dx_me
 
-            #Kappa = Constant(1.0e5)
-            #res_p = ((J - 1) - p_me / Kappa) * q_me * dx_me
+            # Kappa = Constant(1.0e5)
+            # res_p = ((J - 1) - p_me / Kappa) * q_me * dx_me
 
-            #h_elem = CellDiameter(mesh_me)
-            #mu = Constant(1.0e4)
+            # h_elem = CellDiameter(mesh_me)
+            # mu = Constant(1.0e4)
 
-            #stab = (
+            # stab = (
             #    h_elem
             #    * h_elem
             #    * Constant(0.5)
@@ -963,10 +965,10 @@ class MEmodel(object):
             #    * J
             #    * inner(inv(Fmat.T) * grad(p_me), inv(Fmat.T) * grad(q_me))
             #    * dx_me
-            #)
+            # )
 
-            #Fs = -stab
-            #Ftotal += Fs
+            # Fs = -stab
+            # Ftotal += Fs
 
             cell_volume = CellVolume(mesh_me)
             Fs = (
@@ -993,7 +995,7 @@ class MEmodel(object):
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             Jac3 = derivative(F3, w_me, dw_me)
             Jac += Jac3
-        else:
+        elif self.isLV:
             Jac5 = derivative(F5, w_me, dw_me)
             Jac += Jac5
 
