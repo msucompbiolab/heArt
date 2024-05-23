@@ -6,7 +6,7 @@ from ..utils.nsolver import NSolver as NSolver
 # from fenicstools import *
 from ufl import indices
 import dolfin as dolfin
-
+from mpi4py import MPI as pyMPI
 
 class EPmodel(object):
     def __init__(self, params):
@@ -14,6 +14,8 @@ class EPmodel(object):
         self.parameters.update(params)
 
         self.mesh_ep = self.parameters["EPmesh"]
+        self.isPK = self.parameters["isPK"]
+
         P1_ep = FiniteElement("CG", self.mesh_ep.ufl_cell(), 1, quad_scheme="default")
         P1_ep._quad_scheme = "default"
         P2_ep = FiniteElement("DG", self.mesh_ep.ufl_cell(), 0, quad_scheme="default")
@@ -25,7 +27,6 @@ class EPmodel(object):
         self.wtest_ep = TestFunction(self.W_ep)
         self.w_n_ep = Function(self.W_ep)
 
-        # self.F_FHN, self.J_FHN, self.f_1, self.f_2 = self.Problem()
         self.F_FHN, self.J_FHN, self.fstim_array = self.Problem()
 
     def default_parameters(self):
@@ -57,6 +58,17 @@ class EPmodel(object):
 
         return D_tensor
 
+    # Define a condition function for volume pacing instead of facet
+    def condition_fct(ploc_coord, vertex, ploc_tol):
+        dist=distance_fct(ploc_coord,vertex)
+        return dist < ploc_tol
+
+    def distance_fct(term_nodes_coord, vertex):
+        # Calculate the Euclidean distance
+        diff = term_nodes_coord - vertex
+        dist = np.sqrt(np.sum(diff**2))
+        return dist
+
     def MarkStimulus(self):
         mesh_ep = self.mesh_ep
         ploc = self.parameters["ploc"]
@@ -87,7 +99,10 @@ class EPmodel(object):
         AHAid_ep = self.parameters["AHAid"]
         matid_ep = self.parameters["matid"]
         facetboundaries_ep = self.parameters["facetboundaries"]
-        EpiBCid_ep = self.MarkStimulus()
+        if self.isPK:
+            EpiBCid_ep = self.parameters["EpiBCid"]
+        else:
+            EpiBCid_ep = self.MarkStimulus()
         mesh_ep = self.mesh_ep
 
         W_ep = self.W_ep
@@ -132,6 +147,12 @@ class EPmodel(object):
         D_tensor = self.calculateDmat(f0_ep, mesh=mesh_ep, mId=AHAid_ep)
         Dmat = D_tensor
 
+        if self.isPK:
+            self.max_pace_label = int(max(EpiBCid_ep.array()))
+            print(self.max_pace_label)
+            max_value = MPI.comm_world.allreduce(self.max_pace_label, op=pyMPI.MAX) #
+            print(max_value)
+
         assert (
             len(self.parameters["pacing_timing"]) == self.max_pace_label
         ), "Number of pacing timing not equal to number of ploc labels"
@@ -140,23 +161,26 @@ class EPmodel(object):
         for p in np.arange(0, self.max_pace_label):
             self.fstim_array.append(Expression("iStim", iStim=0.001, degree=1))
 
-        # print len(self.parameters["pacing_timing"])
-        # stop
-
-        # self.f_1 = Expression('iStim', iStim=0.001, degree=1) # 0.001
-        # self.f_2 = Expression('iStim', iStim=0.001, degree=1)
-
         dx_ep = dolfin.dx(
-            mesh_ep, subdomain_data=matid_ep, metadata={"quadrature_degree": 4}
+            mesh_ep#, 
+            #subdomain_data=matid_ep, 
+            #metadata={"quadrature_degree": 4}
         )
-        ds_ep = dolfin.ds(
-            mesh_ep,
-            subdomain_data=facetboundaries_ep,
-            metadata={"quadrature_degree": 4},
-        )
-        ds_ep_epi = dolfin.ds(
-            mesh_ep, subdomain_data=EpiBCid_ep, metadata={"quadrature_degree": 4}
-        )
+
+        if self.isPK:
+            dx_ep_epi = dolfin.dx(
+                mesh_ep, 
+                subdomain_data=EpiBCid_ep
+            )
+        else: 
+            ds_ep = dolfin.ds(
+                mesh_ep,
+                subdomain_data=facetboundaries_ep,
+                metadata={"quadrature_degree": 4},
+            )
+            ds_ep_epi = dolfin.ds(
+                mesh_ep, subdomain_data=EpiBCid_ep, metadata={"quadrature_degree": 4}
+            )
 
         # pacing_integral1 = []
         # pacing_integral1.append( self.f_1*phi_test*ds_ep_epi(1) )
@@ -174,7 +198,10 @@ class EPmodel(object):
 
         label = 1
         for fstim in self.fstim_array:
-            self.F_FHN -= fstim * phi_test * ds_ep_epi(label)
+            if self.isPK:
+                self.F_FHN -= fstim * phi_test * dx_ep_epi(label)
+            else:
+                self.F_FHN -= fstim * phi_test * ds_ep_epi(label)
             label += 1
 
         self.J_FHN = derivative(self.F_FHN, w_ep, dw_ep)
@@ -212,7 +239,7 @@ class EPmodel(object):
             time = pace_time[0]
             duration = pace_time[1]
             if state_obj.t >= time and (state_obj.t <= time + duration):
-                fstim.iStim = 0.3
+                fstim.iStim = 0.1#0.3
 
     def Reset(self):
         self.w_ep.assign(self.w_n_ep)
