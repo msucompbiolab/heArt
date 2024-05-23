@@ -14,7 +14,10 @@ class EPmodel(object):
         self.parameters.update(params)
 
         self.mesh_ep = self.parameters["EPmesh"]
-        self.isPK = self.parameters["isPK"]
+        if "isPK" in list(self.parameters.keys()):
+            self.isPK = self.parameters["isPK"]
+        else:
+            self.isPK = False
 
         P1_ep = FiniteElement("CG", self.mesh_ep.ufl_cell(), 1, quad_scheme="default")
         P1_ep._quad_scheme = "default"
