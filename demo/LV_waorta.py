@@ -126,6 +126,10 @@ SimDetails = {
     "ispctrl": True,
     "iswaorta": True,
     "springbc": 1,
+    "springparam": [2.0e4, 2.0e3],  # Kepi_n / Kepi_t
+    "dashpotparam": [5.0e2, 5.0e1],  # Cepi_n / Cepi_t
+    # "springparam": [5.0e4, 5.0e3]
+    # "dashpotparam": [5.0e3, 5.0e2]
 }
 
 # Run Simulation

@@ -37,6 +37,17 @@ class MEmodel(object):
         else:
             self.iswaorta = False  # Default
 
+        if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+            if self.iswaorta:
+                self.k_spring = self.SimDet["springparam"]
+                self.c_damping = self.SimDet["dashpotparam"]
+            elif self.isLV:
+                self.k_spring = self.SimDet["springparam"]
+                self.c_damping = self.SimDet["dashpotparam"]
+        else:
+            self.k_spring = None
+            self.c_damping = None
+
         if self.isLV:
             self.Mesh = lv_mechanics_mesh(self.parameters, SimDet)
         else:
@@ -884,17 +895,14 @@ class MEmodel(object):
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             if self.iswaorta:
-                F3 = 0.0
-                Kepi_n = 2.0e4  # was 2e4 (5)
-                Cepi_n = 5.0e2  # was 2e3
-                Kepi_t = 2.0e3  # was 2e3
-                Cepi_t = 5.0e1  # was 2e2
 
                 F3_epi = inner(
-                    outer(N_me, N_me) * (Kepi_n * u_me + Cepi_n * (u_me - u_me_n)), v_me
+                    outer(N_me, N_me)
+                    * (self.k_spring[0] * u_me + self.c_damping[0] * (u_me - u_me_n)),
+                    v_me,
                 ) * ds_me(epiid) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                    * (Kepi_t * u_me + Cepi_t * (u_me - u_me_n)),
+                    * (self.k_spring[1] * u_me + self.c_damping[1] * (u_me - u_me_n)),
                     v_me,
                 ) * ds_me(
                     epiid
@@ -902,26 +910,17 @@ class MEmodel(object):
 
                 F3 = F3_epi
                 Ftotal += F3
-            else:
-                ## epicardial
-                Kepi_n = 5e4  # was 2e5
-                Cepi_n = 5e3  # was 2e4
-                Kepi_t = 5e3  # was 2e4
-                Cepi_t = 5e2  # was 2e3
 
-                # F3_epi = Kepi_n * inner(outer(N_me, N_me) * u_me, v_me) * ds_me(
-                #    epiid
-                # ) + Kepi_t * inner(
-                #    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me)) * u_me, v_me
-                # ) * ds_me(
-                #    epiid
-                # )
+            elif self.isLV:
+                ## epicardial
 
                 F3_epi = inner(
-                    outer(N_me, N_me) * (Kepi_n * u_me + Cepi_n * (u_me - u_me_n)), v_me
+                    outer(N_me, N_me)
+                    * (self.k_spring[0] * u_me + self.c_damping[0] * (u_me - u_me_n)),
+                    v_me,
                 ) * ds_me(epiid) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                    * (Kepi_t * u_me + Cepi_t * (u_me - u_me_n)),
+                    * (self.k_spring[1] * u_me + self.c_damping[1] * (u_me - u_me_n)),
                     v_me,
                 ) * ds_me(
                     epiid

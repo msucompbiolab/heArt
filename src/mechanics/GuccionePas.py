@@ -31,18 +31,19 @@ class GuccionePas(object):
 
         return Emat
 
-    # def PassiveMatSEF(self):
-    #     u = self.parameters["displacement_variable"]
-    #     d = u.ufl_domain().geometric_dimension()
-    #     I = Identity(d)
-    #     F = I + grad(u)
-    #     F = dolfin.variable(F)
-    #     J = det(F)
-    #     Ic = tr(F.T * F)
-    #     mu = Constant(1e4)
-    #     Wp = (mu / 2) * (Ic - 3)  # - mu*ln(J)
+    def PassiveRubSEF(self):
+        u = self.parameters["displacement_variable"]
+        d = u.ufl_domain().geometric_dimension()
+        I = Identity(d)
+        F = I + grad(u)
+        F = dolfin.variable(F)
+        J = det(F)
+        Ic = tr(F.T * F)
+        mu = Constant(1e4)
+        # Wp = (mu / 2) * (Ic - 3)  # - mu*ln(J)
+        Wp = (mu / 2) * (exp(10 * (Ic - 3)) - 1)  # - p * (J - 1)
 
-    #     return Wp
+        return Wp
 
     def PassiveMatSEF(self):
         Ea = self.Emat()
