@@ -8,13 +8,14 @@ import numpy as np
 # sys.path.append('/home/hagersan/github')
 # sys.path.append('/home/hagersan/Desktop/MSU/PK+iLVEP')
 sys.path.append("/home/hagersan/Desktop/MSU-src")
-import vtk_py
+sys.path.append("/mnt/Research")
+import vtk_py3
 
 # from purkinjee_fhn import *
-from src.sim_protocols.run_BiV_ClosedLoop_pj import (
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pj import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
-from src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
