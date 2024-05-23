@@ -38,6 +38,10 @@ class Forms(object):
         Wp = self.passiveforms.PassiveMatSEF() + self.Wvolumetric()
         return Wp
 
+    def PassiveRubSEF(self):
+        Wp = self.passiveforms.PassiveRubSEF() + self.Wvolumetric()
+        return Wp
+
     def PK1(self):
         PK1 = self.passiveforms.PK1() + self.PK1volumetric()
         return PK1

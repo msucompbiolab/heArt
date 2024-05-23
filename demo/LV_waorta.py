@@ -2,11 +2,15 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
+
 from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
-# from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    postprocessdata as postprocessdata,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
@@ -16,11 +20,11 @@ IODetails = {
     "directory_ep": "../LV_waorta/",
     "outputfolder": "./outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "LV_waorta",
+    "caseID": "LV_waorta_dev",
     "isLV": True,
 }
 
-contRactility = 100e3
+contRactility = 500e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -74,7 +78,7 @@ Circparam = {
     "V_ad": 100,
     "V_LA": 12,
     "V_LV": 112,
-    "stop_iter": 0,
+    "stop_iter": 1,
 }
 
 SimDetails = {
@@ -121,10 +125,16 @@ SimDetails = {
     "ispctrl": True,
     "iswaorta": True,
     "springbc": 1,
+    "springparam": [2.0e4, 2.0e3],  # Kepi_n / Kepi_t
+    "dashpotparam": [5.0e2, 5.0e1],  # Cepi_n / Cepi_t
+    # "springparam": [5.0e4, 5.0e3],
+    # "dashpotparam": [5.0e3, 5.0e2],
+    "active_region": [1],
 }
 
 # Run Simulation
 run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
+dumpvtk(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

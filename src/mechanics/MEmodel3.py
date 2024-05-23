@@ -37,6 +37,17 @@ class MEmodel(object):
         else:
             self.iswaorta = False  # Default
 
+        if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+            if self.iswaorta:
+                self.k_spring = self.SimDet["springparam"]
+                self.c_damping = self.SimDet["dashpotparam"]
+            elif self.isLV:
+                self.k_spring = self.SimDet["springparam"]
+                self.c_damping = self.SimDet["dashpotparam"]
+        else:
+            self.k_spring = None
+            self.c_damping = None
+
         if self.isLV:
             self.Mesh = lv_mechanics_mesh(self.parameters, SimDet)
         else:
@@ -834,6 +845,8 @@ class MEmodel(object):
         n_me = J * inv(Fmat.T) * N_me
 
         Wp_me = uflforms.PassiveMatSEF()
+        WpRub_me = uflforms.PassiveRubSEF()
+
         if not self.ispctrl:
             LV_Wvol = uflforms.LVV0constrainedE()
             if not self.isLV:
@@ -844,11 +857,12 @@ class MEmodel(object):
 
         X_me = SpatialCoordinate(mesh_me)
 
-        Kspring = Constant(50)  # Original
-        # Kspring = Constant(5)   #New
-        # Kspringb  = Constant(100)
-
-        F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+        # F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+        F1 = (
+            derivative(Wp_me, w_me, wtest_me) * dx_me(1)
+            + derivative(WpRub_me, w_me, wtest_me) * dx_me(2)
+            + derivative(WpRub_me, w_me, wtest_me) * dx_me(3)
+        )
 
         if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
             print("Active region = ", self.SimDet["active_region"])
@@ -884,17 +898,14 @@ class MEmodel(object):
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             if self.iswaorta:
-                F3 = 0.0
-                Kepi_n = 5.0e3  # was 2e4
-                Cepi_n = 5.0e2  # was 2e3
-                Kepi_t = 5.0e2  # was 2e3
-                Cepi_t = 5.0e1  # was 2e2
 
                 F3_epi = inner(
-                    outer(N_me, N_me) * (Kepi_n * u_me + Cepi_n * (u_me - u_me_n)), v_me
+                    outer(N_me, N_me)
+                    * (self.k_spring[0] * u_me + self.c_damping[0] * (u_me - u_me_n)),
+                    v_me,
                 ) * ds_me(epiid) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                    * (Kepi_t * u_me + Cepi_t * (u_me - u_me_n)),
+                    * (self.k_spring[1] * u_me + self.c_damping[1] * (u_me - u_me_n)),
                     v_me,
                 ) * ds_me(
                     epiid
@@ -902,26 +913,17 @@ class MEmodel(object):
 
                 F3 = F3_epi
                 Ftotal += F3
-            else:
-                ## epicardial
-                Kepi_n = 5e4  # was 2e5
-                Cepi_n = 5e3  # was 2e4
-                Kepi_t = 5e3  # was 2e4
-                Cepi_t = 5e2  # was 2e3
 
-                # F3_epi = Kepi_n * inner(outer(N_me, N_me) * u_me, v_me) * ds_me(
-                #    epiid
-                # ) + Kepi_t * inner(
-                #    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me)) * u_me, v_me
-                # ) * ds_me(
-                #    epiid
-                # )
+            elif self.isLV:
+                ## epicardial
 
                 F3_epi = inner(
-                    outer(N_me, N_me) * (Kepi_n * u_me + Cepi_n * (u_me - u_me_n)), v_me
+                    outer(N_me, N_me)
+                    * (self.k_spring[0] * u_me + self.c_damping[0] * (u_me - u_me_n)),
+                    v_me,
                 ) * ds_me(epiid) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                    * (Kepi_t * u_me + Cepi_t * (u_me - u_me_n)),
+                    * (self.k_spring[1] * u_me + self.c_damping[1] * (u_me - u_me_n)),
                     v_me,
                 ) * ds_me(
                     epiid
@@ -935,11 +937,11 @@ class MEmodel(object):
                 Ftotal += F3
 
         elif self.isLV:
-            wrigid = (
+            Wrigid = (
                 inner(as_vector([c_me[0], c_me[1], 0.0]), u_me)
-                + inner(as_vector([0.0, 0.0, c_me[2]]), cross(x_me, u_me))
-                + inner(as_vector([c_me[3], 0.0, 0.0]), cross(x_me, u_me))
-                + inner(as_vector([0.0, c_me[4], 0.0]), cross(x_me, u_me))
+                + inner(as_vector([0.0, 0.0, c_me[2]]), cross(X_me, u_me))
+                + inner(as_vector([c_me[3], 0.0, 0.0]), cross(X_me, u_me))
+                + inner(as_vector([0.0, c_me[4], 0.0]), cross(X_me, u_me))
             )
             F5 = derivative(Wrigid, w_me, wtest_me) * dx_me
             # F5 = derivative(Wrigid, w_me, wtest_me)*ds_me(LVendoid)
