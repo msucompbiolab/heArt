@@ -7,7 +7,9 @@ from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
-from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    postprocessdata as postprocessdata,
+)
 from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
@@ -18,11 +20,11 @@ IODetails = {
     "directory_ep": "../LV_waorta/",
     "outputfolder": "./outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "LV_waorta",
+    "caseID": "LV_waorta_dev",
     "isLV": True,
 }
 
-contRactility = 400e3
+contRactility = 500e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -125,12 +127,13 @@ SimDetails = {
     "springbc": 1,
     "springparam": [2.0e4, 2.0e3],  # Kepi_n / Kepi_t
     "dashpotparam": [5.0e2, 5.0e1],  # Cepi_n / Cepi_t
-    # "springparam": [5.0e4, 5.0e3]
-    # "dashpotparam": [5.0e3, 5.0e2]
+    # "springparam": [5.0e4, 5.0e3],
+    # "dashpotparam": [5.0e3, 5.0e2],
+    "active_region": [1],
 }
 
 # Run Simulation
-#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
 dumpvtk(IODet=IODetails, SimDet=SimDetails)

@@ -845,6 +845,8 @@ class MEmodel(object):
         n_me = J * inv(Fmat.T) * N_me
 
         Wp_me = uflforms.PassiveMatSEF()
+        WpRub_me = uflforms.PassiveRubSEF()
+
         if not self.ispctrl:
             LV_Wvol = uflforms.LVV0constrainedE()
             if not self.isLV:
@@ -855,11 +857,12 @@ class MEmodel(object):
 
         X_me = SpatialCoordinate(mesh_me)
 
-        Kspring = Constant(50)  # Original
-        # Kspring = Constant(5)   #New
-        # Kspringb  = Constant(100)
-
-        F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+        # F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+        F1 = (
+            derivative(Wp_me, w_me, wtest_me) * dx_me(1)
+            + derivative(WpRub_me, w_me, wtest_me) * dx_me(2)
+            + derivative(WpRub_me, w_me, wtest_me) * dx_me(3)
+        )
 
         if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
             print("Active region = ", self.SimDet["active_region"])
