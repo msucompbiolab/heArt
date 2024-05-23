@@ -20,7 +20,7 @@ IODetails = {
     "isLV": True,
 }
 
-contRactility = 100e3
+contRactility = 400e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -74,7 +74,7 @@ Circparam = {
     "V_ad": 100,
     "V_LA": 12,
     "V_LV": 112,
-    "stop_iter": 0,
+    "stop_iter": 1,
 }
 
 SimDetails = {

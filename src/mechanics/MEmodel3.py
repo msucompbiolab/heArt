@@ -885,9 +885,9 @@ class MEmodel(object):
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             if self.iswaorta:
                 F3 = 0.0
-                Kepi_n = 5.0e3  # was 2e4
+                Kepi_n = 2.0e4  # was 2e4 (5)
                 Cepi_n = 5.0e2  # was 2e3
-                Kepi_t = 5.0e2  # was 2e3
+                Kepi_t = 2.0e3  # was 2e3
                 Cepi_t = 5.0e1  # was 2e2
 
                 F3_epi = inner(
