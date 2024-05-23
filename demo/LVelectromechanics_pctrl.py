@@ -122,7 +122,7 @@ SimDetails = {
 }
 
 # Run Simulation
-#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # Postprocessing
 #postprocessdata(IODet=IODetails, SimDet=SimDetails, cycle=0)

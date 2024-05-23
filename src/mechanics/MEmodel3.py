@@ -935,11 +935,11 @@ class MEmodel(object):
                 Ftotal += F3
 
         elif self.isLV:
-            wrigid = (
+            Wrigid = (
                 inner(as_vector([c_me[0], c_me[1], 0.0]), u_me)
-                + inner(as_vector([0.0, 0.0, c_me[2]]), cross(x_me, u_me))
-                + inner(as_vector([c_me[3], 0.0, 0.0]), cross(x_me, u_me))
-                + inner(as_vector([0.0, c_me[4], 0.0]), cross(x_me, u_me))
+                + inner(as_vector([0.0, 0.0, c_me[2]]), cross(X_me, u_me))
+                + inner(as_vector([c_me[3], 0.0, 0.0]), cross(X_me, u_me))
+                + inner(as_vector([0.0, c_me[4], 0.0]), cross(X_me, u_me))
             )
             F5 = derivative(Wrigid, w_me, wtest_me) * dx_me
             # F5 = derivative(Wrigid, w_me, wtest_me)*ds_me(LVendoid)
