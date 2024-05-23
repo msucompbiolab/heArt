@@ -857,12 +857,14 @@ class MEmodel(object):
 
         X_me = SpatialCoordinate(mesh_me)
 
-        # F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
-        F1 = (
-            derivative(Wp_me, w_me, wtest_me) * dx_me(1)
-            + derivative(WpRub_me, w_me, wtest_me) * dx_me(2)
-            + derivative(WpRub_me, w_me, wtest_me) * dx_me(3)
-        )
+        if self.iswaorta:
+            F1 = (
+                derivative(Wp_me, w_me, wtest_me) * dx_me(1)
+                + derivative(WpRub_me, w_me, wtest_me) * dx_me(2)
+                + derivative(WpRub_me, w_me, wtest_me) * dx_me(3)
+            )
+        else:
+            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
 
         if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
             print("Active region = ", self.SimDet["active_region"])
