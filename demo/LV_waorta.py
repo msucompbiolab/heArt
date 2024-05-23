@@ -7,10 +7,7 @@ from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
-# from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
-from heArt_py3.src.postprocessing.postprocessdata2 import (
-    postprocessdata as postprocessdata,
-)
+from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
 from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
@@ -133,7 +130,7 @@ SimDetails = {
 }
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
 dumpvtk(IODet=IODetails, SimDet=SimDetails)
