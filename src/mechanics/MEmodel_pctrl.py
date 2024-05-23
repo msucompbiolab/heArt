@@ -24,6 +24,12 @@ class MEmodel(object):
         self.isLV = SimDet["isLV"]
         self.deg_me = SimDet["GiccioneParams"]["deg"]
 
+        if "ispctrl" in list(self.SimDet.keys()):
+            self.ispctrl = SimDet["ispctrl"]
+        else:
+            self.ispctrl = False  # Default
+
+
         if self.isLV:
             self.Mesh = lv_mechanics_mesh(self.parameters, SimDet)
         else:

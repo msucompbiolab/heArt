@@ -29,6 +29,7 @@ from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
 from ..ep.EPmodel import EPmodel
 
 from ..mechanics.MEmodel3 import MEmodel
+#from ..mechanics.MEmodel_pctrl import MEmodel
 from .circ import CLmodel
 
 # from ..mechanics.volume_ca import MeshModifier
@@ -185,106 +186,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     nloadstep = SimDet["nLoadSteps"]
 
     # Unloading LV to get new reference geometry
-    isunloading = False
-    if "isunloading" in list(SimDet.keys()):
-        if SimDet["isunloading"] is True:
-            isunloading = True
-
-    #        if(isunloading):
-    #
-    #            printout("Start UnLoading", comm_me)
-    #            #V_LV_target = MEmodel_.GetLVV()
-    #
-    #            if("unloadparam" in SimDet.keys()):
-    #                unloadparam = SimDet["unloadparam"]
-    #            else:
-    #                unloadparam = {};
-    #
-    #            nloadstep_, volinc_, V_LV_target, solver_elas = MEmodel_.unloading(unloadparam)
-    #            printout("Target EDV = " + str(V_LV_target), comm_me)
-    #
-    #            printout("Finish UnLoading and Reloading", comm_me)
-    #
-    #
-    #            export.writePV(MEmodel_, 0);
-    #            export.hdf.write(MEmodel_.mesh_me, "ME/mesh")
-    #            export.hdf.write(EPmodel_.mesh_ep, "EP/mesh")
-    #
-    #            MEmodel_.LVCavityvol.vol = MEmodel_.GetLVV()
-    #            V_LV_unload = MEmodel_.GetLVV()
-    #
-    #            for it in np.arange(0,nloadstep):
-    #
-    #                MEmodel_.LVCavityvol.vol += (V_LV_target - V_LV_unload)/nloadstep
-    #                solver_elas.solvenonlinear()
-    #                printout("Pressure = " +  str(MEmodel_.GetLVP()*0.0075) +  " Vol = " + str(MEmodel_.GetLVV()), comm_me)
-    #
-    #                export.writePV(MEmodel_, 0);
-    #                export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
-    #
-    #                F_ED.vector()[:] = project(MEmodel_.GetFmat(), MEmodel_.TF, solver_type='mumps').vector().array()[:]
-    #
-    #        # No unloading
-    #        else:
-    #            #export.writePV(MEmodel_, 0);
-    #            export.hdf.write(MEmodel_.mesh_me, "ME/mesh")
-    #            export.hdf.write(EPmodel_.mesh_ep, "EP/mesh")
-    #    #        for lmbda_value in range(0, nloadstep):
-    #            lmbda_value = 0
-    #            while (1):
-    #
-    #                if("V_LV" in SimDet["closedloopparam"].keys()):
-    #                    V_LV_target = SimDet["closedloopparam"]["V_LV"]
-    #                    MEmodel_.LVCavityvol.vol += (V_LV_target - V_LV_unload)/nloadstep
-    #                    MEmodel_.LVCavitypres.pres += 20.0
-    #                else:
-    #                    MEmodel_.LVCavityvol.vol += 2.0
-    #
-    #                if("V_RV" in SimDet["closedloopparam"].keys()):
-    #                    V_RV_target = SimDet["closedloopparam"]["V_RV"]
-    #                    MEmodel_.RVCavityvol.vol += (V_RV_target - V_RV_unload)/nloadstep
-    #                else:
-    #                    MEmodel_.RVCavityvol.vol += 2.0
-    #
-    #
-    #                #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
-    #                try:
-    #                    solver_elas.solvenonlinear()
-    #                except:
-    #                    export.hdf.close()
-    #                #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
-    #                printout("ME LVV = " + str(MEmodel_.GetLVV()), comm_me)
-    #
-    #                if(isLV):
-    #                    printout("Loading phase step = " + str(lmbda_value) + " LVV = " + str(MEmodel_.GetLVV()) \
-    #    #                                                                      " LVP = " + str(MEmodel_.GetLVP()*0.0075)  \
-    #                                                                          , comm_me)
-    #                    export.printout("Loading phase step = " + str(lmbda_value) + " LVV = " + str(MEmodel_.GetLVV()))
-    #                else:
-    #                    printout("Loading phase step = " + str(lmbda_value) + " LVV = " + str(MEmodel_.GetLVV()) + \
-    #    #                                                                      " LVP = " + str(MEmodel_.GetLVP()*0.0075) + \
-    #                                                                          " RVV = " + str(MEmodel_.GetRVV()) + \
-    #                                                                          " RVP = " + str(MEmodel_.GetRVP()*0.0075)  \
-    #                                                                          , comm_me)
-    #                    export.printout("Loading phase step = " + str(lmbda_value) + " LVV = " + str(MEmodel_.GetLVV())+ \
-    #                                                                                 " RVV = " + str(MEmodel_.GetRVV()))
-    #
-    #
-    #                #export.writePV(MEmodel_, 0);
-    #                export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", lmbda_value)
-    #
-    #                F_ED.vector()[:] = project(MEmodel_.GetFmat(), MEmodel_.TF, solver_type='mumps').vector().array()[:]
-    #                printout("LVP = " + str(MEmodel_.LVCavitypres.pres), comm_me)
-    #
-    #                if MEmodel_.GetLVV() > V_LV_target:
-    #                    break
-
-    if "isunloadingonly" in list(SimDet.keys()):
-        if SimDet["isunloadingonly"] is True:
-            export.hdf.close()
-            exit()
-
-    # Unloading LV to get new reference geometry
     MEmodel_.LVCavityvol.vol = MEmodel_.GetLVV()
     MEmodel_.LVCavitypres.pres = 0.0
 
@@ -330,23 +231,19 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         printout(
             "Pressure = "
-            + str(MEmodel_.LVCavitypres.pres * 0.0075)
+            + str(MEmodel_.GetLVP() * 0.0075)
             + " Vol = "
-            + str(MEmodel_.GetVolumeComputation()),
+            + str(MEmodel_.GetLVV()),#GetVolumeComputation()),
             comm_me,
         )
 
         if MEmodel_.LVCavitypres.pres * 0.0075 >= EDP:
             break
 
-    if "isunloadingonly" in list(SimDet.keys()):
-        if SimDet["isunloadingonly"] is True:
-            export.hdf.close()
-            exit()
-
     prev_disp = MEmodel_.GetDisplacement()
     File(outputfolder + folderName + "prev_disp.pvd") << prev_disp
-    printout("volume = " + str(MEmodel_.GetVolumeComputation()), comm_me)
+    #printout("volume = " + str(MEmodel_.GetVolumeComputation()), comm_me)
+    printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
 
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
     # Declare communicator based on mpi4py
@@ -423,8 +320,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     potential_me = Function(FunctionSpace(MEmodel_.mesh_me, "CG", 1))
     writecnt = 0
 
-    P_LV = MEmodel_.LVCavitypres.pres
-    V_LV = MEmodel_.GetVolumeComputation()
+    P_LV = MEmodel_.GetLVP()#LVCavitypres.pres
+    V_LV = MEmodel_.GetLVV()#GetVolumeComputation()
 
     CLmodel_ = CLmodel(SimDet, V_LV)
 
@@ -473,13 +370,13 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         def Jf(P_LV):
             MEmodel_.LVCavitypres.pres = P_LV
             solver_elas.solvenonlinear()
-            est_fe_v1 = MEmodel_.GetVolumeComputation()
+            est_fe_v1 = MEmodel_.GetLVV()#GetVolumeComputation()
 
             P_LV2 = estpres(P_LV)
 
             MEmodel_.LVCavitypres.pres = P_LV2
             solver_elas.solvenonlinear()
-            est_fe_v2 = MEmodel_.GetVolumeComputation()
+            est_fe_v2 = MEmodel_.GetLVV()#GetVolumeComputation()
 
             return (est_fe_v2 - est_fe_v1) / (P_LV2 - P_LV)
 
@@ -487,7 +384,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             MEmodel_.LVCavitypres.pres = P_LV
             solver_elas.solvenonlinear()
 
-            v_t = MEmodel_.GetVolumeComputation()
+            v_t = MEmodel_.GetLVV()#GetVolumeComputation()
 
             return v_t - V_LV
 
@@ -534,7 +431,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if cnt % SimDet["writeStep"] == 0.0:
             export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", writecnt)
             # export.hdf.write(c_n, "ME/u_diff", writecnt)
-            # writecnt += 1
+            writecnt += 1
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)
@@ -544,6 +441,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         isrestart = 0
         state_obj.dt.dt = delTat
+
 
         # Reset phi and r in EP at end of diastole
         if state_obj.t < state_obj.dt.dt:
@@ -737,3 +635,5 @@ if __name__ == "__main__":
     run_BiV_TimedGuccione(IODet=IODetails, SimDet=SimDetails)
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
+
+

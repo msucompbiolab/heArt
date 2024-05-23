@@ -2,6 +2,7 @@ import dolfin as df
 import sys
 
 sys.path.append("/home/ziaeirad/")
+sys.path.append("/mnt/Research/")
 import vtk
 import vtk_py3 as vtk_py
 import glob
@@ -427,8 +428,7 @@ def readtpt(filename):
     return np.array(tpt_array)
 
 
-def extractvtk(directory, fieldvariable, ind, elemtype, deg, outdirectory):
-    assert elemtype == "CG" and deg == 2, "element type not supported"
+def extractvtk(directory, fieldvariable, elemtype, deg, outdirectory, name, ind=None):
 
     mesh = df.Mesh()
     hdf = df.HDF5File(mesh.mpi_comm(), directory + "/" + "Data.h5", "r")
@@ -436,6 +436,9 @@ def extractvtk(directory, fieldvariable, ind, elemtype, deg, outdirectory):
     ugrid = vtk_py.convertXMLMeshToUGrid(mesh)
     attr = hdf.attributes(fieldvariable)
     nsteps = attr["count"]
+
+    if ind is None:
+        ind = np.arange(0,nsteps)
 
     var_space = df.VectorFunctionSpace(mesh, elemtype, deg)
     var = df.Function(var_space)
@@ -445,8 +448,8 @@ def extractvtk(directory, fieldvariable, ind, elemtype, deg, outdirectory):
 
     point_fieldvararray = []
     cnt = 1
-    fstream = df.File(outdirectory + "/" + "displacement.pvd")
-    for p in ind[0]:
+    fstream = df.File(outdirectory + "/" + name + ".pvd")
+    for p in ind:
         dataset = fieldvariable + "/vector_%d" % p
         hdf.read(var, dataset)
         var.rename("var", "var")

@@ -1,11 +1,13 @@
+import dolfin as df
 from .postprocessdatalib2 import *
 
 
-def postprocessdata(IODet, SimDet):
+def postprocessdata(IODet, SimDet, cycle=None):
     directory = IODet["outputfolder"] + "/"
     casename = IODet["caseID"]
     BCL = SimDet["HeartBeatLength"]
-    cycle = SimDet["closedloopparam"]["stop_iter"]
+    if cycle is None:
+        cycle = SimDet["closedloopparam"]["stop_iter"]
 
     for ncycle in range(cycle - 1, cycle):
         filename = directory + casename + "/" + "BiV_PV.txt"
@@ -165,3 +167,63 @@ def postprocessdata(IODet, SimDet):
             tpt=tpt,
             ncycle=ncycle,
         )
+
+
+def dumpvtk(IODet, SimDet, cycle=None):
+
+    mesh = df.Mesh()
+    hdf = df.HDF5File(mesh.mpi_comm(), IODet["outputfolder"] + "/" + IODet["caseID"]  + "/" + "Data.h5", "r")
+
+    list_of_ME_var = [["u", "CG", 1],
+                      ["potential_ref", "CG", 1], 
+                      ["Ecc", "DG", 0],
+                      ["Ell", "DG", 0], 
+                      ["Err", "DG", 0],
+                      ["Eff", "DG", 0],
+                      ["fstress", "DG", 1],
+                      ["imp", "DG", 1],
+                      ["imp2", "DG", 1], 
+                      ["imp_constraint", "DG", 1]]
+
+    list_of_EP_var = [["phi", "CG", 1], 
+                      ["r", "DG", 0],
+                      ["potential_ref", "CG", 1]]
+
+
+    for ME_var in list_of_ME_var:
+
+        var = ME_var[0]
+        var_space = ME_var[1]
+        var_deg = ME_var[2]
+
+        # Dump displacement
+        if(SimDet["Mechanics Discretization"] is "P1P1" and var == "u"):
+            var_deg = 1
+        else:
+            var_deg = 2
+
+        extractvtk(
+                  IODet["outputfolder"] + "/" + IODet["caseID"], 
+                  "ME/"+var, 
+                  var_space, 
+                  var_deg, 
+                  IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "ME_" + var,
+                  var,
+                  )
+
+    for EP_var in list_of_EP_var:
+
+        var = EP_var[0]
+        var_space = EP_var[1]
+        var_deg = EP_var[2]
+
+        extractvtk(
+                  IODet["outputfolder"] + "/" + IODet["caseID"], 
+                  "EP/"+var, 
+                  var_space, 
+                  var_deg, 
+                  IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "EP_" + var,
+                  var,
+                  )
+
+
