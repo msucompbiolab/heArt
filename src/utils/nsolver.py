@@ -1,6 +1,9 @@
 from dolfin import *
 import math
-import petsc4py
+
+# import petsc4py
+import sys
+from .snes_problem import SNESProblem
 
 
 class NSolver(object):
@@ -22,6 +25,8 @@ class NSolver(object):
         )
         self.nsolver = NonlinearVariationalSolver(self.problem)
         self.nsolver.parameters["nonlinear_solver"] = "newton"
+
+        self.problem_snes = SNESProblem(Ftotal, w, bcs)
 
     def default_parameters(self):
         return {"rel_tol": 1e-7, "abs_tol": 1e-7, "max_iter": 200}
@@ -87,7 +92,70 @@ class NSolver(object):
             self.nsolver.parameters["newton_solver"]["maximum_iterations"] = maxiter
             # self.nsolver.parameters["newton_solver"]["relaxation_parameter"] = 0.5
             self.nsolver.solve()
+        elif solvertype == 1:
 
+            set_log_level(20)
+            # petsc snes solver
+            import petsc4py
+
+            petsc4py.init(sys.argv)
+            from petsc4py import PETSc
+
+            b = PETScVector()
+            # b = PETSc.Vec().create(MPI.comm_world)
+            J_mat = PETScMatrix()
+            # J_mat = PETSc.Mat().create(MPI.comm_world)
+
+            # PETScOptions.set("ksp_view")
+            # PETScOptions.set("ksp_monitor_true_residual")
+            # PETScOptions.set("ksp_type", "gmres")
+
+            opts = PETSc.Options()
+            # opts.setValue("ksp_view", "")
+            opts.setValue("ksp_monitor_true_residual", "")
+            # opts.setValue("ksp_type", "gmres")
+
+            # PETScOptions.set("pc_type", "fieldsplit")
+            # PETScOptions.set("pc_fieldsplit_type", "additive")
+            # PETScOptions.set("pc_fieldsplit_detect_saddle_point")
+            # PETScOptions.set("fieldsplit_0_ksp_type", "preonly")
+            # PETScOptions.set("fieldsplit_0_pc_type", "lu")
+            # PETScOptions.set("fieldsplit_1_ksp_type", "preonly")
+            # PETScOptions.set("fieldsplit_1_pc_type", "lu")
+
+            opts.setValue("pc_type", "fieldsplit")
+            opts.setValue("pc_fieldsplit_type", "multiplicative")
+            opts.setValue("pc_fieldsplit_detect_saddle_point", "")
+            # opts.setValue("fieldsplit_0_ksp_type", "preonly")
+            opts.setValue("fieldsplit_0_ksp_type", "richardson")
+            opts.setValue("fieldsplit_0_ksp_max_it", "10")
+            opts.setValue("fieldsplit_0_pc_type", "lu")
+            # opts.setValue("fieldsplit_1_ksp_type", "preonly")
+            opts.setValue("fieldsplit_1_ksp_type", "richardson")
+            opts.setValue("fieldsplit_1_ksp_max_it", "10")
+            opts.setValue("fieldsplit_1_pc_type", "bjacobi")
+
+            opts.setValue("fieldsplit_1_pc_jacobi_diagonal_shift", "1e-5")
+
+            snes = PETSc.SNES().create(MPI.comm_world)
+
+            # opts = PETSc.Options()
+            # opts["snes_linesearch_type"] = "bt"
+            # opts["snes_monitor"] = None
+            # opts["snes_linesearch_monitor"] = None
+
+            opts.setValue("snes_linesearch_type", "bt")
+            opts.setValue("snes_monitor", "")
+            opts.setValue("snes_linesearch_monitor", "")
+
+            snes.setFromOptions()
+
+            # problem = SNESProblem(Ftotal, w.vector(), bcs)
+
+            snes.setFunction(self.problem_snes.F, b.vec())
+            snes.setJacobian(self.problem_snes.J, J_mat.mat())
+            snes.solve(None, self.problem_snes.u.vector().vec())
+            import pdb; pdb.set_trace()
         else:
             it = 0
             if self.isfirstiteration == 0:

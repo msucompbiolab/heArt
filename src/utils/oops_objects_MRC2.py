@@ -405,6 +405,143 @@ class lv_mesh(object):
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 
 
+class fch_mesh(object):
+    """
+    object for fch mesh
+    input: mesh, facet, edge, matid, fibre file
+    output: mesh
+    """
+
+    def default_parameters(self):
+        return {
+            "directory": "../FCHMesh/",
+            "casename": "fch_mesh",
+            "fibre_quad_degree": 0,
+            "outputfolder": "../Outputs/",
+            "epiid": 1,
+            "LVendoid": 26,
+        }
+
+    def update_parameters(self, params):
+        self.parameters.update(params)
+
+    def eval_fch(self):
+        print(("number of ceLLs in mesh are: ", self.mesh.num_cells()))
+
+    def __init__(self, params, SimDet):
+        self.mesh = Mesh()
+        self.parameters = self.default_parameters()
+        self.parameters.update(params)
+
+        directory = self.parameters["directory"]
+        casename = self.parameters["casename"]
+        outputfolder = self.parameters["outputfolder"]
+        # comm_common = self.parameters["common_communicator"]
+
+        folderName = self.parameters["foldername"]
+
+        # meshfilename = directory + casename + ".hdf5"
+        meshfilename = os.path.join(directory, casename + ".hdf5")
+
+        f = HDF5File(MPI.comm_world, meshfilename, "r")
+        f.read(self.mesh, casename, False)
+
+        self.facetboundaries = MeshFunction(
+            "size_t", self.mesh, self.mesh.topology().dim() - 1
+        )
+        f.read(self.facetboundaries, casename + "/" + "facetboundaries")
+
+        self.edgeboundaries = MeshFunction("size_t", self.mesh, 1)
+        # f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
+
+        deg = self.parameters["fibre_quad_degree"]
+        VQuadelem = VectorElement("DG", self.mesh.ufl_cell(), degree=0)
+        # VQuadelem = VectorElement("Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default")
+        # VQuadelem._quad_scheme = "default"
+
+        self.fiberFS = FunctionSpace(self.mesh, VQuadelem)
+
+        self.f0 = Function(self.fiberFS)
+        self.s0 = Function(self.fiberFS)
+        self.n0 = Function(self.fiberFS)
+
+        f00 = Function(self.fiberFS)
+        s00 = Function(self.fiberFS)
+        n00 = Function(self.fiberFS)
+
+        if SimDet["DTI_ME"] is True:
+            f.read(self.f0, casename + "/" + "eF_proj_DTI")
+            f.read(self.s0, casename + "/" + "eS_proj_DTI")
+            f.read(self.n0, casename + "/" + "eN_proj_DTI")
+        else:
+            f.read(self.f0, casename + "/" + "eF")
+            f.read(self.s0, casename + "/" + "eS")
+            f.read(self.n0, casename + "/" + "eN")
+
+        if f.has_dataset(casename + "/" + "eC"):
+            self.eC0 = Function(self.fiberFS)
+            f.read(self.eC0, casename + "/" + "eC")
+            # self.eC0 = self.eC0/sqrt(inner(self.eC0, self.eC0))
+
+        if f.has_dataset(casename + "/" + "eL"):
+            self.eL0 = Function(self.fiberFS)
+            f.read(self.eL0, casename + "/" + "eL")
+            # self.eL0 = self.eC0/sqrt(inner(self.eL0, self.eL0))
+
+        if f.has_dataset(casename + "/" + "eR"):
+            self.eR0 = Function(self.fiberFS)
+            f.read(self.eR0, casename + "/" + "eR")
+            # self.eR0 = self.eC0/sqrt(inner(self.eR0, self.eR0))
+
+        self.f0 = self.f0 / sqrt(inner(self.f0, self.f0))
+        self.s0 = self.s0 / sqrt(inner(self.s0, self.s0))
+        self.n0 = self.n0 / sqrt(inner(self.n0, self.n0))
+
+        self.matid = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
+        if f.has_dataset(casename + "/" + "matid"):
+            f.read(self.matid, casename + "/" + "matid")
+        elif f.has_dataset(casename + "/" + "materialregion"):
+            f.read(self.matid, casename + "/" + "materialregion")
+        else:
+            self.matid.set_all(0)
+
+        self.AHAid = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
+        if f.has_dataset(casename + "/" + "AHAid"):
+            f.read(self.AHAid, casename + "/" + "AHAid")
+        else:
+            self.AHAid.set_all(0)
+
+        EpiBCid = MeshFunction("size_t", self.mesh, self.mesh.topology().dim() - 1)
+        if f.has_dataset(casename + "/" + "EpiBCid_Corr"):
+            f.read(EpiBCid, casename + "/" + "EpiBCid_Corr")
+        else:
+            EpiBCid.set_all(0)
+
+        self.EpiBCid_me = EpiBCid
+
+        f.close()
+
+        self.LVendoid = self.parameters["LVendoid"]
+        self.epiid = self.parameters["epiid"]
+
+        dx = dolfin.dx(
+            self.mesh, subdomain_data=self.matid, metadata={"quadrature_degree": deg}
+        )
+        # dx = dolfin.dx(self.mesh, subdomain_data=self.AHAid)
+        ds = dolfin.ds(
+            self.mesh,
+            subdomain_data=self.facetboundaries,
+            metadata={"quadrature_degree": deg},
+        )
+        self.dx = dx
+        self.ds = ds
+
+        print("Mesh size is : %f " % (self.mesh.num_cells()))
+        r_qmin, r_qmax = MeshQuality.radius_ratio_min_max(self.mesh)
+        print(("Minimal radius ratio:", r_qmin))
+        print(("Maximal radius ratio:", r_qmax))
+
+
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 class DiffusingMedium(object):
     """
@@ -1565,6 +1702,7 @@ class PV_Ventricles(object):
 class exportfiles(object):
     def __init__(self, mpi_comm_me, mpi_comm_ep, IODet, SimDet):
         self.isLV = SimDet["isLV"]
+        self.iswaorta = SimDet["iswaorta"]
         self.outputfolder = IODet["outputfolder"]
         self.folderName = IODet["folderName"] + IODet["caseID"] + "/"
 
@@ -1700,6 +1838,7 @@ class exportfiles(object):
 
     def writePV(self, MEmodel, t):
         isLV = self.isLV
+        iswaorta = self.iswaorta
         comm = self.comm_ep
 
         if MEmodel.ispctrl:
@@ -1716,10 +1855,12 @@ class exportfiles(object):
 
         if MPI.rank(comm) == 0:
             fdataPV = self.fdataPV
-            if not isLV:
-                print(t, LVP, LVV, RVP, RVV, file=fdataPV)
-            else:
+            if isLV:
                 print(t, LVP, LVV, file=fdataPV)
+            elif iswaorta:
+                print(t, LVP, LVV, file=fdataPV)
+            else:
+                print(t, LVP, LVV, RVP, RVV, file=fdataPV)
 
         return
 

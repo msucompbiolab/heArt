@@ -29,7 +29,8 @@ from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
 from ..ep.EPmodel import EPmodel
 
 from ..mechanics.MEmodel3 import MEmodel
-#from ..mechanics.MEmodel_pctrl import MEmodel
+
+# from ..mechanics.MEmodel_pctrl import MEmodel
 from .circ import CLmodel
 
 # from ..mechanics.volume_ca import MeshModifier
@@ -51,6 +52,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     outputfolder = IODet["outputfolder"]
     folderName = IODet["folderName"] + IODet["caseID"] + "/"
     isLV = SimDet["isLV"]
+    iswaorta = SimDet["iswaorta"]
 
     delTat = SimDet["dt"]
 
@@ -182,7 +184,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     # Get Unloaded volumes
     V_LV_unload = MEmodel_.GetLVV()
     V_RV_unload = MEmodel_.GetRVV()
-
     nloadstep = SimDet["nLoadSteps"]
 
     # Unloading LV to get new reference geometry
@@ -233,7 +234,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             "Pressure = "
             + str(MEmodel_.GetLVP() * 0.0075)
             + " Vol = "
-            + str(MEmodel_.GetLVV()),#GetVolumeComputation()),
+            + str(MEmodel_.GetLVV()),  # GetVolumeComputation()),
             comm_me,
         )
 
@@ -242,12 +243,12 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     prev_disp = MEmodel_.GetDisplacement()
     File(outputfolder + folderName + "prev_disp.pvd") << prev_disp
-    #printout("volume = " + str(MEmodel_.GetVolumeComputation()), comm_me)
+    # printout("volume = " + str(MEmodel_.GetVolumeComputation()), comm_me)
     printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
 
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
     # Declare communicator based on mpi4py
-    eCC, eRR, eLL, deformedMesh, deformedBoundary = MEmodel_.GetDeformedBasis({})
+    # eCC, eRR, eLL, deformedMesh, deformedBoundary = MEmodel_.GetDeformedBasis({})
 
     # fStrain = MEmodel_.GetFiberstrain(F_ED)
     fStrain_uL = MEmodel_.GetFiberstrainUL()
@@ -259,7 +260,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     # Systemic circulation
 
     # Pulmonary circulation
-    if not isLV:
+    if not isLV and not iswaorta:
         Cpa = SimDet["closedloopparam"]["Cpa"]
         Cpv = SimDet["closedloopparam"]["Cpv"]
         Vpa0 = SimDet["closedloopparam"]["Vpa0"]
@@ -320,8 +321,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     potential_me = Function(FunctionSpace(MEmodel_.mesh_me, "CG", 1))
     writecnt = 0
 
-    P_LV = MEmodel_.GetLVP()#LVCavitypres.pres
-    V_LV = MEmodel_.GetLVV()#GetVolumeComputation()
+    P_LV = MEmodel_.GetLVP()  # LVCavitypres.pres
+    V_LV = MEmodel_.GetLVV()  # GetVolumeComputation()
 
     CLmodel_ = CLmodel(SimDet, V_LV)
 
@@ -370,13 +371,13 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         def Jf(P_LV):
             MEmodel_.LVCavitypres.pres = P_LV
             solver_elas.solvenonlinear()
-            est_fe_v1 = MEmodel_.GetLVV()#GetVolumeComputation()
+            est_fe_v1 = MEmodel_.GetLVV()  # GetVolumeComputation()
 
             P_LV2 = estpres(P_LV)
 
             MEmodel_.LVCavitypres.pres = P_LV2
             solver_elas.solvenonlinear()
-            est_fe_v2 = MEmodel_.GetLVV()#GetVolumeComputation()
+            est_fe_v2 = MEmodel_.GetLVV()  # GetVolumeComputation()
 
             return (est_fe_v2 - est_fe_v1) / (P_LV2 - P_LV)
 
@@ -384,7 +385,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             MEmodel_.LVCavitypres.pres = P_LV
             solver_elas.solvenonlinear()
 
-            v_t = MEmodel_.GetLVV()#GetVolumeComputation()
+            v_t = MEmodel_.GetLVV()  # GetVolumeComputation()
 
             return v_t - V_LV
 
@@ -441,7 +442,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         isrestart = 0
         state_obj.dt.dt = delTat
-
 
         # Reset phi and r in EP at end of diastole
         if state_obj.t < state_obj.dt.dt:
@@ -511,43 +511,43 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 
         ## ----------------- Compute Natural Strain -----------------------------------------------------------------------------
-        E_circ_BiV, E_circ_BiV_ = MEmodel_.GetFiberNaturalStrain(
-            F_ED, eCC, AHA_segments
-        )
-        E_long_BiV, E_long_BiV_ = MEmodel_.GetFiberNaturalStrain(
-            F_ED, eLL, AHA_segments
-        )
-        E_radi_BiV, E_radi_BiV_ = MEmodel_.GetFiberNaturalStrain(
-            F_ED, eRR, AHA_segments
-        )
+        # E_circ_BiV, E_circ_BiV_ = MEmodel_.GetFiberNaturalStrain(
+        #    F_ED, eCC, AHA_segments
+        # )
+        # E_long_BiV, E_long_BiV_ = MEmodel_.GetFiberNaturalStrain(
+        #    F_ED, eLL, AHA_segments
+        # )
+        # E_radi_BiV, E_radi_BiV_ = MEmodel_.GetFiberNaturalStrain(
+        #    F_ED, eRR, AHA_segments
+        # )
         ## --------------------------------------------------------------------------------------------------------------------
         #
-        E_circ_BiV_DG = project(
-            E_circ_BiV_,
-            FunctionSpace(MEmodel_.mesh_me, "DG", 0),
-            form_compiler_parameters={"representation": "uflacs"},
-        )
-        E_circ_BiV_DG.rename("Ecc", "Ecc")
-        if "probepts" in list(SimDet.keys()):
-            probesE_circ_BiV(E_circ_BiV_DG)
+        #E_circ_BiV_DG = project(
+        #    E_circ_BiV_,
+        #    FunctionSpace(MEmodel_.mesh_me, "DG", 0),
+        #    form_compiler_parameters={"representation": "uflacs"},
+        #)
+        #E_circ_BiV_DG.rename("Ecc", "Ecc")
+        #if "probepts" in list(SimDet.keys()):
+        #    probesE_circ_BiV(E_circ_BiV_DG)
 
-        E_long_BiV_DG = project(
-            E_long_BiV_,
-            FunctionSpace(MEmodel_.mesh_me, "DG", 0),
-            form_compiler_parameters={"representation": "uflacs"},
-        )
-        E_long_BiV_DG.rename("Ell", "Ell")
-        if "probepts" in list(SimDet.keys()):
-            probesE_long_BiV(E_long_BiV_DG)
+        #E_long_BiV_DG = project(
+        #    E_long_BiV_,
+        #    FunctionSpace(MEmodel_.mesh_me, "DG", 0),
+        #    form_compiler_parameters={"representation": "uflacs"},
+        #)
+        #E_long_BiV_DG.rename("Ell", "Ell")
+        #if "probepts" in list(SimDet.keys()):
+        #    probesE_long_BiV(E_long_BiV_DG)
 
-        E_radi_BiV_DG = project(
-            E_radi_BiV_,
-            FunctionSpace(MEmodel_.mesh_me, "DG", 0),
-            form_compiler_parameters={"representation": "uflacs"},
-        )
-        E_radi_BiV_DG.rename("Err", "Err")
-        if "probepts" in list(SimDet.keys()):
-            probesE_radi_BiV(E_radi_BiV_DG)
+        #E_radi_BiV_DG = project(
+        #    E_radi_BiV_,
+        #    FunctionSpace(MEmodel_.mesh_me, "DG", 0),
+        #    form_compiler_parameters={"representation": "uflacs"},
+        #)
+        #E_radi_BiV_DG.rename("Err", "Err")
+        #if "probepts" in list(SimDet.keys()):
+        #    probesE_radi_BiV(E_radi_BiV_DG)
 
         # Compute IMP
         imp = project(
@@ -589,9 +589,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             export.writetpt(MEmodel_, state_obj.tstep)
             export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
             export.hdf.write(potential_ref, "ME/potential_ref", writecnt)
-            export.hdf.write(E_circ_BiV_DG, "ME/Ecc", writecnt)
-            export.hdf.write(E_long_BiV_DG, "ME/Ell", writecnt)
-            export.hdf.write(E_radi_BiV_DG, "ME/Err", writecnt)
+            # export.hdf.write(E_circ_BiV_DG, "ME/Ecc", writecnt)
+            # export.hdf.write(E_long_BiV_DG, "ME/Ell", writecnt)
+            # export.hdf.write(E_radi_BiV_DG, "ME/Err", writecnt)
             export.hdf.write(Eul_fiber_BiV_DG, "ME/Eff", writecnt)
             export.hdf.write(fstress_DG, "ME/fstress", writecnt)
             export.hdf.write(imp, "ME/imp", writecnt)
@@ -635,5 +635,3 @@ if __name__ == "__main__":
     run_BiV_TimedGuccione(IODet=IODetails, SimDet=SimDetails)
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
-
-

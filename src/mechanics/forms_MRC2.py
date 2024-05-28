@@ -173,9 +173,32 @@ class Forms(object):
 
         F = self.Fmat()
         vol_form = (
-            -Constant(1.0/3.0)
+            -Constant(1.0 / 3.0)
             * inner(det(F) * dot(inv(F).T, N), X + u)
-            * (ds(self.parameters["LVendoid"]) + ds(self.parameters["aorta_vplane"]))
+            * (ds(self.parameters["LVendoid"]) + ds(self.parameters["aortic_vplane"]))
+        )
+
+        return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
+
+    def LVcavityvol_fch(self):  # cavity volume for lv in fch mesh
+        u = self.parameters["displacement_variable"]
+        N = self.parameters["facet_normal"]
+        mesh = self.parameters["mesh"]
+        X = SpatialCoordinate(mesh)
+        ds = dolfin.ds(
+            subdomain_data=self.parameters["facetboundaries"],
+            metadata={"quadrature_degree": 4},
+        )
+
+        F = self.Fmat()
+        vol_form = (
+            -Constant(1.0 / 3.0)
+            * inner(det(F) * dot(inv(F).T, N), X + u)
+            * (
+                ds(self.parameters["LVendoid"])
+                + ds(self.parameters["aortic_vplane"])
+                + ds(self.parameters["mitral_vplane"])
+            )
         )
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})

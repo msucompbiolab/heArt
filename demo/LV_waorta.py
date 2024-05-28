@@ -20,8 +20,8 @@ IODetails = {
     "directory_ep": "../LV_waorta/",
     "outputfolder": "./outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "LV_waorta_dev",
-    "isLV": True,
+    "caseID": "LV_waorta_test",
+    "isLV": False,
 }
 
 contRactility = 500e3
@@ -78,7 +78,7 @@ Circparam = {
     "V_ad": 100,
     "V_LA": 12,
     "V_LV": 112,
-    "stop_iter": 1,
+    "stop_iter": 0,
 }
 
 SimDetails = {
@@ -109,7 +109,7 @@ SimDetails = {
     "closedloopparam": Circparam,
     "Ischemia": False,
     "Mechanics Discretization": "P1P1",
-    "isLV": True,
+    "isLV": False,
     "topid": 9,  # x
     "aorta_ext_wall": 6,
     "aorta_int_wall": 5,
@@ -117,7 +117,7 @@ SimDetails = {
     "LVendoid": 1,
     "RVendoid": 0,
     "epiid": 3,
-    "aorta_vplane": 2,
+    "aortic_vplane": 2,
     "abs_tol": 1e-7,
     "rel_tol": 1e-7,
     "isunloading": False,
@@ -136,5 +136,5 @@ SimDetails = {
 run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
-dumpvtk(IODet=IODetails, SimDet=SimDetails)
+# dumpvtk(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
