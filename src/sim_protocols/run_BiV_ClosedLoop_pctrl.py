@@ -43,7 +43,7 @@ from ..mechanics.JRp import *
 def run_BiV_ClosedLoop(IODet, SimDet):
     deg = 4
     flags = ["-O3", "-ffast-math", "-march=native"]
-    parameters["form_compiler"]["representation"] = "quadrature"
+    parameters["form_compiler"]["representation"] = "uflacs"
     parameters["form_compiler"]["quadrature_degree"] = deg
 
     casename = IODet["casename"]
@@ -51,8 +51,18 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     directory_ep = IODet["directory_ep"]
     outputfolder = IODet["outputfolder"]
     folderName = IODet["folderName"] + IODet["caseID"] + "/"
-    isLV = SimDet["isLV"]
-    iswaorta = SimDet["iswaorta"]
+    if "isLV" in list(SimDet.keys()):
+        isLV = SimDet["isLV"]
+    else:
+        isLV = False  # Default
+    if "iswaorta" in list(SimDet.keys()):
+        iswaorta = SimDet["iswaorta"]
+    else:
+        iswaorta = False  # Default
+    if "isFCH" in list(SimDet.keys()):
+        isFCH = SimDet["isFCH"]
+    else:
+        isFCH = False  # Default
 
     delTat = SimDet["dt"]
 
@@ -225,7 +235,12 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         it += 1
 
         F_ED.vector()[:] = (
-            project(MEmodel_.GetFmat(), MEmodel_.TF, solver_type="mumps")
+            project(
+                MEmodel_.GetFmat(),
+                MEmodel_.TF,
+                solver_type="mumps",
+                form_compiler_parameters={"representation": "quadrature"},
+            )
             .vector()
             .get_local()[:]
         )
@@ -241,9 +256,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if MEmodel_.LVCavitypres.pres * 0.0075 >= EDP:
             break
 
-    prev_disp = MEmodel_.GetDisplacement()
-    File(outputfolder + folderName + "prev_disp.pvd") << prev_disp
-    # printout("volume = " + str(MEmodel_.GetVolumeComputation()), comm_me)
     printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
 
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
@@ -260,7 +272,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     # Systemic circulation
 
     # Pulmonary circulation
-    if not isLV and not iswaorta:
+    heart_shape = [isLV, iswaorta, isFCH]
+    if all(not x for x in heart_shape):
+        # if not isLV and not iswaorta and not isFCH:
         Cpa = SimDet["closedloopparam"]["Cpa"]
         Cpv = SimDet["closedloopparam"]["Cpv"]
         Vpa0 = SimDet["closedloopparam"]["Vpa0"]
@@ -357,9 +371,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         )
         dict_PV.append((state_obj.t, V_LV, P_LV))
 
-        # prev displacement
-        prev_displacement = MEmodel_.GetDisplacement()
-        File(outputfolder + folderName + "prev_disp.pvd") << prev_displacement
 
         # Newton's solver
         tol = 1e-5  # Tolerance for convergence
@@ -405,29 +416,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             if abs(F) < tol and abs(du) < tol:
                 break
 
-        #        printout("P_LV = "
-        #            + str(P_LV)
-        #            + " V_LV circ = "
-        #            + str(V_LV)
-        #            + " Rp is: "
-        #            + str(F)
-        #            + " J is: "
-        #            + str(J),
-        #            comm_me,
-        #        )
-
-        # new_displacement = MEmodel_.GetDisplacement()
-        # File(outputfolder + folderName + "new_disp.pvd") << new_displacement
-
-        # a_n = prev_displacement.vector().get_local()
-        # b_n = new_displacement.vector().get_local()
-
-        # c_n = Function(prev_displacement.function_space())
-        ## sub_ab = a_n #- b_n
-        # c_n.vector().set_local(a_n)
-        # as_backend_type(c_n.vector()).vec().ghostUpdate()
-        # d_n = MEmodel_.RobinC(c_n)
-        # printout("d_n if applicable = " + str(d_n.vector().get_local()), comm_me)
 
         if cnt % SimDet["writeStep"] == 0.0:
             export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", writecnt)
@@ -522,31 +510,31 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         # )
         ## --------------------------------------------------------------------------------------------------------------------
         #
-        #E_circ_BiV_DG = project(
+        # E_circ_BiV_DG = project(
         #    E_circ_BiV_,
         #    FunctionSpace(MEmodel_.mesh_me, "DG", 0),
         #    form_compiler_parameters={"representation": "uflacs"},
-        #)
-        #E_circ_BiV_DG.rename("Ecc", "Ecc")
-        #if "probepts" in list(SimDet.keys()):
+        # )
+        # E_circ_BiV_DG.rename("Ecc", "Ecc")
+        # if "probepts" in list(SimDet.keys()):
         #    probesE_circ_BiV(E_circ_BiV_DG)
 
-        #E_long_BiV_DG = project(
+        # E_long_BiV_DG = project(
         #    E_long_BiV_,
         #    FunctionSpace(MEmodel_.mesh_me, "DG", 0),
         #    form_compiler_parameters={"representation": "uflacs"},
-        #)
-        #E_long_BiV_DG.rename("Ell", "Ell")
-        #if "probepts" in list(SimDet.keys()):
+        # )
+        # E_long_BiV_DG.rename("Ell", "Ell")
+        # if "probepts" in list(SimDet.keys()):
         #    probesE_long_BiV(E_long_BiV_DG)
 
-        #E_radi_BiV_DG = project(
+        # E_radi_BiV_DG = project(
         #    E_radi_BiV_,
         #    FunctionSpace(MEmodel_.mesh_me, "DG", 0),
         #    form_compiler_parameters={"representation": "uflacs"},
-        #)
-        #E_radi_BiV_DG.rename("Err", "Err")
-        #if "probepts" in list(SimDet.keys()):
+        # )
+        # E_radi_BiV_DG.rename("Err", "Err")
+        # if "probepts" in list(SimDet.keys()):
         #    probesE_radi_BiV(E_radi_BiV_DG)
 
         # Compute IMP

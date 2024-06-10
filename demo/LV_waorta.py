@@ -20,7 +20,7 @@ IODetails = {
     "directory_ep": "../LV_waorta/",
     "outputfolder": "./outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "LV_waorta_test",
+    "caseID": "LV_waorta",
     "isLV": False,
 }
 
@@ -78,7 +78,7 @@ Circparam = {
     "V_ad": 100,
     "V_LA": 12,
     "V_LV": 112,
-    "stop_iter": 0,
+    "stop_iter": 1,
 }
 
 SimDetails = {
@@ -110,7 +110,6 @@ SimDetails = {
     "Ischemia": False,
     "Mechanics Discretization": "P1P1",
     "isLV": False,
-    "topid": 9,  # x
     "aorta_ext_wall": 6,
     "aorta_int_wall": 5,
     "aorta_ring": 4,

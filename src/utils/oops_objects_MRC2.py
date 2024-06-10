@@ -1701,8 +1701,19 @@ class PV_Ventricles(object):
 
 class exportfiles(object):
     def __init__(self, mpi_comm_me, mpi_comm_ep, IODet, SimDet):
-        self.isLV = SimDet["isLV"]
-        self.iswaorta = SimDet["iswaorta"]
+        if "isLV" in list(SimDet.keys()):
+            self.isLV = SimDet["isLV"]
+        else:
+            self.isLV = False  # Default
+        if "iswaorta" in list(SimDet.keys()):
+            self.iswaorta = SimDet["iswaorta"]
+        else:
+            self.iswaorta = False  # Default
+        if "isFCH" in list(SimDet.keys()):
+            self.isFCH = SimDet["isFCH"]
+        else:
+            self.isFCH = False  # Default
+
         self.outputfolder = IODet["outputfolder"]
         self.folderName = IODet["folderName"] + IODet["caseID"] + "/"
 
@@ -1839,6 +1850,8 @@ class exportfiles(object):
     def writePV(self, MEmodel, t):
         isLV = self.isLV
         iswaorta = self.iswaorta
+        isFCH = self.isFCH
+
         comm = self.comm_ep
 
         if MEmodel.ispctrl:
@@ -1858,6 +1871,8 @@ class exportfiles(object):
             if isLV:
                 print(t, LVP, LVV, file=fdataPV)
             elif iswaorta:
+                print(t, LVP, LVV, file=fdataPV)
+            elif isFCH:
                 print(t, LVP, LVV, file=fdataPV)
             else:
                 print(t, LVP, LVV, RVP, RVV, file=fdataPV)

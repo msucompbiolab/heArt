@@ -578,16 +578,14 @@ class MEmodel(object):
             topid = self.SimDet["topid"]
         else:
             topid = None  # Default
-        if self.iswaorta:
+        if self.iswaorta or self.isFCH:
             aortic_vplane = self.SimDet["aortic_vplane"]
         else:
-            aortic_vplane = None  # Default
-        # if self.isFCH:
-        #    aortic_vplane = self.SimDet["aortic_vplane"]
-        #    mitral_vplane = self.SimDet["mitral_vplane"]
-        # else:
-        #    aortic_vplane = None # Default
-        #    mitral_vplane = None # Default
+            aortic_vplane = None
+        if self.isFCH:
+            mitral_vplane = self.SimDet["mitral_vplane"]
+        else:
+            mitral_vplane = None  # Default
 
         LVendoid = self.SimDet["LVendoid"]
         RVendoid = self.SimDet["RVendoid"]
@@ -820,7 +818,7 @@ class MEmodel(object):
             "epiid": epiid,
             "topid": topid,
             "aortic_vplane": aortic_vplane,
-            "mitral_vplane": None,
+            "mitral_vplane": mitral_vplane,
             "LVendo_comp": LVendo_comp,
             "RVendo_comp": RVendo_comp,
             "fiber": f0_me,
@@ -913,8 +911,6 @@ class MEmodel(object):
             )
         elif self.isFCH:
             F1 = derivative(WpRub_me, w_me, wtest_me) * dx_me
-        elif self.isLV:
-            F1 = derivative(WpRub_me, w_me, wtest_me) * dx_me
         else:
             F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
 
@@ -951,7 +947,7 @@ class MEmodel(object):
             Ftotal += Fp
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
-            if self.iswaorta or self.isFCH:
+            if not self.isLV:
 
                 F3_epi = inner(
                     outer(N_me, N_me)
@@ -968,7 +964,7 @@ class MEmodel(object):
                 F3 = F3_epi
                 Ftotal += F3
 
-            elif self.isLV:
+            else:
                 ## epicardial
 
                 F3_epi = inner(
@@ -989,9 +985,6 @@ class MEmodel(object):
                 F3 = F3_epi - F3_base
 
                 Ftotal += F3
-
-            else:
-                F3 = 0
 
         elif self.isLV:
             Wrigid = (
@@ -1080,7 +1073,7 @@ class MEmodel(object):
             "F": self.Ftotal,
             "w": self.w_me,
             "boundary_conditions": self.bcs,
-            "Type": 0,
+            "Type": 0, # Default
             "mesh": self.mesh_me,
             "mode": 1,
         }
@@ -1089,6 +1082,8 @@ class MEmodel(object):
             solverparams.update({"abs_tol": self.SimDet["abs_tol"]})
         if "rel_tol" in list(self.SimDet.keys()):
             solverparams.update({"rel_tol": self.SimDet["rel_tol"]})
+        if "Type" in list(self.SimDet.keys()):
+            solverparams.update({"Type": self.SimDet["Type"]})
 
         solver_eals = NSolver(solverparams)
 

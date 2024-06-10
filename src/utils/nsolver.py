@@ -112,7 +112,7 @@ class NSolver(object):
 
             opts = PETSc.Options()
             # opts.setValue("ksp_view", "")
-            opts.setValue("ksp_monitor_true_residual", "")
+            # opts.setValue("ksp_monitor_true_residual", "")
             # opts.setValue("ksp_type", "gmres")
 
             # PETScOptions.set("pc_type", "fieldsplit")
@@ -124,18 +124,18 @@ class NSolver(object):
             # PETScOptions.set("fieldsplit_1_pc_type", "lu")
 
             opts.setValue("pc_type", "fieldsplit")
-            opts.setValue("pc_fieldsplit_type", "multiplicative")
+            opts.setValue("pc_fieldsplit_type", "additive")
             opts.setValue("pc_fieldsplit_detect_saddle_point", "")
-            # opts.setValue("fieldsplit_0_ksp_type", "preonly")
-            opts.setValue("fieldsplit_0_ksp_type", "richardson")
-            opts.setValue("fieldsplit_0_ksp_max_it", "10")
+            opts.setValue("fieldsplit_0_ksp_type", "preonly")
+            # opts.setValue("fieldsplit_0_ksp_type", "richardson")
+            # opts.setValue("fieldsplit_0_ksp_max_it", "10")
             opts.setValue("fieldsplit_0_pc_type", "lu")
-            # opts.setValue("fieldsplit_1_ksp_type", "preonly")
-            opts.setValue("fieldsplit_1_ksp_type", "richardson")
-            opts.setValue("fieldsplit_1_ksp_max_it", "10")
-            opts.setValue("fieldsplit_1_pc_type", "bjacobi")
+            opts.setValue("fieldsplit_1_ksp_type", "preonly")
+            # opts.setValue("fieldsplit_1_ksp_type", "richardson")
+            # opts.setValue("fieldsplit_1_ksp_max_it", "10")
+            opts.setValue("fieldsplit_1_pc_type", "jacobi")
 
-            opts.setValue("fieldsplit_1_pc_jacobi_diagonal_shift", "1e-5")
+            # opts.setValue("fieldsplit_1_pc_jacobi_diagonal_shift", "1e-5")
 
             snes = PETSc.SNES().create(MPI.comm_world)
 
@@ -144,7 +144,7 @@ class NSolver(object):
             # opts["snes_monitor"] = None
             # opts["snes_linesearch_monitor"] = None
 
-            opts.setValue("snes_linesearch_type", "bt")
+            opts.setValue("snes_linesearch_type", "l2")
             opts.setValue("snes_monitor", "")
             opts.setValue("snes_linesearch_monitor", "")
 
@@ -155,7 +155,6 @@ class NSolver(object):
             snes.setFunction(self.problem_snes.F, b.vec())
             snes.setJacobian(self.problem_snes.J, J_mat.mat())
             snes.solve(None, self.problem_snes.u.vector().vec())
-            import pdb; pdb.set_trace()
         else:
             it = 0
             if self.isfirstiteration == 0:

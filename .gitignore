@@ -29,5 +29,5 @@ w_aorta/
 demo/outputs_LV_waorta/
 LV_waorta/simulator/
 LV_waorta/test/
-demo/dict_PV.json
+demo/dict_PV.json/
 LV_waorta/prev_5/
