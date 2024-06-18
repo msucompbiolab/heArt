@@ -11,6 +11,7 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
     postprocessdata as postprocessdata,
 )
 from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
+from heArt_py3.src.postprocessing.postprocessdata2 import compute_strain as compute_strain
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
@@ -132,8 +133,10 @@ SimDetails = {
 }
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
-# postprocessdata(IODet=IODetails, SimDet=SimDetails)
-# dumpvtk(IODet=IODetails, SimDet=SimDetails)
+#postprocessdata(IODet=IODetails, SimDet=SimDetails)
+#dumpvtk(IODet=IODetails, SimDet=SimDetails)
+compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
+
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

@@ -1,5 +1,8 @@
 import dolfin as df
 from .postprocessdatalib2 import *
+from ..mechanics.forms_MRC2 import Forms
+from ..utils.oops_objects_MRC2 import lv_mesh as lv_mechanics_mesh
+from matplotlib import pylab as plt
 
 
 def postprocessdata(IODet, SimDet, cycle=None):
@@ -168,6 +171,159 @@ def postprocessdata(IODet, SimDet, cycle=None):
             ncycle=ncycle,
         )
 
+def compute_strain(IODet, SimDet, LVid= 1, cycle=None):
+
+    mesh = df.Mesh()
+    hdf = df.HDF5File(mesh.mpi_comm(), IODet["outputfolder"] + "/" + IODet["caseID"]  + "/" + "Data.h5", "r")
+
+    u_arr = extractdisplacement(IODet, SimDet, cycle=None)
+
+    mesh_params = {
+        "directory": IODet["directory_me"],
+        "casename": IODet["casename"],
+        "outputfolder": IODet["outputfolder"],
+        "foldername": IODet["folderName"],
+        "isLV": IODet["isLV"],
+    }
+
+
+    Mesh_obj = lv_mechanics_mesh(mesh_params, SimDet)
+    eC0 = Mesh_obj.eC0
+    eL0 = Mesh_obj.eL0
+    eR0 = Mesh_obj.eR0
+
+    eC0_normalized = eC0/df.sqrt(df.inner(eC0, eC0))
+    eL0_normalized = eL0/df.sqrt(df.inner(eL0, eL0))
+    eR0_normalized = eR0/df.sqrt(df.inner(eR0, eR0))
+
+    if(SimDet["Mechanics Discretization"] is "P1P1"):
+        var_deg = 1
+    else:
+        var_deg = 2
+
+    udisp = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "CG", var_deg))
+    udisp.vector()[:] = u_arr[0].vector().get_local()[:]
+
+    GuccioneParams = SimDet["GiccioneParams"]
+    params = {
+        "mesh": Mesh_obj.mesh,
+        "displacement_variable": udisp,
+        "material model": GuccioneParams["Passive model"],
+        "material params": GuccioneParams["Passive params"],
+        "incompressible": GuccioneParams["incompressible"],
+        "growth_tensor": None
+    }
+
+    uflforms = Forms(params)
+    Fref = df.project(uflforms.Fmat(), df.TensorFunctionSpace(Mesh_obj.mesh, "DG", 0))
+
+    Ecc_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Ecc")
+    if not os.path.exists(Ecc_outdirectory):
+        os.mkdir(Ecc_outdirectory)
+    File_Ecc = df.File(os.path.join(Ecc_outdirectory, "Ecc.pvd"))
+    Ecc_arr = []
+
+    Ell_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Ell")
+    if not os.path.exists(Ell_outdirectory):
+        os.mkdir(Ell_outdirectory)
+    File_Ell = df.File(os.path.join(Ell_outdirectory, "Ell.pvd"))
+    Ell_arr = []
+
+    Err_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Err")
+    if not os.path.exists(Err_outdirectory):
+        os.mkdir(Err_outdirectory)
+    File_Err = df.File(os.path.join(Err_outdirectory, "Err.pvd"))
+    Err_arr = []
+
+    for u_arr_ in u_arr:
+
+        wall_vol = df.assemble(df.Constant(1.0)*Mesh_obj.dx(LVid), form_compiler_parameters={"representation": "uflacs"})
+        udisp.vector()[:] = u_arr_.vector().get_local()[:]
+
+        Fmat = uflforms.Fmat()
+        F = Fmat * df.inv(Fref)
+        Cmat = F.T * F
+
+        Ccc = df.inner(eC0_normalized, Cmat*eC0_normalized)
+        Ecc = 0.5 * (1 - 1 / Ccc)
+        global_Ecc = df.assemble(Ecc * Mesh_obj.dx(LVid), form_compiler_parameters={"representation": "uflacs"})/wall_vol
+        Ecc_field = df.project(Ecc, df.FunctionSpace(Mesh_obj.mesh, "DG", 0))
+        Ecc_field.rename("Ecc", "Ecc")
+        File_Ecc << Ecc_field
+        Ecc_arr.append(global_Ecc)
+        print("Ecc : ", global_Ecc)
+
+        Cll = df.inner(eL0_normalized, Cmat*eL0_normalized)
+        Ell = 0.5 * (1 - 1 / Cll)
+        global_Ell = df.assemble(Ell * Mesh_obj.dx(LVid), form_compiler_parameters={"representation": "uflacs"})/wall_vol
+        Ell_field = df.project(Ell, df.FunctionSpace(Mesh_obj.mesh, "DG", 0))
+        Ell_field.rename("Ell", "Ell")
+        File_Ell << Ell_field
+        Ell_arr.append(global_Ell)
+        print("Ell : ", global_Ell)
+
+        Crr = df.inner(eR0_normalized, Cmat*eR0_normalized)
+        Err = 0.5 * (1 - 1 / Crr)
+        global_Err = df.assemble(Err * Mesh_obj.dx(LVid), form_compiler_parameters={"representation": "uflacs"})/wall_vol
+        Err_field = df.project(Err, df.FunctionSpace(Mesh_obj.mesh, "DG", 0))
+        Err_field.rename("Err", "Err")
+        File_Err << Err_field
+        Err_arr.append(global_Err)
+        print("Err : ", global_Err)
+
+
+    np.savez(os.path.join(Ecc_outdirectory, "Ecc.npz"), Ecc_arr)
+    np.savez(os.path.join(Ell_outdirectory, "Ell.npz"), Ell_arr)
+    np.savez(os.path.join(Err_outdirectory, "Err.npz"), Err_arr)
+
+    plt.figure()
+    plt.plot(np.arange(0, len(Ecc_arr)), Ecc_arr)
+    plt.xlabel("Time point", fontsize = 14)
+    plt.ylabel("Strain", fontsize = 14)
+    plt.savefig(os.path.join(Ecc_outdirectory, "Ecc.png"))
+    plt.clf()
+   
+    plt.figure()
+    plt.plot(np.arange(0, len(Ell_arr)), Ell_arr)
+    plt.xlabel("Time point", fontsize = 14)
+    plt.ylabel("Strain", fontsize = 14)
+    plt.savefig(os.path.join(Ell_outdirectory, "Ell.png"))
+    plt.clf()
+ 
+    plt.figure()
+    plt.plot(np.arange(0, len(Err_arr)), Err_arr)
+    plt.xlabel("Time point", fontsize = 14)
+    plt.ylabel("Strain", fontsize = 14)
+    plt.savefig(os.path.join(Err_outdirectory, "Err.png"))
+    plt.clf()
+
+    
+
+
+def extractdisplacement(IODet, SimDet, cycle=None):
+
+    mesh = df.Mesh()
+    hdf = df.HDF5File(mesh.mpi_comm(), IODet["outputfolder"] + "/" + IODet["caseID"]  + "/" + "Data.h5", "r")
+
+    # Dump displacement
+    if(SimDet["Mechanics Discretization"] is "P1P1"):
+        var_deg = 1
+    else:
+        var_deg = 2
+
+    try:
+        u_arr = extractvtk(
+                            IODet["outputfolder"] + "/" + IODet["caseID"], 
+                            "ME/"+"u", 
+                            "CG", 
+                            var_deg, 
+                            IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "ME_" + "u",
+                            "u",
+                            )
+    except RuntimeError:
+        print("No attribute for ", var, " found")
+
+    return u_arr
 
 def dumpvtk(IODet, SimDet, cycle=None):
 
@@ -183,7 +339,8 @@ def dumpvtk(IODet, SimDet, cycle=None):
                       ["fstress", "DG", 1],
                       ["imp", "DG", 1],
                       ["imp2", "DG", 1], 
-                      ["imp_constraint", "DG", 1]]
+                      ["imp_constraint", "DG", 1]
+                     ]
 
     list_of_EP_var = [["phi", "CG", 1], 
                       ["r", "DG", 0],
@@ -195,6 +352,7 @@ def dumpvtk(IODet, SimDet, cycle=None):
         var = ME_var[0]
         var_space = ME_var[1]
         var_deg = ME_var[2]
+        print("Extracting ", var)
 
         # Dump displacement
         if(SimDet["Mechanics Discretization"] is "P1P1" and var == "u"):
@@ -202,14 +360,23 @@ def dumpvtk(IODet, SimDet, cycle=None):
         else:
             var_deg = 2
 
-        extractvtk(
-                  IODet["outputfolder"] + "/" + IODet["caseID"], 
-                  "ME/"+var, 
-                  var_space, 
-                  var_deg, 
-                  IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "ME_" + var,
-                  var,
-                  )
+        try:
+            var_arr = extractvtk(
+                                IODet["outputfolder"] + "/" + IODet["caseID"], 
+                                "ME/"+var, 
+                                var_space, 
+                                var_deg, 
+                                IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "ME_" + var,
+                                var,
+                                )
+        except RuntimeError:
+            print("No attribute for ", var, " found")
+
+        if(var == "u"):
+            u_arr = var_arr.copy()
+
+    print(u_arr)
+        
 
     for EP_var in list_of_EP_var:
 
@@ -217,13 +384,17 @@ def dumpvtk(IODet, SimDet, cycle=None):
         var_space = EP_var[1]
         var_deg = EP_var[2]
 
-        extractvtk(
-                  IODet["outputfolder"] + "/" + IODet["caseID"], 
-                  "EP/"+var, 
-                  var_space, 
-                  var_deg, 
-                  IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "EP_" + var,
-                  var,
-                  )
+        try:
+            var_arr = extractvtk(
+                                IODet["outputfolder"] + "/" + IODet["caseID"], 
+                                "EP/"+var, 
+                                var_space, 
+                                var_deg, 
+                                IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "EP_" + var,
+                                var,
+                                )
 
+        except RuntimeError:
+            print("No attribute for ", var, " found")
+ 
 

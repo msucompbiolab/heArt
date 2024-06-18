@@ -436,6 +436,7 @@ def extractvtk(directory, fieldvariable, elemtype, deg, outdirectory, name, ind=
     ugrid = vtk_py.convertXMLMeshToUGrid(mesh)
     attr = hdf.attributes(fieldvariable)
     nsteps = attr["count"]
+    var_array = []
 
     if ind is None:
         ind = np.arange(0,nsteps)
@@ -453,8 +454,11 @@ def extractvtk(directory, fieldvariable, elemtype, deg, outdirectory, name, ind=
         dataset = fieldvariable + "/vector_%d" % p
         hdf.read(var, dataset)
         var.rename("var", "var")
+        var_array.append(var.copy(deepcopy=True))
         fstream << var
 
         cnt += 1
 
     hdf.close()
+
+    return var_array
