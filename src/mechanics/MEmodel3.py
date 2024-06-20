@@ -1022,7 +1022,6 @@ class MEmodel(object):
             # Fs = -stab
             # Ftotal += Fs
 
-            cell_volume = CellVolume(mesh_me)
             Fs = (
                 1.0
                 / (CellVolume(mesh_me)) ** (1.0 / 3.0)
