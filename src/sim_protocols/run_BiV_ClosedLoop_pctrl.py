@@ -234,16 +234,16 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
         it += 1
 
-        F_ED.vector()[:] = (
-            project(
-                MEmodel_.GetFmat(),
-                MEmodel_.TF,
-                solver_type="mumps",
-                form_compiler_parameters={"representation": "quadrature"},
-            )
-            .vector()
-            .get_local()[:]
-        )
+        # F_ED.vector()[:] = (
+        #    project(
+        #        MEmodel_.GetFmat(),
+        #        MEmodel_.TF,
+        #        solver_type="mumps",
+        #        form_compiler_parameters={"representation": "quadrature"},
+        #    )
+        #    .vector()
+        #    .get_local()[:]
+        # )
 
         printout(
             "Pressure = "
@@ -371,7 +371,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         )
         dict_PV.append((state_obj.t, V_LV, P_LV))
 
-
         # Newton's solver
         tol = 1e-5  # Tolerance for convergence
         max_iter = 200  # Maximum number of iteration
@@ -415,7 +414,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             # Check for convergence
             if abs(F) < tol and abs(du) < tol:
                 break
-
 
         if cnt % SimDet["writeStep"] == 0.0:
             export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", writecnt)

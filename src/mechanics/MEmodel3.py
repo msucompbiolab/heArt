@@ -29,6 +29,11 @@ class MEmodel(object):
         else:
             self.discretization = "P2P1"  # Default
 
+        if "Technique Discretization" in list(self.SimDet.keys()):
+            self.discretization_technique = SimDet["Technique Discretization"]
+        else:
+            self.discretization_technique = 0  # Default
+
         if "ispctrl" in list(self.SimDet.keys()):
             self.ispctrl = SimDet["ispctrl"]
         else:
@@ -889,20 +894,6 @@ class MEmodel(object):
 
         X_me = SpatialCoordinate(mesh_me)
 
-        # if self.iswaorta:
-        #     if (
-        #         "rubber_region" in list(self.SimDet.keys())
-        #         and self.SimDet["rubber_region"]
-        #     ):
-        #         region_cnt = 0
-        #         for regionid in self.SimDet["rubber_region"]:
-        #             if region_cnt == 0:
-        #                 F1 = derivative(WpRub_me, w_me, wtest_me) * dx_me(int(regionid))
-        #             else:
-        #                 F1 += derivative(WpRub_me, w_me, wtest_me) * dx_me(
-        #                     int(regionid)
-        #                 )
-
         if self.iswaorta:
             F1 = (
                 derivative(Wp_me, w_me, wtest_me) * dx_me(1)
@@ -910,7 +901,8 @@ class MEmodel(object):
                 + derivative(WpRub_me, w_me, wtest_me) * dx_me(3)
             )
         elif self.isFCH:
-            F1 = derivative(WpRub_me, w_me, wtest_me) * dx_me
+            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+
         else:
             F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
 
@@ -1006,29 +998,28 @@ class MEmodel(object):
             # Kappa = Constant(1.0e5)
             # res_p = ((J - 1) - p_me / Kappa) * q_me * dx_me
 
-            # h_elem = CellDiameter(mesh_me)
-            # mu = Constant(1.0e4)
+            h_elem = CellDiameter(mesh_me)
+            mu = Constant(5.0e4)
 
-            # stab = (
-            #    h_elem
-            #    * h_elem
-            #    * Constant(0.5)
-            #    / mu
-            #    * J
-            #    * inner(inv(Fmat.T) * grad(p_me), inv(Fmat.T) * grad(q_me))
-            #    * dx_me
-            # )
+            if self.discretization_technique == 1:
+                Fs = -(
+                    h_elem
+                    * h_elem
+                    * Constant(0.5)
+                    / mu
+                    * J
+                    * inner(inv(Fmat.T) * grad(p_me), inv(Fmat.T) * grad(q_me))
+                    * dx_me
+                )
 
-            # Fs = -stab
-            # Ftotal += Fs
-
-            Fs = (
-                1.0
-                / (CellVolume(mesh_me)) ** (1.0 / 3.0)
-                * (p_me - p_me / CellVolume(mesh_me))
-                * (q_me - q_me / CellVolume(mesh_me))
-                * dx_me
-            )
+            else:
+                Fs = (
+                    1.0
+                    / (CellVolume(mesh_me)) ** (1.0 / 3.0)
+                    * (p_me - p_me / CellVolume(mesh_me))
+                    * (q_me - q_me / CellVolume(mesh_me))
+                    * dx_me
+                )
 
             Ftotal += Fs
 
@@ -1072,7 +1063,7 @@ class MEmodel(object):
             "F": self.Ftotal,
             "w": self.w_me,
             "boundary_conditions": self.bcs,
-            "Type": 0, # Default
+            "Type": 0,  # Default
             "mesh": self.mesh_me,
             "mode": 1,
         }

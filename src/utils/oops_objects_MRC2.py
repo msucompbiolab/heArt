@@ -445,6 +445,7 @@ class fch_mesh(object):
 
         f = HDF5File(MPI.comm_world, meshfilename, "r")
         f.read(self.mesh, casename, False)
+        self.mesh.scale(1.0e-1)
 
         self.facetboundaries = MeshFunction(
             "size_t", self.mesh, self.mesh.topology().dim() - 1
