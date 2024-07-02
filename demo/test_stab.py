@@ -35,7 +35,11 @@ q = TestFunction(F)
 
 # Fs = 1.0 / (CellDiameter(mesh)**(1.0/3.0)) * (p - p / CellDiameter(mesh)) * (q - q / CellDiameter(mesh)) * dx
 # Fs = 1.0 / (CellVolume(mesh)**(1.0/3.0)) * (p - p / CellVolume(mesh)) * (q - q / CellDiameter(mesh)) * dx
-Fs = (p - p / CellVolume(mesh)) * (q - q / CellVolume(mesh)) * dx
+# Fs = (p - p / CellVolume(mesh)) * (q - q / CellVolume(mesh)) * dx
+
+# Fs = (1/CellVolume(mesh))**2 * p * q * dx
+Fs = (1/CellVolume(mesh)) * p * q * dx
+# Fs =  p * q * dx
 
 Fs_assem = assemble(Fs)
 petsc_a = as_backend_type(Fs_assem).mat()
@@ -61,10 +65,18 @@ f_p = Function(F)
 f_p.vector()[:] = 0.5
 
 
-projection_operator = (p - f_p) * (q - f_p) * dx
+# projection_operator = (p - p/CellVolume(mesh)) * (q - q/CellVolume(mesh)) * dx
+# projection_operator = (1/CellVolume(mesh))**2 * p * q * dx
+projection_operator = (1/CellVolume(mesh)) * p * q * dx
+# projection_operator = p * q * dx
 cells = [Cell(mesh, i) for i in range(2)]
 assem_projection = [assemble_local(projection_operator, cell) for cell in cells]
 print("assem_projection = ", assem_projection)
 
-Fs_2 = (p - f_p) * (q - f_p) * dx
-print("f_p = ", f_p.vector().get_local()[:], "f_p type = ", type(f_p))
+# pi operator is defined element-wise, so
+pi_oper = 1/CellVolume(mesh) * p * dx(cell)
+qi_oper = 1/CellVolume(mesh) * p * dx(cell)
+
+form_oper = (p - pi_oper) * (q - qi_oper) * dx
+assem_form_oper = assemble(form_oper)
+
