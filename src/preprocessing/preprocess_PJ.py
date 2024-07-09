@@ -5,7 +5,6 @@ import dolfin
 from dolfin import *
 import numpy as np
 import sys, shutil, pdb, math
-import pandas as pd 
 
 
 def preprocess_PJ(PJ_meshfilename, PJ_meshoutfilename):
