@@ -45,11 +45,11 @@ class EPmodel(object):
         d_Ani = d_ani
 
         dParam = {}
-        if self.parameters["Ischemia"]:
-            dParam["kNormal"] = d_ani
-            dParam["kIschemia"] = d_iso
+        #if self.parameters["Ischemia"]:
+        #    dParam["kNormal"] = d_ani
+        #    dParam["kIschemia"] = d_iso
 
-            d_Ani = defCPP_Matprop_DIsch(mesh=mesh, mId=mId, k=dParam)
+        #    d_Ani = defCPP_Matprop_DIsch(mesh=mesh, mId=mId, k=dParam)
 
         D_iso = Constant(
             ((d_iso, "0.0", "0.0"), ("0.0", d_iso, "0.0"), ("0.0", "0.0", d_iso))
