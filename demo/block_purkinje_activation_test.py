@@ -7,7 +7,7 @@ import sys
 
 sys.path.append("/mnt/Research")
 
-from heArt_py3.src.sim_protocols.run_block_purkinje_act import run_block_purkinje_act as run_block_purkinje_act 
+from heArt.src.sim_protocols.run_block_purkinje_act import run_block_purkinje_act as run_block_purkinje_act 
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {

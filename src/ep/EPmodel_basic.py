@@ -14,11 +14,6 @@ class EPmodel(object):
         self.parameters.update(params)
 
         self.mesh = self.parameters["EPmesh"]
-        if "isPK" in list(self.parameters.keys()):
-            self.isPK = self.parameters["isPK"]
-        else:
-            self.isPK = False
-
         if "ploc" in list(self.parameters.keys()):
             self.max_pace_label = len(self.parameters["ploc"])
             self.ploc = self.parameters["ploc"]
@@ -115,10 +110,6 @@ class EPmodel(object):
         else:
             facetboundaries_ep = None
 
-        #if self.isPK:
-        #    EpiBCid_ep = self.parameters["EpiBCid"]
-        #else:
-        #    EpiBCid_ep = self.MarkStimulus()
         mesh = self.mesh
 
         W_ep = self.W_ep
@@ -166,16 +157,7 @@ class EPmodel(object):
             D_tensor = self.calculateDmat(f0_ep, mesh=mesh, mId=AHAid_ep)
             Dmat = D_tensor
 
-        if self.isPK:
-            self.max_pace_label = int(max(EpiBCid_ep.array()))
-            print(self.max_pace_label)
-            max_value = MPI.comm_world.allreduce(self.max_pace_label, op=pyMPI.MAX) #
-            print(max_value)
-
-        #assert (
-        #    len(self.parameters["pacing_timing"]) == self.max_pace_label
-        #), "Number of pacing timing not equal to number of ploc labels"
-
+  
         self.fstim_array = []
         self.delta_array = []
         hmin = mesh.hmin()
@@ -192,26 +174,6 @@ class EPmodel(object):
             #metadata={"quadrature_degree": 4}
         )
 
-        if self.isPK:
-            dx_ep_epi = dolfin.dx(
-                mesh, 
-                subdomain_data=EpiBCid_ep
-            )
-        #else: 
-        #    ds_ep = dolfin.ds(
-        #        mesh,
-        #        subdomain_data=facetboundaries_ep,
-        #        metadata={"quadrature_degree": 4},
-        #    )
-            #ds_ep_epi = dolfin.ds(
-            #    mesh, subdomain_data=EpiBCid_ep, metadata={"quadrature_degree": 4}
-            #)
-
-        # pacing_integral1 = []
-        # pacing_integral1.append( self.f_1*phi_test*ds_ep_epi(1) )
-
-        # pacing_integral2 = []
-
         self.F_FHN = (
             ((phi - phi_n) / k) * phi_test * dx_ep
             + dot(Dmat * grad(phi), grad(phi_test)) * dx_ep
@@ -224,11 +186,6 @@ class EPmodel(object):
         label = 1
         for fstim, delta in zip(self.fstim_array, self.delta_array):
             self.F_FHN -=  fstim * delta * phi_test * dx_ep
-            #if self.isPK:
-            #    self.F_FHN -= fstim * phi_test * dx_ep_epi(label)
-            #else:
-            #    self.F_FHN -= fstim * phi_test * ds_ep_epi(label)
-            #label += 1
 
         self.J_FHN = derivative(self.F_FHN, w_ep, dw_ep)
 

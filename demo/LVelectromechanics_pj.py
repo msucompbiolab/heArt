@@ -12,17 +12,19 @@ sys.path.append("/mnt/Research")
 import vtk_py3
 
 # from purkinjee_fhn import *
-from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pj import (
+from heArt.src.sim_protocols.run_BiV_ClosedLoop_pj_pointact import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
-from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+from heArt.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
     "casename": "ellipsoidal_baselinegeo",
-    "directory_me": "./",
-    "directory_ep": "./",
-    "outputfolder": "./outputs_LVelectromechanics",
+    "directory_me": "../LV_Purkinje_mesh/",
+    "directory_ep": "../LV_Purkinje_mesh/",
+    "casename_pj": "PJ",
+    "directory_pj": "../LV_Purkinje_mesh/",
+    "outputfolder": "./outputs_LVelectromechanics_pj",
     "folderName": "/",
     "caseID": "LVelectromechanics",
     "isLV": True,
@@ -81,20 +83,20 @@ Circparam = {
     "V_ad": 100,
     "V_LA": 12,
     "V_LV": 112,
-    "stop_iter": 5,
+    "stop_iter": 1,
 }
 
 SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
-    "dt": 1.0,
-    "writeStep": 2.0,
+    "dt": 2.0,
+    "writeStep": 5.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
     "DTI_ME": False,
     "d_pj": 10.0,
-    "d_iso": 1.5 * 0.005,
+    "d_iso": 1.5,
     "d_ani_factor": 4.0,
     "ploc_tol": 0.5,
     "Isclosed": True,
@@ -108,6 +110,11 @@ SimDetails = {
     "abs_tol": 1e-9,
     "rel_tol": 5e-7,
     "isunloading": False,
+    "tnode": "PJ.csv",
+    "d_iso_pj": 4.0,
+    "ploc": [[0.763396, -1.843, -0.554806]],
+    "pacing_timing": [[0.0, 10.0]],
+
 }
 
 # Run Simulation
