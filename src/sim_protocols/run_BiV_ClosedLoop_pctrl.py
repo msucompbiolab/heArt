@@ -346,6 +346,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     while 1:
         if state_obj.cycle > stop_iter:
             break
+        # if state_obj.tstep > 100:
+        #    break
 
         params = {
             "P_LV": P_LV,
@@ -373,7 +375,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         # Newton's solver
         tol = 1e-5  # Tolerance for convergence
-        max_iter = 200  # Maximum number of iteration
+        max_iter = 50  # Maximum number of iteration
 
         def estpres(P_LV):  # initial guess
             return 1.005 * P_LV

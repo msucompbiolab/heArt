@@ -110,7 +110,7 @@ SimDetails = {
     "closedloopparam": Circparam,
     "Ischemia": False,
     "Mechanics Discretization": "P1P1",
-    "Technique Discretization": 1,
+    "Technique Discretization": 0,
     "isLV": False,
     "aorta_wall": 9,  # aorta external wall indeed
     "pulm_wall": 7,  # pulmonary ring indeed
@@ -119,8 +119,8 @@ SimDetails = {
     "epiid": 17,
     "mitral_vplane": 19,
     "aortic_vplane": 20,
-    "abs_tol": 1e-8,
-    "rel_tol": 1e-8,
+    "abs_tol": 1e-9,
+    "rel_tol": 1e-9,
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
@@ -130,7 +130,7 @@ SimDetails = {
     "dashpotparam": [5.0e2, 5.0e1],  # Cepi_n / Cepi_t
     # "springparam": [5.0e4, 5.0e3],
     # "dashpotparam": [5.0e3, 5.0e2],
-    "active_region": [1], # only lv is activated
+    "active_region": [1],  # only lv is activated
     "Type": 0,
 }
 
