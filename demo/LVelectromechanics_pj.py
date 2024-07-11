@@ -83,14 +83,14 @@ Circparam = {
     "V_ad": 100,
     "V_LA": 12,
     "V_LV": 112,
-    "stop_iter": 1,
+    "stop_iter": 2,
 }
 
 SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 2.0,
-    "writeStep": 5.0,
+    "writeStep": 1.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
@@ -102,6 +102,7 @@ SimDetails = {
     "Isclosed": True,
     "closedloopparam": Circparam,
     "Ischemia": False,
+    "Mechanics Discretization": "P1P1",
     "isLV": True,
     "topid": 4,
     "LVendoid": 2,

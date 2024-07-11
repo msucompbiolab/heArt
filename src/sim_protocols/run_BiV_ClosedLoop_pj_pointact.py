@@ -61,11 +61,14 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         
     # Define export for exporting data
     comm_ep = EPmodel_ep.mesh.mpi_comm()
+    comm_pj = EPmodel_pj.mesh.mpi_comm()
     comm_me = MEmodel_.Mesh.mesh.mpi_comm()
     export = exportfiles(comm_me, comm_ep, IODet, SimDet)
 
+
     export.hdf.write(MEmodel_.Mesh.mesh, "ME/mesh")
     export.hdf.write(EPmodel_ep.mesh, "EP/mesh")
+    export.hdf.write(EPmodel_pj.mesh, "PJ/mesh")
 
     Loading(MEmodel_, export, SimDet)
     V_LV = MEmodel_.GetLVV()
@@ -73,12 +76,12 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     CLmodel_ = CLmodel(SimDet, V_LV)
 
     tstart_arr = [-10]*len(pj_t_nodes)
-    probes = Probes(pj_t_nodes.flatten(), EPmodel_pj.w_ep.function_space().sub(0))
+    probesPJ = Probes(pj_t_nodes.flatten(), EPmodel_pj.w_ep.function_space().sub(0))
     comms = EPmodel_pj.mesh.mpi_comm()
 
-    File_EP = File(outputfolder + folderName + caseID + "/" + "EP.pvd")
-    File_PJ = File(outputfolder + folderName + caseID + "/" + "PJ.pvd")
-    File_ME = File(outputfolder + folderName + caseID + "/" + "ME.pvd")
+    #File_EP = File(outputfolder + folderName + caseID + "/" + "EP.pvd")
+    #File_PJ = File(outputfolder + folderName + caseID + "/" + "PJ.pvd")
+    #File_ME = File(outputfolder + folderName + caseID + "/" + "ME.pvd")
 
     cnt = 0 
     writecnt = 0
@@ -86,6 +89,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     while 1:
         if state_obj_ep.cycle > stop_iter:
+            break
+
+        if(state_obj_ep.tstep > 1600):
             break
 
         # Activate PK fiber
@@ -125,16 +131,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         MEmodel_.LVCavityvol.vol = V_LV
 
-
         solver_elas.solvenonlinear()
         isrestart = 0
         state_obj_ep.dt.dt = delTat
     
-        if cnt % SimDet["writeStep"] == 0.0:
-            export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", writecnt)
-            # export.hdf.write(c_n, "ME/u_diff", writecnt)
-            writecnt += 1
-
         state_obj_ep.tstep = state_obj_ep.tstep + state_obj_ep.dt.dt
         state_obj_ep.cycle = math.floor(state_obj_ep.tstep / state_obj_ep.BCL)
         state_obj_ep.t = state_obj_ep.tstep - state_obj_ep.cycle * state_obj_ep.BCL
@@ -150,11 +150,13 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             EPmodel_pj.reset()
             tstart_arr = [-10]*len(pj_t_nodes)
 
-        printout("Solving FHN", comm_me)
+        printout("Solving FHN EP", comm_ep)
         solver_FHN_ep.solvenonlinear()
+        printout("Solving FHN PJ", comm_pj)
         solver_FHN_pj.solvenonlinear()
 
         if isrestart == 0:
+            print("Update Var", flush=True)
             MEmodel_.UpdateVar()  # For damping
             EPmodel_ep.UpdateVar()
             EPmodel_pj.UpdateVar()
@@ -168,41 +170,28 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         potential_me.vector()[:] = potential_ref.vector().get_local()[:]
 
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
-        if MPI.rank(comm_ep) == 0:
+        if MPI.rank(comms) == 0:
             print("UPdating isActiveField and tInitiationField")
 
         MEmodel_.activeforms.update_activationTime(
             potential_n=potential_me, comm=comm_me
         )
- 
 
-        probes(EPmodel_pj.getphivar())
-        probes_val = probes.array()
+        probesPJ(EPmodel_pj.getphivar())
+        Nevals = probesPJ.number_of_evaluations()
+        probes_val = probesPJ.array()
 
         # broadcast from proc 0 to other processes
-        rank = MPI.rank(comms)#.Get_rank()
+        rank = MPI.rank(comms)
 
-        probes_val_bcast = probes_val  ## probe will only send to rank =0
+        probes_val_bcast = probesPJ.array(N=Nevals-1) ## probe will only send to rank =0
         if(not rank == 0):
-            if(cnt == 1):
-                probes_val_bcast = np.empty(len(pj_t_nodes))
-            else:
-                probes_val_bcast = np.empty((len(pj_t_nodes), cnt))
-
+            probes_val_bcast = np.empty(len(pj_t_nodes))
         comms.Bcast(probes_val_bcast, root=0)
-        #print(rank, probes_val_bcast, flush=True)
- 
-        try:
-            probesize = np.shape(probes.array())[1]
-        except IndexError:
-            probesize = 0
 
         for p in range(0, len(pj_t_nodes)):
 
-            try:
-                phi_pj_val = probes_val_bcast[p][probesize-1]
-            except IndexError:
-                phi_pj_val = probes_val_bcast[p]
+            phi_pj_val = probes_val_bcast[p]
 
             if(phi_pj_val > 0.9 and tstart_arr[p] < 1.0):
                 if(tstart_arr[p] < 0):
@@ -214,12 +203,20 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             else:
                 EPmodel_ep.fstim_array[p].iStim = 0.0
                 #print("Deactivate T node", p)
- 
 
         if cnt % SimDet["writeStep"] == 0.0:
-            File_EP << EPmodel_ep.getphivar()
-            File_PJ << EPmodel_pj.getphivar()
-            File_ME << MEmodel_.GetDisplacement()
+            export.writetpt(MEmodel_, state_obj_ep.tstep)
+            export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
+            export.hdf.write(potential_ref, "ME/potential_ref", writecnt)
+            export.hdf.write(EPmodel_ep.getphivar(), "EP/phi", writecnt)
+            export.hdf.write(EPmodel_ep.getrvar(), "EP/r", writecnt)
+            export.hdf.write(EPmodel_pj.getphivar(), "PJ/phi", writecnt)
+            export.hdf.write(EPmodel_pj.getrvar(), "PJ/r", writecnt)
+            writecnt += 1
+
+#            File_EP << EPmodel_ep.getphivar()
+#            File_PJ << EPmodel_pj.getphivar()
+#            File_ME << MEmodel_.GetDisplacement()
 
         cnt += 1
 
