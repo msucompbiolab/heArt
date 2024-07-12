@@ -428,11 +428,11 @@ def readtpt(filename):
     return np.array(tpt_array)
 
 
-def extractvtk(directory, fieldvariable, elemtype, deg, outdirectory, name, ind=None):
+def extractvtk(directory, fieldvariable, elemtype, deg, outdirectory, name, ind=None, group="ME", iswrite=True):
 
     mesh = df.Mesh()
     hdf = df.HDF5File(mesh.mpi_comm(), directory + "/" + "Data.h5", "r")
-    hdf.read(mesh, "ME/mesh", False)
+    hdf.read(mesh, group+"/mesh", False)
     ugrid = vtk_py.convertXMLMeshToUGrid(mesh)
     attr = hdf.attributes(fieldvariable)
     nsteps = attr["count"]
@@ -444,8 +444,9 @@ def extractvtk(directory, fieldvariable, elemtype, deg, outdirectory, name, ind=
     var_space = df.VectorFunctionSpace(mesh, elemtype, deg)
     var = df.Function(var_space)
 
-    if not os.path.exists(outdirectory):
-        os.mkdir(outdirectory)
+    if(iswrite):
+        if not os.path.exists(outdirectory):
+            os.mkdir(outdirectory)
 
     point_fieldvararray = []
     cnt = 1
@@ -455,7 +456,8 @@ def extractvtk(directory, fieldvariable, elemtype, deg, outdirectory, name, ind=
         hdf.read(var, dataset)
         var.rename("var", "var")
         var_array.append(var.copy(deepcopy=True))
-        fstream << var
+        if(iswrite):
+            fstream << var
 
         cnt += 1
 

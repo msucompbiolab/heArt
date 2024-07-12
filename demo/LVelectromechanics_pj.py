@@ -16,6 +16,11 @@ from heArt.src.sim_protocols.run_BiV_ClosedLoop_pj_pointact import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 from heArt.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+from heArt.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
+from heArt.src.postprocessing.postprocessdata2 import compute_strain as compute_strain
+from heArt.src.postprocessing.postprocessdata2 import compute_activation as compute_activation
+
+
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
@@ -119,7 +124,13 @@ SimDetails = {
 }
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
+#dumpvtk(IODet=IODetails, SimDet=SimDetails)
+#compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
+compute_activation(IODet=IODetails, SimDet=SimDetails)
+
+
+
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

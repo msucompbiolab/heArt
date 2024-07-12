@@ -1,8 +1,11 @@
 import dolfin as df
 from .postprocessdatalib2 import *
 from ..mechanics.forms_MRC2 import Forms
+from ..utils.oops_objects_MRC2 import State_Variables
 from ..utils.oops_objects_MRC2 import lv_mesh as lv_mechanics_mesh
+from ..mechanics.MEmodel3 import MEmodel
 from matplotlib import pylab as plt
+from mpi4py import MPI as pyMPI
 
 
 def postprocessdata(IODet, SimDet, cycle=None):
@@ -171,6 +174,52 @@ def postprocessdata(IODet, SimDet, cycle=None):
             ncycle=ncycle,
         )
 
+def compute_activation(IODet, SimDet, cycle=None):
+
+    mesh = df.Mesh()
+    hdf = df.HDF5File(mesh.mpi_comm(), IODet["outputfolder"] + "/" + IODet["caseID"]  + "/" + "Data.h5", "r")
+    hdf.read(mesh, "EP/mesh", False)
+
+    phi_arr = extractvtk(
+                        IODet["outputfolder"] + "/" + IODet["caseID"], 
+                        "EP/phi", 
+                        "CG", 
+                        1, 
+                        IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "EP_" + "phi",
+                        "phi",
+                        group="EP",
+                        iswrite=False
+                        )
+
+
+    V_thres = 0.9
+    time_act = df.Function(df.FunctionSpace(mesh, "CG", 1))
+    time_act_vec = -1*np.ones(len(time_act.vector()[:]))
+
+    t = 0
+    dt = SimDet["dt"]
+    for phi in phi_arr:
+        phi_vec = phi.sub(0).vector().get_local()[::3]
+        for idx, (time_act_vec_, phi_vec_) in enumerate(zip(time_act_vec, phi_vec)):
+            if(phi_vec_ > V_thres and time_act_vec_ == -1):
+                time_act_vec[idx] = t
+
+        t += dt
+
+    time_act.vector()[:] = time_act_vec
+    time_act.rename("Activation Time","Activation Time")
+
+    act_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "activation")
+    if not os.path.exists(act_outdirectory):
+        os.mkdir(act_outdirectory)
+    File_act = df.File(os.path.join(act_outdirectory, "act.pvd"))
+    File_act << time_act
+ 
+
+    
+
+
+
 def compute_strain(IODet, SimDet, LVid= 1, cycle=None):
 
     mesh = df.Mesh()
@@ -213,6 +262,8 @@ def compute_strain(IODet, SimDet, LVid= 1, cycle=None):
         "incompressible": GuccioneParams["incompressible"],
         "growth_tensor": None
     }
+    deg = SimDet["GiccioneParams"]["deg"]
+
 
     uflforms = Forms(params)
     Fref = df.project(uflforms.Fmat(), df.TensorFunctionSpace(Mesh_obj.mesh, "DG", 0))
@@ -247,7 +298,8 @@ def compute_strain(IODet, SimDet, LVid= 1, cycle=None):
         Ccc = df.inner(eC0_normalized, Cmat*eC0_normalized)
         Ecc = 0.5 * (1 - 1 / Ccc)
         global_Ecc = df.assemble(Ecc * Mesh_obj.dx(LVid), form_compiler_parameters={"representation": "uflacs"})/wall_vol
-        Ecc_field = df.project(Ecc, df.FunctionSpace(Mesh_obj.mesh, "DG", 0))
+        Ecc_field = df.project(Ecc, df.FunctionSpace(Mesh_obj.mesh, "DG", 0),  
+                               form_compiler_parameters={"representation": "uflacs", "quadrature_degree": deg})
         Ecc_field.rename("Ecc", "Ecc")
         File_Ecc << Ecc_field
         Ecc_arr.append(global_Ecc)
@@ -256,7 +308,8 @@ def compute_strain(IODet, SimDet, LVid= 1, cycle=None):
         Cll = df.inner(eL0_normalized, Cmat*eL0_normalized)
         Ell = 0.5 * (1 - 1 / Cll)
         global_Ell = df.assemble(Ell * Mesh_obj.dx(LVid), form_compiler_parameters={"representation": "uflacs"})/wall_vol
-        Ell_field = df.project(Ell, df.FunctionSpace(Mesh_obj.mesh, "DG", 0))
+        Ell_field = df.project(Ell, df.FunctionSpace(Mesh_obj.mesh, "DG", 0),
+                               form_compiler_parameters={"representation": "uflacs", "quadrature_degree": deg})
         Ell_field.rename("Ell", "Ell")
         File_Ell << Ell_field
         Ell_arr.append(global_Ell)
@@ -265,7 +318,8 @@ def compute_strain(IODet, SimDet, LVid= 1, cycle=None):
         Crr = df.inner(eR0_normalized, Cmat*eR0_normalized)
         Err = 0.5 * (1 - 1 / Crr)
         global_Err = df.assemble(Err * Mesh_obj.dx(LVid), form_compiler_parameters={"representation": "uflacs"})/wall_vol
-        Err_field = df.project(Err, df.FunctionSpace(Mesh_obj.mesh, "DG", 0))
+        Err_field = df.project(Err, df.FunctionSpace(Mesh_obj.mesh, "DG", 0),
+                               form_compiler_parameters={"representation": "uflacs", "quadrature_degree": deg})
         Err_field.rename("Err", "Err")
         File_Err << Err_field
         Err_arr.append(global_Err)
@@ -327,8 +381,8 @@ def extractdisplacement(IODet, SimDet, cycle=None):
 
 def dumpvtk(IODet, SimDet, cycle=None):
 
-    mesh = df.Mesh()
-    hdf = df.HDF5File(mesh.mpi_comm(), IODet["outputfolder"] + "/" + IODet["caseID"]  + "/" + "Data.h5", "r")
+    hdf = df.HDF5File(df.MPI.comm_world, IODet["outputfolder"] + "/" + IODet["caseID"]  + "/" + "Data.h5", "r")
+
 
     list_of_ME_var = [["u", "CG", 1],
                       ["potential_ref", "CG", 1], 
@@ -346,55 +400,84 @@ def dumpvtk(IODet, SimDet, cycle=None):
                       ["r", "DG", 0],
                       ["potential_ref", "CG", 1]]
 
+    list_of_PJ_var = [["phi", "CG", 1], 
+                      ["r", "DG", 0],
+                      ["potential_ref", "CG", 1]]
 
-    for ME_var in list_of_ME_var:
 
-        var = ME_var[0]
-        var_space = ME_var[1]
-        var_deg = ME_var[2]
-        print("Extracting ", var)
 
-        # Dump displacement
-        if(SimDet["Mechanics Discretization"] is "P1P1" and var == "u"):
-            var_deg = 1
-        else:
-            var_deg = 2
+    if hdf.has_dataset('ME'):
+        for ME_var in list_of_ME_var:
 
-        try:
-            var_arr = extractvtk(
-                                IODet["outputfolder"] + "/" + IODet["caseID"], 
-                                "ME/"+var, 
-                                var_space, 
-                                var_deg, 
-                                IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "ME_" + var,
-                                var,
-                                )
-        except RuntimeError:
-            print("No attribute for ", var, " found")
+            var = ME_var[0]
+            var_space = ME_var[1]
+            var_deg = ME_var[2]
+            print("Extracting ME", var)
 
-        if(var == "u"):
-            u_arr = var_arr.copy()
+            # Dump displacement
+            if(SimDet["Mechanics Discretization"] is "P1P1" and var == "u"):
+                var_deg = 1
+            else:
+                var_deg = 2
 
-    print(u_arr)
-        
+            try:
+                var_arr = extractvtk(
+                                    IODet["outputfolder"] + "/" + IODet["caseID"], 
+                                    "ME/"+var, 
+                                    var_space, 
+                                    var_deg, 
+                                    IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "ME_" + var,
+                                    var, 
+                                    group="ME"
+                                    )
+            except RuntimeError:
+                print("No attribute for ", var, " found")
 
-    for EP_var in list_of_EP_var:
+            if(var == "u"):
+                u_arr = var_arr.copy()
 
-        var = EP_var[0]
-        var_space = EP_var[1]
-        var_deg = EP_var[2]
 
-        try:
-            var_arr = extractvtk(
-                                IODet["outputfolder"] + "/" + IODet["caseID"], 
-                                "EP/"+var, 
-                                var_space, 
-                                var_deg, 
-                                IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "EP_" + var,
-                                var,
-                                )
+    if hdf.has_dataset('EP'):
+        for EP_var in list_of_EP_var:
 
-        except RuntimeError:
-            print("No attribute for ", var, " found")
+            var = EP_var[0]
+            var_space = EP_var[1]
+            var_deg = EP_var[2]
+            print("Extracting EP", var)
+
+            try:
+                var_arr = extractvtk(
+                                    IODet["outputfolder"] + "/" + IODet["caseID"], 
+                                    "EP/"+var, 
+                                    var_space, 
+                                    var_deg, 
+                                    IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "EP_" + var,
+                                    var,
+                                    group="EP"
+                                    )
+
+            except RuntimeError:
+                print("No attribute for ", var, " found")
  
+    if hdf.has_dataset('PJ'):
+        for PJ_var in list_of_PJ_var:
 
+            var = PJ_var[0]
+            var_space = PJ_var[1]
+            var_deg = PJ_var[2]
+            print("Extracting PJ", var)
+
+            try:
+                var_arr = extractvtk(
+                                    IODet["outputfolder"] + "/" + IODet["caseID"], 
+                                    "PJ/"+var, 
+                                    var_space, 
+                                    var_deg, 
+                                    IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "PJ_" + var,
+                                    var,
+                                    group="PJ"
+                                    )
+
+            except RuntimeError:
+                print("No attribute for ", var, " found")
+ 
