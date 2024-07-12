@@ -480,4 +480,27 @@ def dumpvtk(IODet, SimDet, cycle=None):
 
             except RuntimeError:
                 print("No attribute for ", var, " found")
+
+def plothemodynamics(IODet, SimDet, cycle=None):
+
+    directory = IODet["outputfolder"] + "/"
+    casename = IODet["caseID"]
+    BCL = SimDet["HeartBeatLength"]
+    if cycle is None:
+        cycle = SimDet["closedloopparam"]["stop_iter"]
+
+    for ncycle in range(cycle - 1, cycle):
+        filename = directory + casename + "/" + "BiV_PV.txt"
+        homo_tptt, homo_LVP, homo_LVV, homo_Qmv = extract_PV(filename, BCL, ncycle)
+
+    hemodynamics_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "hemodynamics")
+    if not os.path.exists(hemodynamics_outdirectory):
+        os.mkdir(hemodynamics_outdirectory)
+
+    plt.plot(homo_LVV, homo_LVP)
+    plt.savefig(os.path.join(hemodynamics_outdirectory, "PV.png"))
+    plt.clf()
+
+
+
  

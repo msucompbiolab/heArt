@@ -3,15 +3,16 @@ from dolfin import *
 
 sys.path.append("/mnt/Research")
 
-from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
+from heArt.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
-from heArt_py3.src.postprocessing.postprocessdata2 import (
+from heArt.src.postprocessing.postprocessdata2 import (
     postprocessdata as postprocessdata,
 )
-from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
-from heArt_py3.src.postprocessing.postprocessdata2 import compute_strain as compute_strain
+from heArt.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
+from heArt.src.postprocessing.postprocessdata2 import compute_strain as compute_strain
+from heArt.src.postprocessing.postprocessdata2 import plothemodynamics as plothemodynamics
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
@@ -93,17 +94,6 @@ SimDetails = {
     "DTI_ME": False,
     "d_iso": 1.5 * 0.005,
     "d_ani_factor": 4.0,
-    #    "probepts": [
-    #        [3.54982, 4.85747, -1.56241],
-    #        [3.54982, 4.85747, -1.56241],
-    #        [3.54982, 4.85747, -1.56241],
-    #        [3.54982, 4.85747, -1.56241],
-    #        [4.10888, 5.28499, -1.56241],
-    #        [4.77476, 5.69628, -1.56241],
-    #        [10.1261, 9.83341, -1.56241],
-    #        [10.3596, 10.0373, -1.56241],
-    #        [10.5715, 10.2127, -1.56241],
-    #    ],
     "ploc": [[1.4, 1.4, -3.0, 2.0, 1]],  # , [-1.4, -1.4, -3.0, 2.0, 2]],
     "pacing_timing": [[4.0, 20.0]],  # , [20.0, 20.0]],
     "Isclosed": True,
@@ -135,8 +125,9 @@ SimDetails = {
 # Run Simulation
 #run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
-#postprocessdata(IODet=IODetails, SimDet=SimDetails)
 #dumpvtk(IODet=IODetails, SimDet=SimDetails)
-compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
+#compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
+plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=1)
+
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
