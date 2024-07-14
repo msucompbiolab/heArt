@@ -303,13 +303,14 @@ class Forms(object):
         J = self.J()
         u = self.parameters["displacement_variable"]
         F = self.Fmat()
-        dsendo = ds(
-            self.parameters["LVendoid"],
-            domain=self.parameters["mesh"],
-            subdomain_data=self.parameters["facetboundaries"],
-        )
+        #dsendo = ds(
+        #    self.parameters["LVendoid"],
+        #    domain=self.parameters["mesh"],
+        #    subdomain_data=self.parameters["facetboundaries"],
+        #)
 
         pres = pe * inner(J * inv(F.T) * N, u) * ds(self.parameters["LVendoid"])
+
         # pres = 1 * dsendo
         return pres
 

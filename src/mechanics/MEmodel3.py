@@ -70,6 +70,7 @@ class MEmodel(object):
         self.mesh_me = self.Mesh.mesh
         self.facetboundaries_me = self.Mesh.facetboundaries
         self.edgeboundaries_me = self.Mesh.edgeboundaries
+        self.matid_me = self.Mesh.matid
 
         self.ds_me = self.Mesh.ds
         self.dx_me = self.Mesh.dx
@@ -894,12 +895,20 @@ class MEmodel(object):
 
         X_me = SpatialCoordinate(mesh_me)
 
+        if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
+            nonLVid = set(self.matid_me.array()) - set(self.SimDet["active_region"])
+
         if self.iswaorta:
+
             F1 = (
                 derivative(Wp_me, w_me, wtest_me) * dx_me(1)
-                + derivative(WpRub_me, w_me, wtest_me) * dx_me(2)
-                + derivative(WpRub_me, w_me, wtest_me) * dx_me(3)
             )
+
+            for nonLVid_ in list(nonLVid):
+                F1 += (
+                    derivative(WpRub_me, w_me, wtest_me) * dx_me(int(nonLVid_))
+                )
+
         elif self.isFCH:
             F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
 

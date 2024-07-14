@@ -183,6 +183,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     export.exportVTKobj("facetboundaries_ep.pvd", facetboundaries_ep)
     export.exportVTKobj("EpiBCid_ep.pvd", EpiBCid_ep)
+    #export.exportVTKobj("f0.pvd", project(MEmodel_.Mesh.f0, VectorFunctionSpace(MEmodel_.Mesh.mesh, "DG", 0)))
 
     F_ED = Function(MEmodel_.TF)
 
@@ -257,7 +258,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             break
 
     printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
-
+    #return
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
     # Declare communicator based on mpi4py
     # eCC, eRR, eLL, deformedMesh, deformedBoundary = MEmodel_.GetDeformedBasis({})
@@ -417,10 +418,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             if abs(F) < tol and abs(du) < tol:
                 break
 
-        if cnt % SimDet["writeStep"] == 0.0:
-            export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", writecnt)
-            # export.hdf.write(c_n, "ME/u_diff", writecnt)
-            writecnt += 1
+        #if cnt % SimDet["writeStep"] == 0.0:
+        #    export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
+        #    # export.hdf.write(c_n, "ME/u_diff", writecnt)
+        #    writecnt += 1
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)

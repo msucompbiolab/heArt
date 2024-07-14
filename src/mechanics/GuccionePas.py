@@ -1,12 +1,22 @@
 from dolfin import *
 from ufl import indices
 import dolfin as dolfin
+import collections.abc
 
 
 class GuccionePas(object):
     def __init__(self, params):
         self.parameters = self.default_parameters()
-        self.parameters.update(params)
+        #self.parameters.update(params)
+        self.update(self.parameters, params)
+
+    def update(self, d, u):
+        for k, v in u.items():
+            if isinstance(v, collections.abc.Mapping):
+                d[k] = self.update(d.get(k, {}), v)
+            else:
+                d[k] = v
+        return d
 
     def default_parameters(self):
         return {
@@ -15,6 +25,7 @@ class GuccionePas(object):
                 "bfx": Constant(13.3),
                 "bxx": Constant(26.6),
                 "Cparam": Constant(100),
+                "mu": Constant(5e4),
             }
         }
 
@@ -39,7 +50,8 @@ class GuccionePas(object):
         F = dolfin.variable(F)
         J = det(F)
         Ic = tr(F.T * F)
-        mu = Constant(5e4)
+        #mu = Constant(5e4)
+        mu = self.parameters["material params"]["mu"]
         # Wp = (mu / 2) * (Ic - 3)  # - mu*ln(J)
         Wp = (mu / 2) * (exp(10 * (Ic - 3)) - 1)  # - p * (J - 1)
 

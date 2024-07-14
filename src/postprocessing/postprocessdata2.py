@@ -379,6 +379,33 @@ def extractdisplacement(IODet, SimDet, cycle=None):
 
     return u_arr
 
+def extractdisplacementloading(IODet, SimDet, cycle=None):
+
+    mesh = df.Mesh()
+    hdf = df.HDF5File(mesh.mpi_comm(), IODet["outputfolder"] + "/" + IODet["caseID"]  + "/" + "Data.h5", "r")
+
+    # Dump displacement
+    if(SimDet["Mechanics Discretization"] is "P1P1"):
+        var_deg = 1
+    else:
+        var_deg = 2
+
+    try:
+        u_arr = extractvtk(
+                            IODet["outputfolder"] + "/" + IODet["caseID"], 
+                            "ME/"+"u_loading", 
+                            "CG", 
+                            var_deg, 
+                            IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "ME_" + "u_loading",
+                            "u",
+                            )
+    except RuntimeError:
+        print("No attribute for ", var, " found")
+
+    return u_arr
+
+
+
 def dumpvtk(IODet, SimDet, cycle=None):
 
     hdf = df.HDF5File(df.MPI.comm_world, IODet["outputfolder"] + "/" + IODet["caseID"]  + "/" + "Data.h5", "r")
