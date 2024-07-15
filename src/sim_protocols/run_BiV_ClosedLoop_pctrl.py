@@ -10,6 +10,7 @@ warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
 
 
 from dolfin import *
+import dolfin as dolfin
 
 # from fenicstools import *
 
@@ -231,6 +232,39 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         solver_elas.solvenonlinear()
 
+        # troubleshooting
+        residual_F = MEmodel_.Ftotal
+        assem_residual = assemble(residual_F)
+
+        residual_func = Function(MEmodel_.W)
+       # if MPI.rank(comm_me) == 1:
+       #     print("size of assem_residual = ", assem_residual.size())
+        residual_func.vector()[:] = assem_residual
+
+        assem_prj = project(
+            residual_func,
+            MEmodel_.W,
+            solver_type="mumps",
+            form_compiler_parameters={"representation": "quadrature"},
+        )
+
+        u_prj, p_prj = assem_prj.split()
+        # printout("prj = "+ str(u_prj.get_local()[:]), comm_me)
+        # File("u_prj.pvd") << u_prj
+        # File("p_prj.pvd") << p_prj
+
+        residual_vec = assem_residual.get_local()[:]
+
+        # print("type of residual_vec = ", type(residual_vec))
+        print("norm = ", dolfin.norm(assem_residual, 'linf'))
+        # print("numpy norm = ", np.linalg.norm(residual_vec))
+        # printout("norm of core = " + str(dolfin.norm(assem_residual, 'linf')), comm_me)
+        # print(f"max for rank {MPI.rank(comm_me)} is {np.linalg.norm(residual_vec, np.inf)}")
+        import pdb
+
+        pdb.set_trace()
+
+
         export.writePV(MEmodel_, 0)
         export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
         it += 1
@@ -256,7 +290,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         if MEmodel_.LVCavitypres.pres * 0.0075 >= EDP:
             break
+    import pdb
 
+    pdb.set_trace()
     printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
     #return
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
@@ -347,8 +383,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     while 1:
         if state_obj.cycle > stop_iter:
             break
-        # if state_obj.tstep > 100:
-        #    break
+        if state_obj.tstep > 100:
+            break
 
         params = {
             "P_LV": P_LV,
@@ -407,6 +443,15 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             # Compute the residual and Jacobian
             J = Jf(P_LV)
             F = Rp(P_LV, V_LV)
+
+            residual_F = MEmodel_.Ftotal
+            assem_residual = assemble(residual_F)
+            residual_vec = assem_residual.get_local()[:]
+
+            printout(
+                "min/max = " + str(residual_vec),
+                comm_me,
+            )
 
             # Solve for the update
             du = -F / J
