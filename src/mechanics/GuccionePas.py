@@ -25,7 +25,8 @@ class GuccionePas(object):
                 "bfx": Constant(13.3),
                 "bxx": Constant(26.6),
                 "Cparam": Constant(100),
-                "mu": Constant(5e4),
+                "mu_iso": Constant(5e4),
+                "b_iso": Constant(10),
             }
         }
 
@@ -51,9 +52,10 @@ class GuccionePas(object):
         J = det(F)
         Ic = tr(F.T * F)
         #mu = Constant(5e4)
-        mu = self.parameters["material params"]["mu"]
+        mu = self.parameters["material params"]["mu_iso"]
+        b_iso = self.parameters["material params"]["b_iso"]
         # Wp = (mu / 2) * (Ic - 3)  # - mu*ln(J)
-        Wp = (mu / 2) * (exp(10 * (Ic - 3)) - 1)  # - p * (J - 1)
+        Wp = (mu / 2) * (exp(b_iso * (Ic - 3) * (Ic - 3)) - 1) # LCL # - p * (J - 1)
 
         return Wp
 

@@ -38,7 +38,8 @@ GuccioneParams = {
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
-        "mu": Constant(5e4),
+        "mu_iso": Constant(5e2),
+        "b_iso": Constant(30),
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
@@ -126,12 +127,12 @@ SimDetails = {
 }
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 #dumpvtk(IODet=IODetails, SimDet=SimDetails)
 #compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
 #plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=1)
-#extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
+extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
 #extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 
 
