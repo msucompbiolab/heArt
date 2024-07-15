@@ -108,19 +108,20 @@ class NSolver(object):
 
             opts = PETSc.Options()
             # opts.setValue("ksp_view", "")
-            # opts.setValue("ksp_monitor_true_residual", "")
+            opts.setValue("ksp_monitor_true_residual", "")
 
             # SNES Solver Parameters
+            opts.setValue("snes_type", "newtontr")
             # opts.setValue("snes_type", "vinewtonssls")
             # opts.setValue("snes_atol", 1.e-4)
             # opts.setValue("snes_rtol", 1.e-4)
 
-            opts.setValue("ksp_type", "gmres")
+            opts.setValue("ksp_type", "gmres") # bcgs # gmres
 
             opts.setValue("pc_type", "fieldsplit")
             opts.setValue("pc_fieldsplit_type", "additive")  # multiplicative
             opts.setValue("pc_fieldsplit_detect_saddle_point", True)
-            opts.setValue("fieldsplit_0_ksp_type", "cg")  # preonly # gmres
+            opts.setValue("fieldsplit_0_ksp_type", "cg")  # preonly # gmres # cg
             # opts.setValue("fieldsplit_0_ksp_type", "richardson")
             # opts.setValue("fieldsplit_0_ksp_max_it", "10")
             opts.setValue("fieldsplit_0_pc_type", "hypre")  # lu
@@ -135,10 +136,10 @@ class NSolver(object):
 
             snes = PETSc.SNES().create(MPI.comm_world)
 
-            opts.setValue("snes_linesearch_type", "bt")  # l2 # basic
+            # opts.setValue("snes_linesearch_type", "basic")  # bt # l2 # basic # cp
             opts.setValue("snes_monitor", "")
-            opts.setValue("snes_linesearch_monitor", "")
-
+            # opts.setValue("snes_linesearch_monitor", "")
+            opts.setValue("snes_trust_region_monitor", "")
             snes.setFromOptions()
 
             # problem = SNESProblem(Ftotal, w.vector(), bcs)
