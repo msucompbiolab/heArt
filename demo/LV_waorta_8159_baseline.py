@@ -19,12 +19,14 @@ from heArt.src.postprocessing.postprocessdata2 import extractdisplacement as ext
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    "casename": "8159_baseline_ES_t11",
+    #"casename": "8159_baseline_ES_t11",
+    "casename": "8159_baseline_ES_t11_basethick",
     "directory_me": "../LV_waorta/",
     "directory_ep": "../LV_waorta/",
     "outputfolder": "./outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "8159_baseline_ES_t11",
+    #"caseID": "8159_baseline_ES_t11",
+    "caseID": "8159_baseline_ES_t11_thick",
     "isLV": False,
 }
 
@@ -104,13 +106,18 @@ SimDetails = {
     "Ischemia": False,
     "Mechanics Discretization": "P1P1",
     "isLV": False,
-    "aorta_ext_wall": 2,
-    "aorta_int_wall": 5,
-    "aorta_ring": 9,
-    "LVendoid": 8,
+    #"aorta_ext_wall": 2,
+    "aorta_ext_wall": 1, #Base thick
+    #"aorta_int_wall": 5,
+    "aorta_int_wall": 7, #Base thick
+    #"aorta_ring": 9,
+    "aorta_ring": 6, #Base thick
+    #"LVendoid": 8,
+    "LVendoid": 5, #Base thick
     "RVendoid": 0,
     "epiid": 3,
-    "aortic_vplane": 7,
+    #"aortic_vplane": 7,
+    "aortic_vplane": 6, #Base thick
     "abs_tol": 1e-7,
     "rel_tol": 1e-7,
     "isunloading": False,
