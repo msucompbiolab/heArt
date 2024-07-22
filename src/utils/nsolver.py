@@ -4,6 +4,7 @@ import math
 # import petsc4py
 import sys
 from .snes_problem import SNESProblem
+import logging
 
 
 class NSolver(object):
@@ -67,86 +68,98 @@ class NSolver(object):
         # activeforms = self.parameters["ActiveForm"]
         ##################################################
 
+        # if solvertype == 0:
+        # solve(Ftotal == 0, w, bcs, J = Jac, \
+        # solver_parameters={"newton_solver":{"relative_tolerance":1e-9, "absolute_tolerance":1e-9, "maximum_iterations":maxiter, "linear_solver":"umfpack"}}#,\
+        # form_compiler_parameters={"representation":"uflacs"}
+        # )
+        set_log_level(20)
+        # set_log_level(30)
+
+        # solve(Ftotal == 0, w, bcs, J = Jac,\
+        #      form_compiler_parameters={"representation":"uflacs"}, \
+        #      solver_parameters={"newton_solver":{"linear_solver":"mumps",\
+        #                                          "relative_tolerance":1e-9, \
+        #                                          "absolute_tolerance":1e-9, \
+        #                                          "maximum_iterations":maxiter
+        #                        }})
+
+        self.nsolver.parameters["newton_solver"]["linear_solver"] = "mumps"
+        if "abs_tol" in list(self.parameters.keys()):
+            self.nsolver.parameters["newton_solver"]["absolute_tolerance"] = abs_tol
+        if "rel_tol" in list(self.parameters.keys()):
+            self.nsolver.parameters["newton_solver"]["relative_tolerance"] = rel_tol
+
+        self.nsolver.parameters["newton_solver"]["maximum_iterations"] = maxiter
+        # self.nsolver.parameters["newton_solver"]["relaxation_parameter"] = 0.5
+        # self.nsolver.solve()
+
+        # elif solvertype == 1:
+
+        set_log_level(20)
+        # petsc snes solver
+        import petsc4py
+
+        petsc4py.init(sys.argv)
+        from petsc4py import PETSc
+
+        b = PETScVector()
+        # b = PETSc.Vec().create(MPI.comm_world)
+        J_mat = PETScMatrix()
+        # J_mat = PETSc.Mat().create(MPI.comm_world)
+
+        opts = PETSc.Options()
+        # opts.setValue("ksp_view", "")
+        opts.setValue("ksp_monitor_true_residual", "")
+
+        # SNES Solver Parameters
+        opts.setValue("snes_type", "newtontr")
+        # opts.setValue("snes_type", "vinewtonssls")
+        # opts.setValue("snes_atol", 1.e-4)
+        # opts.setValue("snes_rtol", 1.e-4)
+
+        opts.setValue("ksp_type", "gmres")  # bcgs # gmres
+
+        opts.setValue("pc_type", "fieldsplit")
+        opts.setValue("pc_fieldsplit_type", "additive")  # multiplicative
+        opts.setValue("pc_fieldsplit_detect_saddle_point", True)
+        opts.setValue("fieldsplit_0_ksp_type", "cg")  # preonly # gmres # cg
+        # opts.setValue("fieldsplit_0_ksp_type", "richardson")
+        opts.setValue("fieldsplit_0_pc_type", "hypre")  # lu
+        opts.setValue("fieldsplit_0_pc_hypre_type", "boomeramg")
+
+        opts.setValue("fieldsplit_1_ksp_type", "preonly")
+        # opts.setValue("fieldsplit_1_ksp_type", "richardson")
+        opts.setValue("fieldsplit_1_pc_type", "bjacobi")  # # bjacobi # jacobi # ilu
+
+        self.snes = PETSc.SNES().create(MPI.comm_world)
+
+        # opts.setValue("snes_linesearch_type", "basic")  # bt # l2 # basic # cp
+        opts.setValue("snes_monitor", "")
+        # opts.setValue("snes_linesearch_monitor", "")
+        opts.setValue("snes_trust_region_monitor", "")
+        self.snes.setFromOptions()
+
+        # problem = SNESProblem(Ftotal, w.vector(), bcs)
+
         if solvertype == 0:
-            # solve(Ftotal == 0, w, bcs, J = Jac, \
-            # solver_parameters={"newton_solver":{"relative_tolerance":1e-9, "absolute_tolerance":1e-9, "maximum_iterations":maxiter, "linear_solver":"umfpack"}}#,\
-            # form_compiler_parameters={"representation":"uflacs"}
-            # )
-            set_log_level(20)
-            # set_log_level(30)
+            try:
+                self.nsolver.solve()
+            except RuntimeError as e:
+                print("attemping solution with iterative solver")
+                self.snes.setFunction(self.problem_snes.F, b.vec())
+                self.snes.setJacobian(self.problem_snes.J, J_mat.mat())
+                self.snes.solve(None, self.problem_snes.u.vector().vec())
 
-            # solve(Ftotal == 0, w, bcs, J = Jac,\
-            #      form_compiler_parameters={"representation":"uflacs"}, \
-            #      solver_parameters={"newton_solver":{"linear_solver":"mumps",\
-            #                                          "relative_tolerance":1e-9, \
-            #                                          "absolute_tolerance":1e-9, \
-            #                                          "maximum_iterations":maxiter
-            #                        }})
-
-            self.nsolver.parameters["newton_solver"]["linear_solver"] = "mumps"
-            if "abs_tol" in list(self.parameters.keys()):
-                self.nsolver.parameters["newton_solver"]["absolute_tolerance"] = abs_tol
-            if "rel_tol" in list(self.parameters.keys()):
-                self.nsolver.parameters["newton_solver"]["relative_tolerance"] = rel_tol
-
-            self.nsolver.parameters["newton_solver"]["maximum_iterations"] = maxiter
-            # self.nsolver.parameters["newton_solver"]["relaxation_parameter"] = 0.5
-            self.nsolver.solve()
         elif solvertype == 1:
+            try:
+                self.snes.setFunction(self.problem_snes.F, b.vec())
+                self.snes.setJacobian(self.problem_snes.J, J_mat.mat())
+                self.snes.solve(None, self.problem_snes.u.vector().vec())
+            except RuntimeError as e:
+                print("attemping solution with direct solver")
+                self.nsolver.solve()
 
-            set_log_level(20)
-            # petsc snes solver
-            import petsc4py
-
-            petsc4py.init(sys.argv)
-            from petsc4py import PETSc
-
-            b = PETScVector()
-            # b = PETSc.Vec().create(MPI.comm_world)
-            J_mat = PETScMatrix()
-            # J_mat = PETSc.Mat().create(MPI.comm_world)
-
-            opts = PETSc.Options()
-            # opts.setValue("ksp_view", "")
-            opts.setValue("ksp_monitor_true_residual", "")
-
-            # SNES Solver Parameters
-            opts.setValue("snes_type", "newtontr")
-            # opts.setValue("snes_type", "vinewtonssls")
-            # opts.setValue("snes_atol", 1.e-4)
-            # opts.setValue("snes_rtol", 1.e-4)
-
-            opts.setValue("ksp_type", "gmres") # bcgs # gmres
-
-            opts.setValue("pc_type", "fieldsplit")
-            opts.setValue("pc_fieldsplit_type", "additive")  # multiplicative
-            opts.setValue("pc_fieldsplit_detect_saddle_point", True)
-            opts.setValue("fieldsplit_0_ksp_type", "cg")  # preonly # gmres # cg
-            # opts.setValue("fieldsplit_0_ksp_type", "richardson")
-            # opts.setValue("fieldsplit_0_ksp_max_it", "10")
-            opts.setValue("fieldsplit_0_pc_type", "hypre")  # lu
-            opts.setValue("fieldsplit_0_pc_hypre_type", "boomeramg")
-            # opts.setValue("fieldsplit_0_pc_factor_mat_solver_type", "mumps")
-
-            opts.setValue("fieldsplit_1_ksp_type", "preonly")
-            # opts.setValue("fieldsplit_1_ksp_type", "richardson")
-            # opts.setValue("fieldsplit_1_ksp_max_it", "10")
-            opts.setValue("fieldsplit_1_pc_type", "bjacobi")  # jacobi # ilu
-            # opts.setValue("fieldsplit_1_pc_jacobi_diagonal_shift", "1e-5")
-
-            snes = PETSc.SNES().create(MPI.comm_world)
-
-            # opts.setValue("snes_linesearch_type", "basic")  # bt # l2 # basic # cp
-            opts.setValue("snes_monitor", "")
-            # opts.setValue("snes_linesearch_monitor", "")
-            opts.setValue("snes_trust_region_monitor", "")
-            snes.setFromOptions()
-
-            # problem = SNESProblem(Ftotal, w.vector(), bcs)
-
-            snes.setFunction(self.problem_snes.F, b.vec())
-            snes.setJacobian(self.problem_snes.J, J_mat.mat())
-            snes.solve(None, self.problem_snes.u.vector().vec())
         else:
             it = 0
             if self.isfirstiteration == 0:

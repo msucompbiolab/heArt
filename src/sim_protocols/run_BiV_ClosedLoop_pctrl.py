@@ -184,7 +184,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     export.exportVTKobj("facetboundaries_ep.pvd", facetboundaries_ep)
     export.exportVTKobj("EpiBCid_ep.pvd", EpiBCid_ep)
-    #export.exportVTKobj("f0.pvd", project(MEmodel_.Mesh.f0, VectorFunctionSpace(MEmodel_.Mesh.mesh, "DG", 0)))
+    # export.exportVTKobj("f0.pvd", project(MEmodel_.Mesh.f0, VectorFunctionSpace(MEmodel_.Mesh.mesh, "DG", 0)))
 
     F_ED = Function(MEmodel_.TF)
 
@@ -232,39 +232,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         solver_elas.solvenonlinear()
 
-        # troubleshooting
-        residual_F = MEmodel_.Ftotal
-        assem_residual = assemble(residual_F)
-
-        residual_func = Function(MEmodel_.W)
-       # if MPI.rank(comm_me) == 1:
-       #     print("size of assem_residual = ", assem_residual.size())
-        residual_func.vector()[:] = assem_residual
-
-        assem_prj = project(
-            residual_func,
-            MEmodel_.W,
-            solver_type="mumps",
-            form_compiler_parameters={"representation": "quadrature"},
-        )
-
-        u_prj, p_prj = assem_prj.split()
-        # printout("prj = "+ str(u_prj.get_local()[:]), comm_me)
-        # File("u_prj.pvd") << u_prj
-        # File("p_prj.pvd") << p_prj
-
-        residual_vec = assem_residual.get_local()[:]
-
-        # print("type of residual_vec = ", type(residual_vec))
-        print("norm = ", dolfin.norm(assem_residual, 'linf'))
-        # print("numpy norm = ", np.linalg.norm(residual_vec))
-        # printout("norm of core = " + str(dolfin.norm(assem_residual, 'linf')), comm_me)
-        # print(f"max for rank {MPI.rank(comm_me)} is {np.linalg.norm(residual_vec, np.inf)}")
-        import pdb
-
-        pdb.set_trace()
-
-
         export.writePV(MEmodel_, 0)
         export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
         it += 1
@@ -290,11 +257,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         if MEmodel_.LVCavitypres.pres * 0.0075 >= EDP:
             break
-    import pdb
 
-    pdb.set_trace()
     printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
-    #return
+    # return
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
     # Declare communicator based on mpi4py
     # eCC, eRR, eLL, deformedMesh, deformedBoundary = MEmodel_.GetDeformedBasis({})
@@ -383,8 +348,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     while 1:
         if state_obj.cycle > stop_iter:
             break
-        if state_obj.tstep > 100:
-            break
 
         params = {
             "P_LV": P_LV,
@@ -411,8 +374,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         dict_PV.append((state_obj.t, V_LV, P_LV))
 
         # Newton's solver
-        tol = 1e-5  # Tolerance for convergence
-        max_iter = 50  # Maximum number of iteration
+        tol = 1e-4  # Tolerance for convergence
+        max_iter = 10  # Maximum number of iteration
 
         def estpres(P_LV):  # initial guess
             return 1.005 * P_LV
@@ -444,16 +407,14 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             J = Jf(P_LV)
             F = Rp(P_LV, V_LV)
 
-            residual_F = MEmodel_.Ftotal
-            assem_residual = assemble(residual_F)
-            residual_vec = assem_residual.get_local()[:]
-
-            printout(
-                "min/max = " + str(residual_vec),
-                comm_me,
-            )
-
             # Solve for the update
+            if abs(J) < 1e-10:
+                printout(
+                    "Jac is too small, let me skip this iteration: " + str(du), comm_me
+                )
+                # continue
+                break
+
             du = -F / J
 
             # Update the solution
@@ -463,7 +424,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             if abs(F) < tol and abs(du) < tol:
                 break
 
-        #if cnt % SimDet["writeStep"] == 0.0:
+        # if cnt % SimDet["writeStep"] == 0.0:
         #    export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
         #    # export.hdf.write(c_n, "ME/u_diff", writecnt)
         #    writecnt += 1

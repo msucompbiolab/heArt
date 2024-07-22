@@ -559,7 +559,10 @@ class MEmodel(object):
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             if self.iswaorta:
-                bcs = [bc_aorta_ring]
+                if "mv_aorta" in list(self.SimDet.keys()) and self.simDet["mv_aorta"]:
+                    bcs = []
+                else:
+                    bcs = [bc_aorta_ring]
             elif self.isLV:
                 bcs = []
             elif self.isFCH:
@@ -900,14 +903,10 @@ class MEmodel(object):
 
         if self.iswaorta:
 
-            F1 = (
-                derivative(Wp_me, w_me, wtest_me) * dx_me(1)
-            )
+            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me(1)
 
             for nonLVid_ in list(nonLVid):
-                F1 += (
-                    derivative(WpRub_me, w_me, wtest_me) * dx_me(int(nonLVid_))
-                )
+                F1 += derivative(WpRub_me, w_me, wtest_me) * dx_me(int(nonLVid_))
 
         elif self.isFCH:
             F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
@@ -963,7 +962,32 @@ class MEmodel(object):
                 )
 
                 F3 = F3_epi
-                Ftotal += F3
+
+                if self.iswaorta:
+                    aorta_ring = self.SimDet["aorta_ring"]
+                    F3_aorta_ring = inner(
+                        outer(N_me, N_me)
+                        * (
+                            self.k_spring[0] * u_me
+                            + self.c_damping[0] * (u_me - u_me_n)
+                        ),
+                        v_me,
+                    ) * ds_me(aorta_ring) + inner(
+                        (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                        * (
+                            self.k_spring[1] * u_me
+                            + self.c_damping[1] * (u_me - u_me_n)
+                        ),
+                        v_me,
+                    ) * ds_me(
+                        aorta_ring
+                    )
+
+                    if (
+                        "mv_aorta" in list(self.SimDet.keys())
+                        and self.simDet["mv_aorta"]
+                    ):
+                        F3 += F3_aorta_ring
 
             else:
                 ## epicardial
@@ -985,7 +1009,7 @@ class MEmodel(object):
 
                 F3 = F3_epi - F3_base
 
-                Ftotal += F3
+            Ftotal += F3
 
         elif self.isLV:
             Wrigid = (
@@ -1083,7 +1107,6 @@ class MEmodel(object):
             solverparams.update({"rel_tol": self.SimDet["rel_tol"]})
         if "Type" in list(self.SimDet.keys()):
             solverparams.update({"Type": self.SimDet["Type"]})
-
         solver_eals = NSolver(solverparams)
 
         return solver_eals

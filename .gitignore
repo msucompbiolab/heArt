@@ -27,6 +27,7 @@ w_aorta/
 *.img
 *.npz
 demo/outputs_LV_waorta/LV_waorta/Data.h5
+demo/outputs_LV_waorta/LV_waorta/
 LV_waorta/simulator/
 LV_waorta/test/
 demo/dict_PV.json/
