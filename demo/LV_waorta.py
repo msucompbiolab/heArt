@@ -11,10 +11,19 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
     postprocessdata as postprocessdata,
 )
 from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
-from heArt_py3.src.postprocessing.postprocessdata2 import compute_strain as compute_strain
-from heArt_py3.src.postprocessing.postprocessdata2 import plothemodynamics as plothemodynamics
-from heArt_py3.src.postprocessing.postprocessdata2 import extractdisplacement as extractdisplacement
-from heArt_py3.src.postprocessing.postprocessdata2 import extractdisplacementloading as extractdisplacementloading
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    compute_strain as compute_strain,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    plothemodynamics as plothemodynamics,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacement as extractdisplacement,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacementloading as extractdisplacementloading,
+)
+
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
@@ -27,7 +36,7 @@ IODetails = {
     "isLV": False,
 }
 
-contRactility = 600e3
+contRactility = 800e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -37,6 +46,7 @@ GuccioneParams = {
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
+        "b_iso": Constant(10.0),
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
@@ -57,20 +67,20 @@ GuccioneParams = {
 }
 
 Circparam = {
-    "Ees_la": 10,  # End-systolic elastance (60) --> Pa/ml ok
-    "A_la": 2.67,  # Scaling factor for EDPVR --> ml ok
-    "B_la": 0.019,  # Exponent for EDPVR --> ml-1 ok
-    "V0_la": 10,  # volume axis intercept --> ml ok
-    "Tmax_la": 120,  # time to end-systole --> ms ok
-    "tau_la": 25,  # time constant of relaxation --> ms ok
+    "Ees_la": 10,  # End-systolic elastance (60) --> Pa/ml
+    "A_la": 2.67,  # Scaling factor for EDPVR --> ml
+    "B_la": 0.019,  # Exponent for EDPVR --> ml-1
+    "V0_la": 10,  # volume axis intercept --> ml
+    "Tmax_la": 120,  # time to end-systole --> ms
+    "tau_la": 25,  # time constant of relaxation --> ms
     "tdelay_la": 160,  # XXX
-    "Csa": 0.0032,  # Proximal aorta compliance --> ml Pa ok
-    "Cad": 0.0330,  # Distal aorta compliance --> ml Pa ok
-    "Csv": 0.28,  # Venous compliance -> ml Pa ok
-    "Vsa0": 360,  # Resting volume for proximal aorta --> ml ok
-    "Vsv0": 2950.0,  # Resting venous volume (also (2950, 3100, 3370)) --> ml ok
-    "Vad0": 40,  # Resting volume for distal aorta --> ml ok
-    "Rav": 1000.0,  # (also 500 -- increase for less oscillation) (aortic valve resistance) --> Pa ms ml-1 ok (susp. 500 --> 1000)
+    "Csa": 0.0032,  # Proximal aorta compliance --> ml Pa
+    "Cad": 0.0330,  # Distal aorta compliance --> ml Pa
+    "Csv": 0.28,  # Venous compliance -> ml Pa
+    "Vsa0": 360,  # Resting volume for proximal aorta --> ml
+    "Vsv0": 2950.0,  # Resting venous volume (also (2950, 3100, 3370)) --> ml 2950 --> 3700 --> reduce preload
+    "Vad0": 40,  # Resting volume for distal aorta --> ml
+    "Rav": 750.0,  # (also 500 -- increase for less oscillation) (aortic valve resistance) --> Pa ms ml-1 (susp. 500 --> 1000)
     "Rsv": 100.0,  # Venous resistance --> Pa ms ml-1 ok
     "Rsa": 18000,  # Proximal aorta resistance --> Pa ms ml-1 ok
     "Rad": 21200,  # Distal aorta resistance (also (10600, 12800, 21200, 31800)) --> Pa ms ml-1 ok
@@ -87,9 +97,9 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 20.0,
+    "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
-    "nLoadSteps": 15, # u_loading
+    "nLoadSteps": 15,  # u_loading
     "DTI_EP": False,
     "DTI_ME": False,
     "d_iso": 1.5 * 0.005,
@@ -117,8 +127,11 @@ SimDetails = {
     "ispctrl": True,
     "iswaorta": True,
     "springbc": 1,
+    "mv_aorta": 0,
     "springparam": [2.0e4, 5.0e2],  # Kepi_n / Kepi_t
     "dashpotparam": [5.0e2, 5.0e1],  # Cepi_n / Cepi_t
+    "springaortaparam": [2.0e3, 5.0e1],  # Kepi_n / Kepi_t
+    "dashpotaortaparam": [5.0e1, 5.0e0],  # Cepi_n / Cepi_t
     # "springparam": [5.0e4, 5.0e3],
     # "dashpotparam": [5.0e3, 5.0e2],
     "active_region": [1],

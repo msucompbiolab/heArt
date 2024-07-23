@@ -11,6 +11,18 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
     postprocessdata as postprocessdata,
 )
 from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    compute_strain as compute_strain,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    plothemodynamics as plothemodynamics,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacement as extractdisplacement,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacementloading as extractdisplacementloading,
+)
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
@@ -66,12 +78,12 @@ Circparam = {
     "Cad": 0.0330,  # Distal aorta compliance --> ml Pa
     "Csv": 0.28,  # Venous compliance -> ml Pa
     "Vsa0": 360,  # Resting volume for proximal aorta --> ml
-    "Vsv0": 3370.0,  # Resting venous volume (pre 3370.0 (2950, 3100, 3370)) --> ml
+    "Vsv0": 3100.0,  # Resting venous volume (pre 3370.0 (2950, 3100, 3370)) --> ml
     "Vad0": 40,  # Resting volume for distal aorta --> ml
-    "Rav": 500.0,  # (pre 500 (500)) (aortic valve resistance) --> Pa ms ml-1
+    "Rav": 750.0,  # (pre 500 (500)) (aortic valve resistance) --> Pa ms ml-1
     "Rsv": 100.0,  # Venous resistance --> Pa ms ml-1
     "Rsa": 18000,  # Proximal aorta resistance --> Pa ms ml-1
-    "Rad": 106000,  # Distal aorta resistance (info not available) --> Pa ms ml-1
+    "Rad": 21200,  # Distal aorta resistance (info not available) --> Pa ms ml-1
     "Rmv": 200.0,  # Mitral valve resistance --> Pa ms ml-1
     "V_sv": 3700,
     "V_LV": 112,
@@ -86,7 +98,7 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 5.0,
+    "writeStep": 20.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
@@ -119,17 +131,15 @@ SimDetails = {
     "epiid": 17,
     "mitral_vplane": 19,
     "aortic_vplane": 20,
-    "abs_tol": 1e-9,
+    "abs_tol": 1e-8,
     "rel_tol": 1e-9,
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
     "isFCH": True,
     "springbc": 1,
-    "springparam": [2.0e4, 2.0e3],  # Kepi_n / Kepi_t
+    "springparam": [2.0e4, 5.0e2],  # Kepi_n / Kepi_t
     "dashpotparam": [5.0e2, 5.0e1],  # Cepi_n / Cepi_t
-    # "springparam": [5.0e4, 5.0e3],
-    # "dashpotparam": [5.0e3, 5.0e2],
     "active_region": [1],  # only lv is activated
     "Type": 0,
 }
@@ -139,4 +149,8 @@ run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
+# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
+# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=None)
+# extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
+
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

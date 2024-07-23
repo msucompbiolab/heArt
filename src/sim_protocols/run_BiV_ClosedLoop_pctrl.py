@@ -342,12 +342,12 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     CLmodel_ = CLmodel(SimDet, V_LV)
 
-    dict_PV = []
-
     it_ = 0
     while 1:
         if state_obj.cycle > stop_iter:
             break
+        # if state_obj.t > 5:
+        #    break
 
         params = {
             "P_LV": P_LV,
@@ -371,33 +371,51 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             + str(P_LV),
             comm_me,
         )
-        dict_PV.append((state_obj.t, V_LV, P_LV))
+        with open(outputfolder + folderName + "output_PV.txt", "a") as f_PV:
+            if MPI.rank(comm_me) == 0:
+                f_PV.write(f"{state_obj.t}, {V_LV}, {P_LV} \n")
 
         # Newton's solver
         tol = 1e-4  # Tolerance for convergence
         max_iter = 10  # Maximum number of iteration
 
         def estpres(P_LV):  # initial guess
-            return 1.005 * P_LV
+            return 1.004 * P_LV
 
         def Jf(P_LV):
             MEmodel_.LVCavitypres.pres = P_LV
-            solver_elas.solvenonlinear()
-            est_fe_v1 = MEmodel_.GetLVV()  # GetVolumeComputation()
+            try:
+                solver_elas.solvenonlinear()
+            except Exception as e:
+                printout("an error occured = " + str(e), comm_me)
+                import pdb
+
+                pdb.set_trace()
+            est_fe_v1 = MEmodel_.GetLVV()
 
             P_LV2 = estpres(P_LV)
-
             MEmodel_.LVCavitypres.pres = P_LV2
-            solver_elas.solvenonlinear()
-            est_fe_v2 = MEmodel_.GetLVV()  # GetVolumeComputation()
+            try:
+                solver_elas.solvenonlinear()
+            except Exception as e:
+                printout("an error occured = " + str(e), comm_me)
+                import pdb
+
+                pdb.set_trace()
+            est_fe_v2 = MEmodel_.GetLVV()
 
             return (est_fe_v2 - est_fe_v1) / (P_LV2 - P_LV)
 
         def Rp(P_LV, V_LV):  # V_LV is from circulatory model
             MEmodel_.LVCavitypres.pres = P_LV
-            solver_elas.solvenonlinear()
+            try:
+                solver_elas.solvenonlinear()
+            except Exception as e:
+                printout("an error occured = " + str(e), comm_me)
+                import pdb
 
-            v_t = MEmodel_.GetLVV()  # GetVolumeComputation()
+                pdb.set_trace()
+            v_t = MEmodel_.GetLVV()
 
             return v_t - V_LV
 
@@ -407,11 +425,17 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             J = Jf(P_LV)
             F = Rp(P_LV, V_LV)
 
+            with open(outputfolder + folderName + "output_JRp.txt", "a") as f_JRp:
+                if MPI.rank(comm_me) == 0:
+                    f_JRp.write(
+                        f"t = {state_obj.t}, iter = {iter}, Rp = {F}, J = {J} \n"
+                    )
+
             # Solve for the update
             if abs(J) < 1e-10:
-                printout(
-                    "Jac is too small, let me skip this iteration: " + str(du), comm_me
-                )
+                printout("Jac is too small: " + str(du), comm_me)
+                if MPI.rank(comm_me) == 0:
+                    f_JRp.write(f"break due to small Jac: du = {du}.")
                 # continue
                 break
 
@@ -423,6 +447,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             # Check for convergence
             if abs(F) < tol and abs(du) < tol:
                 break
+
+            with open(outputfolder + folderName + "output_JRp.txt", "a") as f_JRp:
+                if MPI.rank(comm_me) == 0:
+                    f_JRp.write(f"t = {state_obj.t}, iter = {iter}, du = {du} \n")
 
         # if cnt % SimDet["writeStep"] == 0.0:
         #    export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
@@ -619,9 +647,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             export.writeRStrain(MEmodel_, state_obj.tstep, E_radi_BiV)
 
         cnt += 1
-
-    with open("dict_PV.json", "w") as json_f:
-        json.dump(dict_PV, json_f)
 
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

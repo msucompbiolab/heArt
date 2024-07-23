@@ -559,7 +559,7 @@ class MEmodel(object):
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             if self.iswaorta:
-                if "mv_aorta" in list(self.SimDet.keys()) and self.simDet["mv_aorta"]:
+                if "mv_aorta" in list(self.SimDet.keys()) and self.SimDet["mv_aorta"]:
                     bcs = []
                 else:
                     bcs = [bc_aorta_ring]
@@ -964,19 +964,22 @@ class MEmodel(object):
                 F3 = F3_epi
 
                 if self.iswaorta:
+                    kaorta_spring = self.SimDet["springaortaparam"]
+                    caorta_damping = self.SimDet["dashpotaortaparam"]
+
                     aorta_ring = self.SimDet["aorta_ring"]
                     F3_aorta_ring = inner(
                         outer(N_me, N_me)
                         * (
-                            self.k_spring[0] * u_me
-                            + self.c_damping[0] * (u_me - u_me_n)
+                            kaorta_spring[0] * u_me
+                            + caorta_damping[0] * (u_me - u_me_n)
                         ),
                         v_me,
                     ) * ds_me(aorta_ring) + inner(
                         (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                         * (
-                            self.k_spring[1] * u_me
-                            + self.c_damping[1] * (u_me - u_me_n)
+                            kaorta_spring[1] * u_me
+                            + caorta_damping[1] * (u_me - u_me_n)
                         ),
                         v_me,
                     ) * ds_me(
@@ -985,7 +988,7 @@ class MEmodel(object):
 
                     if (
                         "mv_aorta" in list(self.SimDet.keys())
-                        and self.simDet["mv_aorta"]
+                        and self.SimDet["mv_aorta"]
                     ):
                         F3 += F3_aorta_ring
 
