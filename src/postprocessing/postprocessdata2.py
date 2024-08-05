@@ -221,6 +221,66 @@ def compute_activation(IODet, SimDet, cycle=None):
     File_act = df.File(os.path.join(act_outdirectory, "act.pvd"))
     File_act << time_act
 
+def normalize_directionalbasis(Mesh_obj):
+
+    eC0 = Mesh_obj.eC0
+    eL0 = Mesh_obj.eL0
+    eR0 = Mesh_obj.eR0
+
+    eC0_normalized = eC0 / df.sqrt(df.inner(eC0, eC0))
+    eL0_normalized = eL0 / df.sqrt(df.inner(eL0, eL0))
+    eR0_normalized = eR0 / df.sqrt(df.inner(eR0, eR0))
+
+    eC0_normalized = df.project(eC0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0)).vector().get_local()
+    isnan_eC0_normalized = np.argwhere(np.isnan(eC0_normalized)).flatten()
+
+    eL0_normalized = df.project(eL0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0)).vector().get_local()
+    isnan_eL0_normalized = np.argwhere(np.isnan(eL0_normalized)).flatten()
+
+    eR0_normalized = df.project(eR0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0)).vector().get_local()
+    isnan_eR0_normalized = np.argwhere(np.isnan(eR0_normalized)).flatten()
+
+    mesh_coordinates = df.FunctionSpace(Mesh_obj.mesh, "DG",0).tabulate_dof_coordinates()
+
+    np.set_printoptions(threshold=sys.maxsize)
+    if(isnan_eC0_normalized.size != 0):
+        for p in isnan_eC0_normalized:
+            list_of_nan_ids = [p//3*3 + i for i in range(0,3)]
+            distances_to_nan_pt = [np.linalg.norm(mesh_coordinates[i] - mesh_coordinates[p//3]) \
+                    for i in range(0, len(mesh_coordinates))]
+            distances_to_nan_pt [p//3] = 1000
+            closest_pt_id = np.argmin(distances_to_nan_pt, axis = 0)
+            eC0_normalized[p//3*3: p//3*3+3] = eC0_normalized[3*closest_pt_id: 3*closest_pt_id+3]
+
+    if(isnan_eL0_normalized.size != 0):
+        for p in isnan_eL0_normalized:
+            list_of_nan_ids = [p//3*3 + i for i in range(0,3)]
+            distances_to_nan_pt = [np.linalg.norm(mesh_coordinates[i] - mesh_coordinates[p//3]) \
+                    for i in range(0, len(mesh_coordinates))]
+            distances_to_nan_pt [p//3] = 1000
+            closest_pt_id = np.argmin(distances_to_nan_pt, axis = 0)
+            eL0_normalized[p//3*3: p//3*3+3] = eL0_normalized[3*closest_pt_id: 3*closest_pt_id+3]
+ 
+    if(isnan_eR0_normalized.size != 0):
+        for p in isnan_eR0_normalized:
+            list_of_nan_ids = [p//3*3 + i for i in range(0,3)]
+            distances_to_nan_pt = [np.linalg.norm(mesh_coordinates[i] - mesh_coordinates[p//3]) \
+                    for i in range(0, len(mesh_coordinates))]
+            distances_to_nan_pt [p//3] = 1000
+            closest_pt_id = np.argmin(distances_to_nan_pt, axis = 0)
+            eR0_normalized[p//3*3: p//3*3+3] = eR0_normalized[3*closest_pt_id: 3*closest_pt_id+3]
+
+
+    eC0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0))
+    eL0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0))
+    eR0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0))
+
+    eC0_normalized_.vector()[:] = eC0_normalized
+    eL0_normalized_.vector()[:] = eL0_normalized
+    eR0_normalized_.vector()[:] = eR0_normalized
+
+    return eC0_normalized_, eL0_normalized_, eR0_normalized_
+
 
 def compute_strain(IODet, SimDet, LVid=1, cycle=None):
 
@@ -246,9 +306,7 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
     eL0 = Mesh_obj.eL0
     eR0 = Mesh_obj.eR0
 
-    eC0_normalized = eC0 / df.sqrt(df.inner(eC0, eC0))
-    eL0_normalized = eL0 / df.sqrt(df.inner(eL0, eL0))
-    eR0_normalized = eR0 / df.sqrt(df.inner(eR0, eR0))
+    eC0_normalized, eL0_normalized, eR0_normalized = normalize_directionalbasis(Mesh_obj)
 
     if SimDet["Mechanics Discretization"] is "P1P1":
         var_deg = 1
@@ -275,18 +333,21 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
     Ecc_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Ecc")
     if not os.path.exists(Ecc_outdirectory):
         os.mkdir(Ecc_outdirectory)
+    df.File(os.path.join(Ecc_outdirectory, "Ecc_direction.pvd")) << eC0_normalized
     File_Ecc = df.File(os.path.join(Ecc_outdirectory, "Ecc.pvd"))
     Ecc_arr = []
 
     Ell_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Ell")
     if not os.path.exists(Ell_outdirectory):
         os.mkdir(Ell_outdirectory)
+    df.File(os.path.join(Ell_outdirectory, "Ell_direction.pvd")) << eL0_normalized
     File_Ell = df.File(os.path.join(Ell_outdirectory, "Ell.pvd"))
     Ell_arr = []
 
     Err_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Err")
     if not os.path.exists(Err_outdirectory):
         os.mkdir(Err_outdirectory)
+    df.File(os.path.join(Err_outdirectory, "Err_direction.pvd")) << eR0_normalized
     File_Err = df.File(os.path.join(Err_outdirectory, "Err.pvd"))
     Err_arr = []
 
