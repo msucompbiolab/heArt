@@ -599,6 +599,10 @@ class MEmodel(object):
         LVendoid = self.SimDet["LVendoid"]
         RVendoid = self.SimDet["RVendoid"]
         epiid = self.SimDet["epiid"]
+        if self.iswaorta:
+            basid = self.SimDet["basid"]
+        else:
+            basid = None
         isincomp = GuccioneParams["incompressible"]
         deg_me = GuccioneParams["deg"]
 
@@ -764,6 +768,7 @@ class MEmodel(object):
                     ):
                         du = TrialFunctions(W_me)
                         (u_me) = split(w_me)
+                        (u_me_n) = split(w_me_n)
                         (v_me) = TestFunctions(W_me)
                         p_me = Function(Q_me)
                         lv_pendo = []
@@ -825,6 +830,7 @@ class MEmodel(object):
             "LVendoid": LVendoid,
             "RVendoid": RVendoid,
             "epiid": epiid,
+            "basid": basid,
             "topid": topid,
             "aortic_vplane": aortic_vplane,
             "mitral_vplane": mitral_vplane,
@@ -951,17 +957,37 @@ class MEmodel(object):
 
                 F3_epi = inner(
                     outer(N_me, N_me)
-                    * (self.k_spring[0] * u_me + self.c_damping[0] * (u_me - u_me_n)),
+                    * (
+                        self.k_spring[0] * abs(X_me[2]) * u_me
+                        + self.c_damping[0] * (u_me - u_me_n)
+                    ),
                     v_me,
                 ) * ds_me(epiid) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                    * (self.k_spring[1] * u_me + self.c_damping[1] * (u_me - u_me_n)),
+                    * (
+                        self.k_spring[1] * abs(X_me[2]) * u_me
+                        + self.c_damping[1] * (u_me - u_me_n)
+                    ),
                     v_me,
                 ) * ds_me(
                     epiid
                 )
 
                 F3 = F3_epi
+
+                F3_bas = inner(
+                    outer(N_me, N_me)
+                    * (self.k_spring[0] * u_me + self.c_damping[0] * (u_me - u_me_n)),
+                    v_me,
+                ) * ds_me(basid) + inner(
+                    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                    * (self.k_spring[1] * u_me + self.c_damping[1] * (u_me - u_me_n)),
+                    v_me,
+                ) * ds_me(
+                    basid
+                )
+
+                F3 += F3_bas
 
                 if self.iswaorta:
                     kaorta_spring = self.SimDet["springaortaparam"]

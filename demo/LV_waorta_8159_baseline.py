@@ -3,30 +3,38 @@ from dolfin import *
 
 sys.path.append("/mnt/Research")
 
-from heArt.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
-from heArt.src.postprocessing.postprocessdata2 import (
+from heArt_py3.src.postprocessing.postprocessdata2 import (
     postprocessdata as postprocessdata,
 )
-from heArt.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
-from heArt.src.postprocessing.postprocessdata2 import compute_strain as compute_strain
-from heArt.src.postprocessing.postprocessdata2 import plothemodynamics as plothemodynamics
-from heArt.src.postprocessing.postprocessdata2 import extractdisplacementloading as extractdisplacementloading 
-from heArt.src.postprocessing.postprocessdata2 import extractdisplacement as extractdisplacement
+from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    compute_strain as compute_strain,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    plothemodynamics as plothemodynamics,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacementloading as extractdisplacementloading,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacement as extractdisplacement,
+)
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    #"casename": "8159_baseline_ES_t11",
+    # "casename": "8159_baseline_ES_t11",
     "casename": "8159_baseline_ES_t11_basethick",
     "directory_me": "../LV_waorta/",
     "directory_ep": "../LV_waorta/",
     "outputfolder": "./outputs_LV_waorta/",
     "folderName": "",
-    #"caseID": "8159_baseline_ES_t11",
-    "caseID": "8159_baseline_ES_t11_thick",
+    # "caseID": "8159_baseline_ES_t11",
+    "caseID": "8159_baseline_ES_t11_thick_p1p1",
     "isLV": False,
 }
 
@@ -36,12 +44,12 @@ GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(100.0),
+        "Cparam": Constant(130.0),
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
         "mu_iso": Constant(5e2),
-        "b_iso": Constant(30),
+        "b_iso": Constant(10.0),
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
@@ -75,25 +83,24 @@ Circparam = {
     "Vsa0": 360,  # Resting volume for proximal aorta --> ml
     "Vsv0": 3370.0,  # Resting venous volume (pre 3370.0 (2950, 3100, 3370)) --> ml
     "Vad0": 40,  # Resting volume for distal aorta --> ml
-    "Rav": 500.0,  # (pre 500 (500)) (aortic valve resistance) --> Pa ms ml-1
+    "Rav": 3000.0,  # (pre 500 (500)) (aortic valve resistance) --> Pa ms ml-1
     "Rsv": 100.0,  # Venous resistance --> Pa ms ml-1
     "Rsa": 18000,  # Proximal aorta resistance --> Pa ms ml-1
-    "Rad": 106000,  # Distal aorta resistance (info not available) --> Pa ms ml-1
+    "Rad": 21200,  # Distal aorta resistance (10600, 12800, 21200, 31800) --> Pa ms ml-1
     "Rmv": 200.0,  # Mitral valve resistance --> Pa ms ml-1
     "V_sv": 3700,
-    "V_LV": 112,
     "V_sa": 740,
     "V_ad": 100,
     "V_LA": 12,
     "V_LV": 112,
-    "stop_iter": 1,
+    "stop_iter": 3,
 }
 
 SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 1.0,
+    "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
@@ -106,41 +113,45 @@ SimDetails = {
     "closedloopparam": Circparam,
     "Ischemia": False,
     "Mechanics Discretization": "P1P1",
+    "Technique Discretization": 1,
     "isLV": False,
-    #"aorta_ext_wall": 2,
-    "aorta_ext_wall": 1, #Base thick
-    #"aorta_int_wall": 5,
-    "aorta_int_wall": 7, #Base thick
-    #"aorta_ring": 9,
-    "aorta_ring": 6, #Base thick
-    #"LVendoid": 8,
-    "LVendoid": 5, #Base thick
+    # "aorta_ext_wall": 2,
+    "aorta_ext_wall": 1,  # Base thick
+    # "aorta_int_wall": 5,
+    "aorta_int_wall": 7,  # Base thick
+    # "aorta_ring": 9,
+    "aorta_ring": 6,  # Base thick
+    # "LVendoid": 8,
+    "LVendoid": 5,  # Base thick
     "RVendoid": 0,
     "epiid": 3,
-    #"aortic_vplane": 7,
-    "aortic_vplane": 6, #Base thick
-    "abs_tol": 1e-7,
-    "rel_tol": 1e-7,
+    "basid": 2,
+    # "aortic_vplane": 7,
+    "aortic_vplane": 6,  # Base thick
+    "abs_tol": 1e-8,
+    "rel_tol": 1e-9,
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
     "iswaorta": True,
     "springbc": 1,
-    "springparam": [10.0e4, 5.0e3],  # Kepi_n / Kepi_t
-    "dashpotparam": [5.0e2, 5.0e1],  # Cepi_n / Cepi_t
-    # "springparam": [5.0e4, 5.0e3],
-    # "dashpotparam": [5.0e3, 5.0e2],
+    "mv_aorta": 0,
+    "springparam": [2.0e3, 2.0e3],  # paper's values Kepi_n = 2e3 / Kepi_t = 2e2
+    "dashpotparam": [2.0e2, 2.0e2],  # paper's values Cepi_n = 2e2 / Cepi_t = 2e1
+    "springaortaparam": [2.0e3, 5.0e1],  # Kepi_n / Kepi_t
+    "dashpotaortaparam": [5.0e1, 5.0e0],  # Cepi_n / Cepi_t
     "active_region": [1],
+    "Type": 0,
 }
 
 # Run Simulation
-#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+# run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
-#dumpvtk(IODet=IODetails, SimDet=SimDetails)
-#compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
-#plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=1)
-extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
-#extractdisplacement(IODet=IODetails, SimDet=SimDetails)
+# dumpvtk(IODet=IODetails, SimDet=SimDetails)
+# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
+plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=4)
+# extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
+# extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

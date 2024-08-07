@@ -39,7 +39,7 @@ class Forms(object):
         return Wp
 
     def PassiveRubSEF(self):
-        Wp = self.passiveforms.PassiveRubSEF() + self.Wvolumetric()
+        Wp = self.passiveforms.PassiveRubSEF() # + self.Wvolumetric()
         return Wp
 
     def PK1(self):

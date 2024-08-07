@@ -346,7 +346,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     while 1:
         if state_obj.cycle > stop_iter:
             break
-        # if state_obj.t > 5:
+        # if state_obj.t > 100:
         #    break
 
         params = {
@@ -377,44 +377,26 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         # Newton's solver
         tol = 1e-4  # Tolerance for convergence
-        max_iter = 10  # Maximum number of iteration
+        max_iter = 100  # Maximum number of iteration
 
         def estpres(P_LV):  # initial guess
-            return 1.004 * P_LV
+            return 1.005 * P_LV
 
         def Jf(P_LV):
             MEmodel_.LVCavitypres.pres = P_LV
-            try:
-                solver_elas.solvenonlinear()
-            except Exception as e:
-                printout("an error occured = " + str(e), comm_me)
-                import pdb
-
-                pdb.set_trace()
+            solver_elas.solvenonlinear()
             est_fe_v1 = MEmodel_.GetLVV()
 
             P_LV2 = estpres(P_LV)
             MEmodel_.LVCavitypres.pres = P_LV2
-            try:
-                solver_elas.solvenonlinear()
-            except Exception as e:
-                printout("an error occured = " + str(e), comm_me)
-                import pdb
-
-                pdb.set_trace()
+            solver_elas.solvenonlinear()
             est_fe_v2 = MEmodel_.GetLVV()
 
             return (est_fe_v2 - est_fe_v1) / (P_LV2 - P_LV)
 
         def Rp(P_LV, V_LV):  # V_LV is from circulatory model
             MEmodel_.LVCavitypres.pres = P_LV
-            try:
-                solver_elas.solvenonlinear()
-            except Exception as e:
-                printout("an error occured = " + str(e), comm_me)
-                import pdb
-
-                pdb.set_trace()
+            solver_elas.solvenonlinear()
             v_t = MEmodel_.GetLVV()
 
             return v_t - V_LV
@@ -442,6 +424,12 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             du = -F / J
 
             # Update the solution
+            # if abs(du) > 230:
+            #     du /= 2
+
+            while abs(du) > 230:
+                du /= 2
+
             P_LV += du
 
             # Check for convergence
