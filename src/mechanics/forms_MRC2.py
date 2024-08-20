@@ -39,7 +39,7 @@ class Forms(object):
         return Wp
 
     def PassiveRubSEF(self):
-        Wp = self.passiveforms.PassiveRubSEF() # + self.Wvolumetric()
+        Wp = self.passiveforms.PassiveRubSEF()  # + self.Wvolumetric()
         return Wp
 
     def PK1(self):
@@ -303,11 +303,11 @@ class Forms(object):
         J = self.J()
         u = self.parameters["displacement_variable"]
         F = self.Fmat()
-        #dsendo = ds(
+        # dsendo = ds(
         #    self.parameters["LVendoid"],
         #    domain=self.parameters["mesh"],
         #    subdomain_data=self.parameters["facetboundaries"],
-        #)
+        # )
 
         pres = pe * inner(J * inv(F.T) * N, u) * ds(self.parameters["LVendoid"])
 
@@ -435,6 +435,80 @@ class Forms(object):
         s = f0[i] * Emat[i, j] * f0[j]
 
         return dot(f, s)
+
+    def solveLaplaceEquation_fch(self):
+        df_mesh = self.parameters["mesh"]
+        df_facet = self.parameters["facetboundaries"]
+
+        V = FunctionSpace(df_mesh, FiniteElement("Lagrange", df_mesh.ufl_cell(), 1))
+        Vvec = FunctionSpace(df_mesh, VectorElement("DG", df_mesh.ufl_cell(), 0))
+
+        bas_ids = [self.parameters["aorta_wall"], self.parameters["pulm_wall"]]
+        bc_bas = [DirichletBC(V, Constant(0.25), df_facet, id_) for id_ in bas_ids]
+
+        bc_apx = [DirichletBC(V, Constant(1.0), df_facet, self.parameters["apxid"])]
+
+        # Define variational problem
+        u = TrialFunction(V)
+        v = TestFunction(V)
+        f = Constant(0)
+        a = inner(nabla_grad(u), nabla_grad(v)) * dx
+        L = f * v * dx
+
+        # Compute solution
+        u = Function(V)
+        solve(
+            a == L, u, bc_bas + bc_apx
+        )  # , solver_parameters={"linear_solver": "petsc"})
+
+        grad_u = project(grad(u), Vvec)  # , solver_type="petsc")
+
+        return u  # , grad_u
+
+    def solveLaplaceEquation_waorta(self):
+        df_mesh = self.parameters["mesh"]
+        df_facet = self.parameters["facetboundaries"]
+
+        V = FunctionSpace(df_mesh, FiniteElement("Lagrange", df_mesh.ufl_cell(), 1))
+        Vvec = FunctionSpace(df_mesh, VectorElement("DG", df_mesh.ufl_cell(), 0))
+
+        bas_ids = [
+            self.parameters["aorta_int_wall"],
+            self.parameters["aorta_ext_wall"],
+            self.parameters["aorta_ring"],
+        ]
+        bc_bas = [DirichletBC(V, Constant(0.25), df_facet, id_) for id_ in bas_ids]
+
+        # for facet in dolfin.SubsetIterator(df_facet, self.parameters["epiid"]):
+        #    for cell in cells(facet):
+        #        cx = 0
+        #        cy = 0
+        #        cz = 0
+        #        for vertex in vertices(facet):
+        #            cx += vertex.point().array()[0] / 3.0
+        #            cy += vertex.point().array()[1] / 3.0
+        #            cz += vertex.point().array()[2] / 3.0
+        #        if sqrt((cx - )**2 + (cy - )**2 + (cz - )**) > 1.0:
+        #            df_facet.array()[facet.index()] = 1000
+
+        bc_apx = [DirichletBC(V, Constant(1.0), df_facet, self.parameters["apxid"])]
+
+        # Define variational problem
+        u = TrialFunction(V)
+        v = TestFunction(V)
+        f = Constant(0)
+        a = inner(nabla_grad(u), nabla_grad(v)) * dx
+        L = f * v * dx
+
+        # Compute solution
+        u = Function(V)
+        solve(
+            a == L, u, bc_bas + bc_apx
+        )  # , solver_parameters={"linear_solver": "petsc"})
+
+        grad_u = project(grad(u), Vvec)  # , solver_type="petsc")
+
+        return u  # , grad_u
 
     def IMP(self):
         u = self.parameters["displacement_variable"]

@@ -427,7 +427,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             # if abs(du) > 230:
             #     du /= 2
 
-            while abs(du) > 230:
+            while abs(du) > 220:
                 du /= 2
 
             P_LV += du
@@ -453,6 +453,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         isrestart = 0
         state_obj.dt.dt = delTat
+        if state_obj.t >= 400.0:
+            state_obj.dt.dt = 2.0 * delTat
 
         # Reset phi and r in EP at end of diastole
         if state_obj.t < state_obj.dt.dt:

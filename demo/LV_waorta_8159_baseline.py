@@ -49,7 +49,7 @@ GuccioneParams = {
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
         "mu_iso": Constant(5e2),
-        "b_iso": Constant(10.0),
+        "b_iso": Constant(15.0),
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
@@ -93,7 +93,7 @@ Circparam = {
     "V_ad": 100,
     "V_LA": 12,
     "V_LV": 112,
-    "stop_iter": 3,
+    "stop_iter": 1,
 }
 
 SimDetails = {
@@ -126,6 +126,7 @@ SimDetails = {
     "RVendoid": 0,
     "epiid": 3,
     "basid": 2,
+    "apxid": 100,
     # "aortic_vplane": 7,
     "aortic_vplane": 6,  # Base thick
     "abs_tol": 1e-8,
@@ -138,18 +139,18 @@ SimDetails = {
     "mv_aorta": 0,
     "springparam": [2.0e3, 2.0e3],  # paper's values Kepi_n = 2e3 / Kepi_t = 2e2
     "dashpotparam": [2.0e2, 2.0e2],  # paper's values Cepi_n = 2e2 / Cepi_t = 2e1
-    "springaortaparam": [2.0e3, 5.0e1],  # Kepi_n / Kepi_t
-    "dashpotaortaparam": [5.0e1, 5.0e0],  # Cepi_n / Cepi_t
+    "springaortaparam": [2.0e3, 2.0e3],  # Kepi_n / Kepi_t
+    "dashpotaortaparam": [2.0e2, 2.0e2],  # Cepi_n / Cepi_t
     "active_region": [1],
     "Type": 0,
 }
 
 # Run Simulation
-# run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
 # compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
-plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=4)
+# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=2)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 

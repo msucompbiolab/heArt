@@ -47,13 +47,6 @@ class MEmodel(object):
         else:
             self.isFCH = False  # Default
 
-        if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
-            self.k_spring = self.SimDet["springparam"]
-            self.c_damping = self.SimDet["dashpotparam"]
-        else:
-            self.k_spring = None
-            self.c_damping = None
-
         if self.isLV:
             self.Mesh = lv_mechanics_mesh(self.parameters, SimDet)
         elif self.iswaorta:
@@ -587,22 +580,41 @@ class MEmodel(object):
             topid = self.SimDet["topid"]
         else:
             topid = None  # Default
+
         if self.iswaorta or self.isFCH:
             aortic_vplane = self.SimDet["aortic_vplane"]
+            if "apxid" in list(self.SimDet.keys()):
+                apxid = self.SimDet["apxid"]
+            else:
+                apxid = None
         else:
             aortic_vplane = None
+            apxid = None
+
         if self.isFCH:
             mitral_vplane = self.SimDet["mitral_vplane"]
+            septumid = self.SimDet["septumid"]
+            aorta_wall = self.SimDet["aorta_wall"]
+            pulm_wall = self.SimDet["pulm_wall"]
         else:
             mitral_vplane = None  # Default
+            septumid = None
+            aorta_wall = None
+            pulm_wall = None
+
+        if self.iswaorta:
+            aorta_int_wall = self.SimDet["aorta_int_wall"]
+            aorta_ext_wall = self.SimDet["aorta_ext_wall"]
+            aorta_ring = self.SimDet["aorta_ring"]
+        else:
+            aorta_int_wall = None
+            aorta_ext_wall = None
+            aorta_ring = None
 
         LVendoid = self.SimDet["LVendoid"]
         RVendoid = self.SimDet["RVendoid"]
         epiid = self.SimDet["epiid"]
-        if self.iswaorta:
-            basid = self.SimDet["basid"]
-        else:
-            basid = None
+
         isincomp = GuccioneParams["incompressible"]
         deg_me = GuccioneParams["deg"]
 
@@ -830,10 +842,16 @@ class MEmodel(object):
             "LVendoid": LVendoid,
             "RVendoid": RVendoid,
             "epiid": epiid,
-            "basid": basid,
             "topid": topid,
             "aortic_vplane": aortic_vplane,
             "mitral_vplane": mitral_vplane,
+            "septumid": septumid,
+            "aorta_wall": aorta_wall,
+            "pulm_wall": pulm_wall,
+            "apxid": apxid,
+            "aorta_int_wall": aorta_int_wall,
+            "aorta_ext_wall": aorta_ext_wall,
+            "aorta_ring": aorta_ring,
             "LVendo_comp": LVendo_comp,
             "RVendo_comp": RVendo_comp,
             "fiber": f0_me,
@@ -953,20 +971,33 @@ class MEmodel(object):
             Ftotal += Fp
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+            if "springparam" in list(self.SimDet.keys()):
+                k_spring = self.SimDet["springparam"]
+                c_damping = self.SimDet["dashpotparam"]
+            else:
+                k_spring = None
+                c_damping = None
+
             if not self.isLV:
+                Laplace_u = self.GetLaplace()
+
+                if self.iswaorta:
+                    epiid_Kadj_coeff = Constant(20.0)  # value not tested for waorta
+                elif self.isFCH:
+                    epiid_Kadj_coeff = Constant(10.0)  # value tested for FCH
 
                 F3_epi = inner(
                     outer(N_me, N_me)
                     * (
-                        self.k_spring[0] * abs(X_me[2]) * u_me
-                        + self.c_damping[0] * (u_me - u_me_n)
+                        k_spring[0] * epiid_Kadj_coeff * Laplace_u * u_me
+                        + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
                 ) * ds_me(epiid) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
-                        self.k_spring[1] * abs(X_me[2]) * u_me
-                        + self.c_damping[1] * (u_me - u_me_n)
+                        k_spring[1] * epiid_Kadj_coeff * Laplace_u * u_me
+                        + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,
                 ) * ds_me(
@@ -975,47 +1006,59 @@ class MEmodel(object):
 
                 F3 = F3_epi
 
-                F3_bas = inner(
-                    outer(N_me, N_me)
-                    * (self.k_spring[0] * u_me + self.c_damping[0] * (u_me - u_me_n)),
-                    v_me,
-                ) * ds_me(basid) + inner(
-                    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                    * (self.k_spring[1] * u_me + self.c_damping[1] * (u_me - u_me_n)),
-                    v_me,
-                ) * ds_me(
-                    basid
-                )
+                if self.isFCH:
+                    septum_Kadj_coeff = Constant(20.0)  # value tested for FCH
 
-                F3 += F3_bas
-
-                if self.iswaorta:
-                    kaorta_spring = self.SimDet["springaortaparam"]
-                    caorta_damping = self.SimDet["dashpotaortaparam"]
-
-                    aorta_ring = self.SimDet["aorta_ring"]
-                    F3_aorta_ring = inner(
+                    F3_septum = inner(
                         outer(N_me, N_me)
                         * (
-                            kaorta_spring[0] * u_me
-                            + caorta_damping[0] * (u_me - u_me_n)
+                            k_spring[0] * septum_Kadj_coeff * Laplace_u * u_me
+                            + c_damping[0] * (u_me - u_me_n)
                         ),
                         v_me,
-                    ) * ds_me(aorta_ring) + inner(
+                    ) * ds_me(septumid) + inner(
                         (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                         * (
-                            kaorta_spring[1] * u_me
-                            + caorta_damping[1] * (u_me - u_me_n)
+                            k_spring[1] * septum_Kadj_coeff * Laplace_u * u_me
+                            + c_damping[1] * (u_me - u_me_n)
                         ),
                         v_me,
                     ) * ds_me(
-                        aorta_ring
+                        septumid
                     )
 
+                    F3 += F3_septum
+
+                elif self.iswaorta:
                     if (
                         "mv_aorta" in list(self.SimDet.keys())
                         and self.SimDet["mv_aorta"]
                     ):
+
+                        ring_Kadj_coeff = Constant(0.1)
+
+                        kaorta_spring = self.SimDet["springaortaparam"]
+                        caorta_damping = self.SimDet["dashpotaortaparam"]
+                        aorta_ring = self.SimDet["aorta_ring"]
+
+                        F3_aorta_ring = inner(
+                            outer(N_me, N_me)
+                            * (
+                                ring_Kadj_coeff * kaorta_spring[0] * u_me
+                                + caorta_damping[0] * (u_me - u_me_n)
+                            ),
+                            v_me,
+                        ) * ds_me(aorta_ring) + inner(
+                            (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                            * (
+                                ring_Kadj_coeff * kaorta_spring[1] * u_me
+                                + caorta_damping[1] * (u_me - u_me_n)
+                            ),
+                            v_me,
+                        ) * ds_me(
+                            aorta_ring
+                        )
+
                         F3 += F3_aorta_ring
 
             else:
@@ -1023,11 +1066,11 @@ class MEmodel(object):
 
                 F3_epi = inner(
                     outer(N_me, N_me)
-                    * (self.k_spring[0] * u_me + self.c_damping[0] * (u_me - u_me_n)),
+                    * (k_spring[0] * u_me + c_damping[0] * (u_me - u_me_n)),
                     v_me,
                 ) * ds_me(epiid) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                    * (self.k_spring[1] * u_me + self.c_damping[1] * (u_me - u_me_n)),
+                    * (k_spring[1] * u_me + c_damping[1] * (u_me - u_me_n)),
                     v_me,
                 ) * ds_me(
                     epiid
@@ -1264,6 +1307,12 @@ class MEmodel(object):
         return self.activeforms.CalculateFiberGreenStrain(
             F_=F_n, F_ref=F_ED, e_fiber=basis_dir, VolSeg=AHA_segments
         )
+
+    def GetLaplace(self):
+        if self.isFCH:
+            return self.uflforms.solveLaplaceEquation_fch()
+        elif self.iswaorta:
+            return self.uflforms.solveLaplaceEquation_waorta()
 
     def GetLVP(self):
         if self.ispctrl:

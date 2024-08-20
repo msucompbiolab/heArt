@@ -43,10 +43,12 @@ GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(200.0),
+        "Cparam": Constant(130.0),
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
+        "mu_iso": Constant(5e2),
+        "b_iso": Constant(10.0),
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
@@ -78,9 +80,9 @@ Circparam = {
     "Cad": 0.0330,  # Distal aorta compliance --> ml Pa
     "Csv": 0.28,  # Venous compliance -> ml Pa
     "Vsa0": 360,  # Resting volume for proximal aorta --> ml
-    "Vsv0": 3100.0,  # Resting venous volume (pre 3370.0 (2950, 3100, 3370)) --> ml
+    "Vsv0": 3370.0,  # Resting venous volume (pre 3370.0 (2950, 3100, 3370)) --> ml
     "Vad0": 40,  # Resting volume for distal aorta --> ml
-    "Rav": 750.0,  # (pre 500 (500)) (aortic valve resistance) --> Pa ms ml-1
+    "Rav": 3000.0,  # (pre 500 (500)) (aortic valve resistance) --> Pa ms ml-1
     "Rsv": 100.0,  # Venous resistance --> Pa ms ml-1
     "Rsa": 18000,  # Proximal aorta resistance --> Pa ms ml-1
     "Rad": 21200,  # Distal aorta resistance (info not available) --> Pa ms ml-1
@@ -97,7 +99,7 @@ Circparam = {
 SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
-    "dt": 1.0,
+    "dt": 2.0,
     "writeStep": 20.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
@@ -122,13 +124,15 @@ SimDetails = {
     "closedloopparam": Circparam,
     "Ischemia": False,
     "Mechanics Discretization": "P1P1",
-    "Technique Discretization": 0,
+    "Technique Discretization": 1,
     "isLV": False,
     "aorta_wall": 9,  # aorta external wall indeed
     "pulm_wall": 7,  # pulmonary ring indeed
     "LVendoid": 18,
     "RVendoid": 0,
     "epiid": 17,
+    "apxid": 1000,
+    "septumid": 13,
     "mitral_vplane": 19,
     "aortic_vplane": 20,
     "abs_tol": 1e-8,
@@ -138,8 +142,8 @@ SimDetails = {
     "ispctrl": True,
     "isFCH": True,
     "springbc": 1,
-    "springparam": [2.0e4, 5.0e2],  # Kepi_n / Kepi_t
-    "dashpotparam": [5.0e2, 5.0e1],  # Cepi_n / Cepi_t
+    "springparam": [2.0e3, 2.0e3],  # Kepi_n / Kepi_t
+    "dashpotparam": [2.0e2, 2.0e2],  # Cepi_n / Cepi_t
     "active_region": [1],  # only lv is activated
     "Type": 0,
 }
@@ -152,5 +156,5 @@ run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
 # plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=None)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
-
+# extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
