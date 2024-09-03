@@ -69,7 +69,7 @@ class CLmodel(object):
 
     def UpdateLVV(self, params):
         self.parameters.update(params)
-        self.PLA = self.GetPLA(params)
+        self.PLA = self.GetPLoRA(params)
 
         self.Psa = 1.0 / self.Csa * (self.V_sa - self.Vsa0)
         self.Pad = 1.0 / self.Cad * (self.V_ad - self.Vad0)
@@ -101,7 +101,7 @@ class CLmodel(object):
 
         return self.V_LV
 
-    def GetPLA(self, params):
+    def GetPLoRA(self, params):
         self.parameters.update(params)
         # For PLA
         if self.parameters["t"] < self.SimDet["HeartBeatLength"] - self.tdelay_la:

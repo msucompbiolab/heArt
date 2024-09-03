@@ -33,6 +33,7 @@ from ..mechanics.MEmodel3 import MEmodel
 
 # from ..mechanics.MEmodel_pctrl import MEmodel
 from .circ import CLmodel
+from .circBiV import CLmodel as CLmodel_biv
 
 # from ..mechanics.volume_ca import MeshModifier
 
@@ -64,6 +65,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         isFCH = SimDet["isFCH"]
     else:
         isFCH = False  # Default
+    if "isBiV" in list(SimDet.keys()):
+        isBiV = SimDet["isBiV"]
+    else:
+        isBiV = False  # Default
 
     delTat = SimDet["dt"]
 
@@ -196,11 +201,13 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     # Get Unloaded volumes
     V_LV_unload = MEmodel_.GetLVV()
     V_RV_unload = MEmodel_.GetRVV()
+
     nloadstep = SimDet["nLoadSteps"]
 
     # Unloading LV to get new reference geometry
     MEmodel_.LVCavityvol.vol = MEmodel_.GetLVV()
     MEmodel_.LVCavitypres.pres = 0.0
+    MEmodel_.RVCavitypres.pres = 0.0
 
     # export.writePV(MEmodel_, 0);
     export.hdf.write(MEmodel_.mesh_me, "ME/mesh")
@@ -229,6 +236,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     while 1:
         printout("Loading", comm_me)
         MEmodel_.LVCavitypres.pres += (EDP / 0.0075) / nloadstep
+        if isBiV or isFCH:
+            MEmodel_.RVCavitypres.pres += (EDP / 0.0075) / 2 / nloadstep
 
         solver_elas.solvenonlinear()
 
@@ -340,9 +349,17 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     P_LV = MEmodel_.GetLVP()  # LVCavitypres.pres
     V_LV = MEmodel_.GetLVV()  # GetVolumeComputation()
 
-    CLmodel_ = CLmodel(SimDet, V_LV)
+    if isBiV or isFCH:
+        P_RV = MEmodel_.GetRVP()  # LVCavitypres.pres
+        V_RV = MEmodel_.GetRVV()  # GetVolumeComputation()
+
+    if isLV or iswaorta:
+        CLmodel_ = CLmodel(SimDet, V_LV)
+    elif isBiV or isFCH:
+        CLmodel_ = CLmodel_biv(SimDet, V_LV, V_RV)
 
     it_ = 0
+
     while 1:
         if state_obj.cycle > stop_iter:
             break
@@ -356,7 +373,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             "delTat": state_obj.dt.dt,
         }
 
-        V_LV = CLmodel_.UpdateLVV(params)
+        if isLV or iswaorta:
+            V_LV = CLmodel_.UpdateLVV(params)
+        elif isBiV or isFCH:
+            V_LV, V_RV = CLmodel_.UpdateLVV(params)
 
         printout(
             "t = "
@@ -366,46 +386,95 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             + " Psa = "
             + str(CLmodel_.Psa)
             + " PLA = "
-            + str(CLmodel_.GetPLA(params))
+            + str(CLmodel_.GetPLoRA(params))
             + " P_LV = "
             + str(P_LV),
             comm_me,
         )
         with open(outputfolder + folderName + "output_PV.txt", "a") as f_PV:
             if MPI.rank(comm_me) == 0:
-                f_PV.write(f"{state_obj.t}, {V_LV}, {P_LV} \n")
+                if isLV or iswaorta:
+                    f_PV.write(f"{state_obj.t}, {V_LV}, {P_LV} \n")
+                elif isBiV or isFCh:
+                    f_PV.write(f"{state_obj.t}, {V_LV}, {P_LV}, {V_RV}, {P_RV} \n")
 
         # Newton's solver
         tol = 1e-4  # Tolerance for convergence
         max_iter = 100  # Maximum number of iteration
 
-        def estpres(P_LV):  # initial guess
-            return 1.005 * P_LV
+        def estpres(plv):
+            return 1.005 * plv
 
-        def Jf(P_LV):
-            MEmodel_.LVCavitypres.pres = P_LV
+        def Jf(plv):
+            MEmodel_.LVCavitypres.pres = plv
             solver_elas.solvenonlinear()
-            est_fe_v1 = MEmodel_.GetLVV()
+            fe_v1 = MEmodel_.GetLVV()
 
-            P_LV2 = estpres(P_LV)
-            MEmodel_.LVCavitypres.pres = P_LV2
+            MEmodel_.LVCavitypres.pres = estpres(plv)
             solver_elas.solvenonlinear()
-            est_fe_v2 = MEmodel_.GetLVV()
+            fe_v2 = MEmodel_.GetLVV()
 
-            return (est_fe_v2 - est_fe_v1) / (P_LV2 - P_LV)
+            return (fe_v2 - fe_v1) / (estpres(plv) - plv)
 
-        def Rp(P_LV, V_LV):  # V_LV is from circulatory model
-            MEmodel_.LVCavitypres.pres = P_LV
+        def Jf_biv(plv, prv, lvp, lvv):
+            MEmodel_.LVCavitypres.pres = plv
+            MEmodel_.RVCavitypres.pres = prv
+            solver_elas.solvenonlinear()
+
+            if lvv:
+                fe_v1 = MEmodel_.GetLVV()
+            else:
+                fe_v1 = MEmodel_.GetRVV()
+
+            if lvp:
+                MEmodel_.LVCavitypres.pres = estpres(plv)
+            else:
+                MEmodel_.RVCavitypres.pres = estpres(prv)
+            solver_elas.solvenonlinear()
+
+            if lvv:
+                fe_v2 = MEmodel_.GetLVV()
+            else:
+                fe_v2 = MEmodel_.GetRVV()
+
+            if lvp:
+                return (fe_v2 - fe_v1) / (estpres(plv) - plv)
+            else:
+                return (fe_v2 - fe_v1) / (estpres(prv) - prv)
+
+        def Rp(plv, vlv):
+            MEmodel_.LVCavitypres.pres = plv
             solver_elas.solvenonlinear()
             v_t = MEmodel_.GetLVV()
+            return v_t - vlv
 
-            return v_t - V_LV
+        def Rp_biv(plv, prv, lvvc, rvvc):
+            MEmodel_.LVCavitypres.pres = plv
+            MEmodel_.RVCavitypres.pres = prv
+            solver_elas.solvenonlinear()
+            vlv = MEmodel_.GetLVV()
+            vrv = MEmodel_.GetRVV()
+
+            return vlv - lvvc, vrv - rvvc
 
         # Create the Newton solver
         for iter in range(max_iter):
             # Compute the residual and Jacobian
-            J = Jf(P_LV)
-            F = Rp(P_LV, V_LV)
+            if isLV or iswaorta:
+                J = Jf(P_LV)
+            elif isBiV or isFCH:
+                J = np.array(
+                    [
+                        [Jf_biv(P_LV, P_RV, 1, 1), Jf_biv(P_LV, P_RV, 1, 0)],
+                        [Jf_biv(P_LV, P_RV, 0, 1), Jf_biv(P_LV, P_RV, 0, 0)],
+                    ]
+                )
+
+            if isLV or iswaorta:
+                F = Rp(P_LV, V_LV)
+            elif isBiV or isFCH:
+                # F = Rp_biv(P_LV, P_RV, V_LV, V_RV)
+                F = np.array([[vfe] for vfe in Rp_biv(P_LV, P_RV, V_LV, V_RV)])
 
             with open(outputfolder + folderName + "output_JRp.txt", "a") as f_JRp:
                 if MPI.rank(comm_me) == 0:
@@ -414,36 +483,49 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                     )
 
             # Solve for the update
-            if abs(J) < 1e-10:
-                printout("Jac is too small: " + str(du), comm_me)
-                if MPI.rank(comm_me) == 0:
-                    f_JRp.write(f"break due to small Jac: du = {du}.")
-                # continue
-                break
+            if isLV or iswaorta:
+                if abs(J) < 1e-10:
+                    printout("Jac is too small: " + str(du), comm_me)
+                    if MPI.rank(comm_me) == 0:
+                        f_JRp.write(f"break due to small Jac: du = {du}.")
+                    # continue
+                    break
 
-            du = -F / J
+            if isLV or iswaorta:
+                du = -F / J
+            elif isBiV or isFCH:
+                du = np.dot(np.linalg.inv(J), F)
 
             # Update the solution
             # if abs(du) > 230:
             #     du /= 2
 
-            while abs(du) > 220:
-                du /= 2
+            if isLV or iswaorta:
+                while abs(du) > 220:
+                    du /= 2
 
-            P_LV += du
+            if isLV or iswaorta:
+                P_LV += du
+            elif isBiV or isFCH:
+                P_LV -= float(du[0])
+                P_RV -= float(du[1])
 
             # Check for convergence
-            if abs(F) < tol and abs(du) < tol:
-                break
+            if isLV or iswaorta:
+                if abs(F) < tol and abs(du) < tol:
+                    break
+            elif isBiV or isFCH:
+                if np.linalg.norm(F) < tol and np.linalg.norm(du) < tol:
+                    break
 
             with open(outputfolder + folderName + "output_JRp.txt", "a") as f_JRp:
                 if MPI.rank(comm_me) == 0:
                     f_JRp.write(f"t = {state_obj.t}, iter = {iter}, du = {du} \n")
 
-        # if cnt % SimDet["writeStep"] == 0.0:
-        #    export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
-        #    # export.hdf.write(c_n, "ME/u_diff", writecnt)
-        #    writecnt += 1
+            # if cnt % SimDet["writeStep"] == 0.0:
+            #    export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
+            #    # export.hdf.write(c_n, "ME/u_diff", writecnt)
+            #    writecnt += 1
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)

@@ -203,7 +203,7 @@ class Forms(object):
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
 
-    def springbc(self):  # for v_base computation
+    def topspringbc(self):  # for v_base computation
         N = self.parameters["facet_normal"]
         ds = dolfin.ds(
             subdomain_data=self.parameters["facetboundaries"],
@@ -310,6 +310,29 @@ class Forms(object):
         # )
 
         pres = pe * inner(J * inv(F.T) * N, u) * ds(self.parameters["LVendoid"])
+
+        # pres = 1 * dsendo
+        return pres
+
+    def RVcavitypres(self):
+        pe = self.parameters["rv_constrained_pres"]
+        N = self.parameters["facet_normal"]
+        mesh = self.parameters["mesh"]
+        ds = dolfin.ds(
+            subdomain_data=self.parameters["facetboundaries"],
+            metadata={"quadrature_degree": 4},
+        )
+
+        J = self.J()
+        u = self.parameters["displacement_variable"]
+        F = self.Fmat()
+        # dsendo = ds(
+        #    self.parameters["LVendoid"],
+        #    domain=self.parameters["mesh"],
+        #    subdomain_data=self.parameters["facetboundaries"],
+        # )
+
+        pres = pe * inner(J * inv(F.T) * N, u) * ds(self.parameters["RVendoid"])
 
         # pres = 1 * dsendo
         return pres
@@ -478,20 +501,34 @@ class Forms(object):
             self.parameters["aorta_ring"],
         ]
         bc_bas = [DirichletBC(V, Constant(0.25), df_facet, id_) for id_ in bas_ids]
-
-        # for facet in dolfin.SubsetIterator(df_facet, self.parameters["epiid"]):
-        #    for cell in cells(facet):
-        #        cx = 0
-        #        cy = 0
-        #        cz = 0
-        #        for vertex in vertices(facet):
-        #            cx += vertex.point().array()[0] / 3.0
-        #            cy += vertex.point().array()[1] / 3.0
-        #            cz += vertex.point().array()[2] / 3.0
-        #        if sqrt((cx - )**2 + (cy - )**2 + (cz - )**) > 1.0:
-        #            df_facet.array()[facet.index()] = 1000
-
         bc_apx = [DirichletBC(V, Constant(1.0), df_facet, self.parameters["apxid"])]
+
+        # Define variational problem
+        u = TrialFunction(V)
+        v = TestFunction(V)
+        f = Constant(0)
+        a = inner(nabla_grad(u), nabla_grad(v)) * dx
+        L = f * v * dx
+
+        # Compute solution
+        u = Function(V)
+        solve(
+            a == L, u, bc_bas + bc_apx
+        )  # , solver_parameters={"linear_solver": "petsc"})
+
+        grad_u = project(grad(u), Vvec)  # , solver_type="petsc")
+
+        return u  # , grad_u
+
+    def solveLaplaceEquation_ideal(self):
+        df_mesh = self.parameters["mesh"]
+        df_facet = self.parameters["facetboundaries"]
+
+        V = FunctionSpace(df_mesh, FiniteElement("Lagrange", df_mesh.ufl_cell(), 1))
+        Vvec = FunctionSpace(df_mesh, VectorElement("DG", df_mesh.ufl_cell(), 0))
+
+        bc_bas = [DirichletBC(V, Constant(0.5), df_facet, self.parameters["topid"])]
+        bc_apx = [DirichletBC(V, Constant(2.0), df_facet, self.parameters["apxid"])]
 
         # Define variational problem
         u = TrialFunction(V)

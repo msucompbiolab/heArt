@@ -34,7 +34,7 @@ IODetails = {
     "outputfolder": "./outputs_LV_waorta/",
     "folderName": "",
     # "caseID": "8159_baseline_ES_t11",
-    "caseID": "8159_baseline_ES_t11_thick_p1p1",
+    "caseID": "8159_baseline_ES_t11_thick",
     "isLV": False,
 }
 
@@ -139,8 +139,8 @@ SimDetails = {
     "mv_aorta": 0,
     "springparam": [2.0e3, 2.0e3],  # paper's values Kepi_n = 2e3 / Kepi_t = 2e2
     "dashpotparam": [2.0e2, 2.0e2],  # paper's values Cepi_n = 2e2 / Cepi_t = 2e1
-    "springaortaparam": [2.0e3, 2.0e3],  # Kepi_n / Kepi_t
-    "dashpotaortaparam": [2.0e2, 2.0e2],  # Cepi_n / Cepi_t
+    "springaortaparam": [5.0e1, 5.0e1],  # Kepi_n / Kepi_t
+    "dashpotaortaparam": [5.0e1, 5.0e0],  # Cepi_n / Cepi_t
     "active_region": [1],
     "Type": 0,
 }

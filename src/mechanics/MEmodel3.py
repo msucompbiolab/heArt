@@ -32,7 +32,7 @@ class MEmodel(object):
         if "Technique Discretization" in list(self.SimDet.keys()):
             self.discretization_technique = SimDet["Technique Discretization"]
         else:
-            self.discretization_technique = 0  # Default
+            self.discretization_technique = 1  # Default
 
         if "ispctrl" in list(self.SimDet.keys()):
             self.ispctrl = SimDet["ispctrl"]
@@ -46,6 +46,10 @@ class MEmodel(object):
             self.isFCH = SimDet["isFCH"]
         else:
             self.isFCH = False  # Default
+        if "isBiV" in list(self.SimDet.keys()):
+            self.isBiV = SimDet["isBiV"]
+        else:
+            self.isBiV = False
 
         if self.isLV:
             self.Mesh = lv_mechanics_mesh(self.parameters, SimDet)
@@ -53,7 +57,7 @@ class MEmodel(object):
             self.Mesh = lv_mechanics_mesh(self.parameters, SimDet)
         elif self.isFCH:
             self.Mesh = fch_mechanics_mesh(self.parameters, SimDet)
-        else:
+        elif self.isBiV:
             self.Mesh = biv_mechanics_mesh(self.parameters, SimDet)
 
         f0_me_Gauss = self.Mesh.f0
@@ -85,7 +89,9 @@ class MEmodel(object):
         self.LVCavityvol = Expression(("vol"), vol=0.0, degree=2)
         self.RVCavityvol = Expression(("vol"), vol=0.0, degree=2)
 
-        self.LVCavitypres = Expression(("pres"), pres=0.0, degree=2)  # amend
+        self.LVCavitypres = Expression(("pres"), pres=0.0, degree=2)
+        self.RVCavitypres = Expression(("pres"), pres=0.0, degree=2)
+
         self.isincomp = SimDet["GiccioneParams"]["incompressible"]
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 
@@ -141,7 +147,7 @@ class MEmodel(object):
 
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
         if self.isincomp:
-            if self.isLV:
+            if self.isLV or self.iswaorta:
                 if self.ispctrl:
                     if (
                         "springbc" in list(self.SimDet.keys())
@@ -166,7 +172,7 @@ class MEmodel(object):
                         self.W = FunctionSpace(
                             self.mesh_me, MixedElement([Velem, Qelem, Relem, VRelem])
                         )
-            else:
+            elif self.isBiV or self.isFCH:
                 if self.ispctrl:
                     if (
                         "springbc" in list(self.SimDet.keys())
@@ -193,7 +199,7 @@ class MEmodel(object):
                             MixedElement([Velem, Qelem, Relem, Relem, VRelem]),
                         )
         else:
-            if self.isLV:
+            if self.isLV or self.iswaorta:
                 if self.ispctrl:
                     if (
                         "springbc" in list(self.SimDet.keys())
@@ -216,7 +222,7 @@ class MEmodel(object):
                         self.W = FunctionSpace(
                             self.mesh_me, MixedElement([Velem, Relem, VRelem])
                         )
-            else:
+            elif self.isBiV or self.isFCH:
                 if self.ispctrl:
                     if (
                         "springbc" in list(self.SimDet.keys())
@@ -485,7 +491,7 @@ class MEmodel(object):
 
         facetboundaries = self.facetboundaries_me
         edgeboundaries = self.edgeboundaries_me
-        if self.isLV:
+        if self.isLV or self.isBiV:
             topid = self.SimDet["topid"]
         else:
             topid = None
@@ -517,7 +523,7 @@ class MEmodel(object):
                 aorta_ring,
             )
 
-        elif self.isLV:
+        elif self.isLV or self.isBiV:
             bctop = DirichletBC(
                 W.sub(0).sub(2),
                 Expression(("0.0"), degree=2),
@@ -556,40 +562,41 @@ class MEmodel(object):
                     bcs = []
                 else:
                     bcs = [bc_aorta_ring]
-            elif self.isLV:
+            elif self.isLV or self.isBiV:
                 bcs = []
             elif self.isFCH:
                 bcs = [bc_aorta_wall, bc_pulm_wall]
-            else:
-                bcs = []
         else:
             if self.iswaorta:
                 bcs = [bc_aorta_ring]
-            elif self.isLV:
+            elif self.isLV or self.isBiV:
                 bcs = [bctop]
             elif self.isFCH:
-                bcs = []
-            else:
                 bcs = []
         return bcs
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 
     def Problem(self):
         GuccioneParams = self.SimDet["GiccioneParams"]
-        if self.isLV:
+        if self.isLV or self.isBiV:
             topid = self.SimDet["topid"]
         else:
             topid = None  # Default
 
         if self.iswaorta or self.isFCH:
             aortic_vplane = self.SimDet["aortic_vplane"]
-            if "apxid" in list(self.SimDet.keys()):
-                apxid = self.SimDet["apxid"]
-            else:
-                apxid = None
         else:
             aortic_vplane = None
+
+        if "apxid" in list(self.SimDet.keys()):
+            apxid = self.SimDet["apxid"]
+        else:
             apxid = None
+
+        if "basid" in list(self.SimDet.keys()):
+            basid = self.SimDet["basid"]
+        else:
+            basid = None
 
         if self.isFCH:
             mitral_vplane = self.SimDet["mitral_vplane"]
@@ -637,7 +644,7 @@ class MEmodel(object):
         bcs_elas = self.set_BCs()
 
         if isincomp:
-            if self.isLV:
+            if self.isLV or self.iswaorta:
                 if self.ispctrl:
                     if (
                         "springbc" in list(self.SimDet.keys())
@@ -684,7 +691,7 @@ class MEmodel(object):
                         LVendo_comp = 2
                         RVendo_comp = 1000
 
-            else:
+            elif self.isBiV or self.isFCH:
                 if self.ispctrl:
                     if (
                         "springbc" in list(self.SimDet.keys())
@@ -729,7 +736,7 @@ class MEmodel(object):
                         LVendo_comp = 2
                         RVendo_comp = 3
         else:
-            if self.isLV:
+            if self.isLV or self.iswaorta:
                 if self.ispctrl:
                     if (
                         "springbc" in list(self.SimDet.keys())
@@ -772,7 +779,7 @@ class MEmodel(object):
                         rv_pendo = []
                         LVendo_comp = 1
                         RVendo_comp = 1000
-            else:
+            elif self.isBiV or self.isFCH:
                 if self.ispctrl:
                     if (
                         "springbc" in list(self.SimDet.keys())
@@ -843,6 +850,7 @@ class MEmodel(object):
             "RVendoid": RVendoid,
             "epiid": epiid,
             "topid": topid,
+            "basid": basid,
             "aortic_vplane": aortic_vplane,
             "mitral_vplane": mitral_vplane,
             "septumid": septumid,
@@ -863,6 +871,7 @@ class MEmodel(object):
             "incompressible": GuccioneParams["incompressible"],
             "LVendo_area": LVendo_area_me,
             "lv_constrained_pres": self.LVCavitypres,
+            "rv_constrained_pres": self.RVCavitypres,
         }
 
         uflforms = Forms(params)
@@ -914,7 +923,7 @@ class MEmodel(object):
 
         if not self.ispctrl:
             LV_Wvol = uflforms.LVV0constrainedE()
-            if not self.isLV:
+            if self.isBiV:
                 RV_Wvol = uflforms.RVV0constrainedE()
 
         Sactive = activeforms.PK2StressTensor()
@@ -926,15 +935,10 @@ class MEmodel(object):
             nonLVid = set(self.matid_me.array()) - set(self.SimDet["active_region"])
 
         if self.iswaorta:
-
             F1 = derivative(Wp_me, w_me, wtest_me) * dx_me(1)
 
             for nonLVid_ in list(nonLVid):
                 F1 += derivative(WpRub_me, w_me, wtest_me) * dx_me(int(nonLVid_))
-
-        elif self.isFCH:
-            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
-
         else:
             F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
 
@@ -959,15 +963,21 @@ class MEmodel(object):
         if not self.ispctrl:
             if self.isLV:
                 F2 = derivative(LV_Wvol, w_me, wtest_me)
-            else:
+            elif self.isBiV:
                 F2 = derivative(LV_Wvol + RV_Wvol, w_me, wtest_me)
 
             Ftotal += F2
 
         else:
-            Fp_me = uflforms.LVcavitypres()
-            Fp = derivative(Fp_me, w_me, wtest_me)
-
+            if self.isLV or self.iswaorta:
+                Fp_me = uflforms.LVcavitypres()
+                Fp = derivative(Fp_me, w_me, wtest_me)
+            elif self.isBiV or self.isFCH:
+                Fp_lv_me = uflforms.LVcavitypres()
+                Fp_rv_me = uflforms.RVcavitypres()
+                Fp = derivative(Fp_lv_me, w_me, wtest_me) + derivative(
+                    Fp_rv_me, w_me, wtest_me
+                )
             Ftotal += Fp
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
@@ -975,28 +985,34 @@ class MEmodel(object):
                 k_spring = self.SimDet["springparam"]
                 c_damping = self.SimDet["dashpotparam"]
             else:
-                k_spring = None
-                c_damping = None
+                k_spring = [2.0e3, 2.0e3]  # default
+                c_damping = [2.0e2, 2.0e2]  # default
 
-            if not self.isLV:
+            if self.isLV or self.iswaorta or self.isBiV or self.isFCH:
                 Laplace_u = self.GetLaplace()
 
+                if self.isLV:
+                    epiid_Kadj_coeff = Constant(5.0)
                 if self.iswaorta:
-                    epiid_Kadj_coeff = Constant(20.0)  # value not tested for waorta
+                    epiid_Kadj_coeff = Constant(1.0)
+                elif self.isBiV:
+                    epiid_Kadj_coeff = Constant(10.0)
                 elif self.isFCH:
-                    epiid_Kadj_coeff = Constant(10.0)  # value tested for FCH
+                    epiid_Kadj_coeff = Constant(10.0)
 
                 F3_epi = inner(
                     outer(N_me, N_me)
                     * (
-                        k_spring[0] * epiid_Kadj_coeff * Laplace_u * u_me
+                        # k_spring[0] * epiid_Kadj_coeff * Laplace_u * u_me
+                        k_spring[0] * abs(X_me[2]) * u_me
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
                 ) * ds_me(epiid) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
-                        k_spring[1] * epiid_Kadj_coeff * Laplace_u * u_me
+                        # k_spring[1] * epiid_Kadj_coeff * Laplace_u * u_me
+                        k_spring[1] * abs(X_me[2]) * u_me
                         + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,
@@ -1007,7 +1023,7 @@ class MEmodel(object):
                 F3 = F3_epi
 
                 if self.isFCH:
-                    septum_Kadj_coeff = Constant(20.0)  # value tested for FCH
+                    septum_Kadj_coeff = Constant(20.0)
 
                     F3_septum = inner(
                         outer(N_me, N_me)
@@ -1027,7 +1043,7 @@ class MEmodel(object):
                         septumid
                     )
 
-                    F3 += F3_septum
+                    # F3 += F3_septum
 
                 elif self.iswaorta:
                     if (
@@ -1059,40 +1075,54 @@ class MEmodel(object):
                             aorta_ring
                         )
 
-                        F3 += F3_aorta_ring
+                        # F3 += F3_aorta_ring
+                    else:
 
-            else:
-                ## epicardial
+                        F3_bas = inner(
+                            outer(N_me, N_me)
+                            * (k_spring[0] * u_me + c_damping[0] * (u_me - u_me_n)),
+                            v_me,
+                        ) * ds_me(basid) + inner(
+                            (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                            * (k_spring[1] * u_me + c_damping[1] * (u_me - u_me_n)),
+                            v_me,
+                        ) * ds_me(
+                            basid
+                        )
 
-                F3_epi = inner(
-                    outer(N_me, N_me)
-                    * (k_spring[0] * u_me + c_damping[0] * (u_me - u_me_n)),
-                    v_me,
-                ) * ds_me(epiid) + inner(
-                    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                    * (k_spring[1] * u_me + c_damping[1] * (u_me - u_me_n)),
-                    v_me,
-                ) * ds_me(
-                    epiid
-                )
+                        F3 += F3_bas
 
-                a_, b_ = self.GetSpringBC()
+            elif self.isLV:
+                # F3_epi = inner(
+                #    outer(N_me, N_me)
+                #    * (k_spring[0] * u_me + c_damping[0] * (u_me - u_me_n)),
+                #    v_me,
+                # ) * ds_me(epiid) + inner(
+                #    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                #    * (k_spring[1] * u_me + c_damping[1] * (u_me - u_me_n)),
+                #    v_me,
+                # ) * ds_me(
+                #    epiid
+                # )
+
+                a_, b_ = self.GetTopSpring()
                 F3_base = a_ * inner(b_, v_me) * ds_me(topid)
 
-                F3 = F3_epi - F3_base
+                # F3 -= F3_base
 
             Ftotal += F3
 
-        elif self.isLV:
-            Wrigid = (
-                inner(as_vector([c_me[0], c_me[1], 0.0]), u_me)
-                + inner(as_vector([0.0, 0.0, c_me[2]]), cross(X_me, u_me))
-                + inner(as_vector([c_me[3], 0.0, 0.0]), cross(X_me, u_me))
-                + inner(as_vector([0.0, c_me[4], 0.0]), cross(X_me, u_me))
-            )
-            F5 = derivative(Wrigid, w_me, wtest_me) * dx_me
-            # F5 = derivative(Wrigid, w_me, wtest_me)*ds_me(LVendoid)
-            Ftotal += F5
+        else:
+            if self.isLV or self.isBiV:
+                Wrigid = (
+                    inner(as_vector([c_me[0], c_me[1], 0.0]), u_me)
+                    + inner(as_vector([0.0, 0.0, c_me[2]]), cross(X_me, u_me))
+                    + inner(as_vector([c_me[3], 0.0, 0.0]), cross(X_me, u_me))
+                    + inner(as_vector([0.0, c_me[4], 0.0]), cross(X_me, u_me))
+                )
+                F5 = derivative(Wrigid, w_me, wtest_me) * dx_me
+                # F5 = derivative(Wrigid, w_me, wtest_me)*ds_me(LVendoid)
+                Ftotal += F5
 
         # Add stabilization
         if self.discretization == "P1P1":
@@ -1142,7 +1172,7 @@ class MEmodel(object):
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             Jac3 = derivative(F3, w_me, dw_me)
             Jac += Jac3
-        elif self.isLV:
+        elif self.isLV or self.isBiV:
             Jac5 = derivative(F5, w_me, dw_me)
             Jac += Jac5
 
@@ -1153,10 +1183,10 @@ class MEmodel(object):
         # Initialize LV cavity volume
         if not self.ispctrl:
             self.LVCavityvol.vol = uflforms.LVcavityvol()
-            if not self.isLV:
+            if self.isBiV:
                 self.RVCavityvol.vol = uflforms.RVcavityvol()
 
-            if not self.isLV:
+            if self.isBiV:
                 self.RVP_cav = uflforms.RVcavitypressure()
                 self.RVV_cav = uflforms.RVcavityvol()
 
@@ -1184,20 +1214,24 @@ class MEmodel(object):
         return solver_eals
 
     def GetDisplacement(self):
-        if self.isLV:
+        if self.isLV or self.iswaorta:
             if self.ispctrl:
                 if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
                     u, p = self.w_me.split(deepcopy=True)
                     rv_pendo = []
+                    lv_pendo = []
                 else:
                     u, p, self.c = self.w_me.split(deepcopy=True)
                     rv_pendo = []
+                    lv_pendo = []
             else:
                 if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
                     u, p, lv_pendo = self.w_me.split(deepcopy=True)
+                    rv_pendo = []
                 else:
                     u, p, lv_pendo, self.c = self.w_me.split(deepcopy=True)
-        else:
+                    rv_pendo = []
+        elif self.isBiV or self.isFCH:
             if self.ispctrl:
                 if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
                     u, p = self.w_me.split(deepcopy=True)
@@ -1206,7 +1240,8 @@ class MEmodel(object):
 
                 else:
                     u, p, self.c = self.w_me.split(deepcopy=True)
-
+                    lv_pendo = []
+                    rv_pendo = []
             else:
                 if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
                     u, p, lv_pendo, rv_pendo = self.w_me.split(deepcopy=True)
@@ -1225,13 +1260,15 @@ class MEmodel(object):
         self.w_me.assign(self.w_me_n)
 
     def GetP(self):
-        if self.isLV:
+        if self.isLV or self.iswaorta:
             if self.ispctrl:
                 if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
                     u, p = self.w_me.split(deepcopy=True)
+                    lv_pendo = []
                     rv_pendo = []
                 else:
                     u, p, self.c = self.w_me.split(deepcopy=True)
+                    lv_pendo = []
                     rv_pendo = []
             else:
                 if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
@@ -1240,7 +1277,7 @@ class MEmodel(object):
                 else:
                     u, p, lv_pendo, self.c = self.w_me.split(deepcopy=True)
                     rv_pendo = []
-        else:
+        elif self.isBiV or self.isFCH:
             if self.ispctrl:
                 if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
                     # u, p, lv_pendo, rv_pendo = self.w_me.split(deepcopy=True)
@@ -1248,7 +1285,9 @@ class MEmodel(object):
                     lv_pendo = []
                     rv_pendo = []
                 else:
-                    u, p, lv_pendo, rv_pendo, self.c = self.w_me.split(deepcopy=True)
+                    u, p, self.c = self.w_me.split(deepcopy=True)
+                    lv_pendo = []
+                    rv_pendo = []
             else:
                 if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
                     u, p, lv_pendo, rv_pendo = self.w_me.split(deepcopy=True)
@@ -1313,6 +1352,8 @@ class MEmodel(object):
             return self.uflforms.solveLaplaceEquation_fch()
         elif self.iswaorta:
             return self.uflforms.solveLaplaceEquation_waorta()
+        elif self.isLV or self.isBiV:
+            return self.uflforms.solveLaplaceEquation_ideal()
 
     def GetLVP(self):
         if self.ispctrl:
@@ -1322,26 +1363,38 @@ class MEmodel(object):
 
     def GetLVV(self):
         if self.ispctrl:
-            return self.GetVolumeComputation()
+            return self.LV_closedsurf()
         else:
             return self.uflforms.LVcavityvol()
 
-    def GetVolumeComputation(self):
+    def LV_closedsurf(self):
         if self.iswaorta:
             return self.uflforms.LVcavityvol_waorta()
         elif self.isFCH:
             return self.uflforms.LVcavityvol_fch()
-        else:
-            return self.uflforms.LVcavityvol_mvb()
+        elif self.isLV or self.isBiV:
+            if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                return self.uflforms.LVcavityvol_mvb()
+            else:
+                return self.uflforms.LVcavityvol()
 
-    def GetSpringBC(self):
-        return self.uflforms.springbc()
+    def GetTopSpring(self):
+        return self.uflforms.topspringbc()
 
     def GetRVP(self):
-        return self.uflforms.RVcavitypressure()
+        if self.ispctrl:
+            return self.RVCavitypres.pres
+        else:
+            return self.uflforms.RVcavitypressure()
 
     def GetRVV(self):
-        return self.uflforms.RVcavityvol()
+        if self.isBiV:
+            if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                return self.uflforms.RVcavityvol()  # *
+            else:
+                return self.uflforms.RVcavityvol()
+        elif self.isFCH:
+            return self.uflforms.RVcavityvol()  # *
 
     def GetSActive(self):
         Sactive = self.activeforms.PK2StressTensor()

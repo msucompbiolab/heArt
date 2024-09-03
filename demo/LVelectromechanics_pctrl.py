@@ -6,28 +6,44 @@ from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
-from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    postprocessdata as postprocessdata,
+)
 from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    compute_strain as compute_strain,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    plothemodynamics as plothemodynamics,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacementloading as extractdisplacementloading,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacement as extractdisplacement,
+)
+
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    "casename": "ellipsoidal_baselinegeo",
-    "directory_me": "../LVMesh/",
-    "directory_ep": "../LVMesh/",
+    "casename": "ellipsoidal",
+    "directory_me": "./",
+    "directory_ep": "./",
     "outputfolder": "./outputs_LVelectromechanics/",
     "folderName": "",
     "caseID": "LVelectromechanics_pctrl",
     "isLV": True,
 }
 
-contRactility = 100e3
+contRactility = 600e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(100.0),
+        "Cparam": Constant(130.0),
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
@@ -44,7 +60,7 @@ GuccioneParams = {
         "Ca0max": 4.35,
         "lr": 1.85,
     },
-    "HomogenousActivation": False,
+    "HomogenousActivation": True,
     "deg": 4,
     "Kappa": 1e5,
     "incompressible": True,
@@ -64,10 +80,10 @@ Circparam = {
     "Vsa0": 360,
     "Vsv0": 3370.0,
     "Vad0": 40,
-    "Rav": 500.0,
+    "Rav": 3000.0,
     "Rsv": 100.0,
     "Rsa": 18000,
-    "Rad": 106000,
+    "Rad": 21200,
     "Rmv": 200.0,
     # volumes
     "V_sv": 3700,
@@ -75,14 +91,14 @@ Circparam = {
     "V_sa": 740,
     "V_ad": 100,
     "V_LA": 12,
-    "stop_iter": 5,
+    "stop_iter": 1,
 }
 
 SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 5.0,
+    "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
@@ -105,26 +121,27 @@ SimDetails = {
     "Isclosed": True,
     "closedloopparam": Circparam,
     "Ischemia": False,
-    "springbc": False,
+    "springbc": 1,
     "Mechanics Discretization": "P1P1",
     "isLV": True,
     "topid": 4,
     "LVendoid": 2,
     "RVendoid": 0,
     "epiid": 1,
-    "abs_tol": 1e-9,
+    "apxid": 5,
+    "abs_tol": 1e-8,
     "rel_tol": 1e-9,
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
-    "iswaorta": False,
-    "aorta_vplane": None
 }
 
 # Run Simulation
 run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # Postprocessing
-#postprocessdata(IODet=IODetails, SimDet=SimDetails, cycle=0)
-dumpvtk(IODet=IODetails, SimDet=SimDetails)
-
+# postprocessdata(IODet=IODetails, SimDet=SimDetails)
+# extractdisplacement(IODet=IODetails, SimDet=SimDetails)
+# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
+# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=2)
+# extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)

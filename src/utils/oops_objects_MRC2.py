@@ -1714,6 +1714,10 @@ class exportfiles(object):
             self.isFCH = SimDet["isFCH"]
         else:
             self.isFCH = False  # Default
+        if "isBiV" in list(SimDet.keys()):
+            self.isBiV = SimDet["isBiV"]
+        else:
+            self.isBiV = False # Default
 
         self.outputfolder = IODet["outputfolder"]
         self.folderName = IODet["folderName"] + IODet["caseID"] + "/"
@@ -1852,12 +1856,17 @@ class exportfiles(object):
         isLV = self.isLV
         iswaorta = self.iswaorta
         isFCH = self.isFCH
+        isBiV = self.isBiV
 
         comm = self.comm_ep
 
         if MEmodel.ispctrl:
-            LVP = MEmodel.LVCavitypres.pres
-            LVV = MEmodel.GetVolumeComputation()
+            LVP = MEmodel.LVCavitypres.pres * 0.0075
+            # LVV = MEmodel.LV_closedsurf()
+            LVV = MEmodel.GetLVV()
+            if isBiV:
+                RVP = MEmodel.RVCavitypres.pres * 0.0075
+                RVV = MEmodel.GetRVV()
 
         else:
             LVP = MEmodel.GetLVP() * 0.0075
@@ -1875,7 +1884,7 @@ class exportfiles(object):
                 print(t, LVP, LVV, file=fdataPV)
             elif isFCH:
                 print(t, LVP, LVV, file=fdataPV)
-            else:
+            elif isBiV:
                 print(t, LVP, LVV, RVP, RVV, file=fdataPV)
 
         return

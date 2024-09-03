@@ -2,12 +2,31 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
-from heArt.src.sim_protocols.run_BiV_ClosedLoop import (
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
-from heArt.src.postprocessing.postprocessdataBiV2 import (
+
+# from heArt_py3.src.postprocessing.postprocessdataBiV2 import (
+#    postprocessdata as postprocessdata,
+# )
+
+from heArt_py3.src.postprocessing.postprocessdata2 import (
     postprocessdata as postprocessdata,
 )
+from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    compute_strain as compute_strain,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    plothemodynamics as plothemodynamics,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacementloading as extractdisplacementloading,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacement as extractdisplacement,
+)
+
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
@@ -115,7 +134,7 @@ Circparam = {
 SimDetails = {
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 10.0,
+    "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 10,
     "DTI_EP": False,
@@ -140,6 +159,7 @@ SimDetails = {
 # Run Simulation
 run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
-#postprocessdata(IODet=IODetails, SimDet=SimDetails)
+# postprocessdata(IODet=IODetails, SimDet=SimDetails)
+# extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
