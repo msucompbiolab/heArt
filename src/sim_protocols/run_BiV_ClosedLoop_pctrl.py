@@ -364,11 +364,13 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if state_obj.cycle > stop_iter:
             break
         # if state_obj.t > 100:
-        #    break
+        # break
 
         params = {
             "P_LV": P_LV,
             "V_LV": V_LV,
+            "P_RV": P_RV,
+            "V_RV": V_RV,
             "t": state_obj.t,
             "delTat": state_obj.dt.dt,
         }
@@ -386,7 +388,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             + " Psa = "
             + str(CLmodel_.Psa)
             + " PLA = "
-            + str(CLmodel_.GetPLoRA(params))
+            + str(CLmodel_.GetPLoRA(params, 1))
             + " P_LV = "
             + str(P_LV),
             comm_me,
@@ -395,11 +397,11 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             if MPI.rank(comm_me) == 0:
                 if isLV or iswaorta:
                     f_PV.write(f"{state_obj.t}, {V_LV}, {P_LV} \n")
-                elif isBiV or isFCh:
+                elif isBiV or isFCH:
                     f_PV.write(f"{state_obj.t}, {V_LV}, {P_LV}, {V_RV}, {P_RV} \n")
 
         # Newton's solver
-        tol = 1e-4  # Tolerance for convergence
+        tol = 1e-3  # Tolerance for convergence
         max_iter = 100  # Maximum number of iteration
 
         def estpres(plv):
@@ -442,6 +444,50 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             else:
                 return (fe_v2 - fe_v1) / (estpres(prv) - prv)
 
+        def run_plvr(plv, prv):
+            MEmodel_.LVCavitypres.pres = plv
+            MEmodel_.RVCavitypres.pres = prv
+            solver_elas.solvenonlinear()
+
+            return MEmodel_.GetLVV(), MEmodel_.GetRVV()
+
+        # vlv, vrv = run_plvr(P_LV, P_RV)
+
+        def JR_perturb(plv, prv, lvp, lvvc, rvvc):
+            MEmodel_.LVCavitypres.pres = plv
+            MEmodel_.RVCavitypres.pres = prv
+            solver_elas.solvenonlinear()
+
+            vlv_ = MEmodel_.GetLVV()
+            vrv_ = MEmodel_.GetRVV()
+
+            if lvp:
+                MEmodel_.LVCavitypres.pres = estpres(plv)
+            else:
+                MEmodel_.RVCavitypres.pres = estpres(prv)
+            solver_elas.solvenonlinear()
+
+            fe_v2l = MEmodel_.GetLVV()
+            fe_v2r = MEmodel_.GetRVV()
+
+            if lvp:
+                return (
+                    (fe_v2l - vlv_) / (estpres(plv) - plv),
+                    (fe_v2r - vrv_) / (estpres(plv) - plv),
+                    vlv_ - lvvc,
+                )
+            else:
+                return (
+                    (fe_v2l - vlv_) / (estpres(prv) - prv),
+                    (fe_v2r - vrv_) / (estpres(prv) - prv),
+                    vrv_ - rvvc,
+                )
+
+        # ax_l, by_l, cz_l = JR_perturb(P_LV, P_RV, 1, V_LV, V_RV)
+        # ax_r, by_r, cz_r = JR_perturb(P_LV, P_RV, 0, V_LV, V_RV)
+
+        # comm_me.Barrier()
+
         def Rp(plv, vlv):
             MEmodel_.LVCavitypres.pres = plv
             solver_elas.solvenonlinear()
@@ -462,33 +508,51 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             # Compute the residual and Jacobian
             if isLV or iswaorta:
                 J = Jf(P_LV)
+                F = Rp(P_LV, V_LV)
+
             elif isBiV or isFCH:
+                # J = np.array(
+                #   [
+                #       [Jf_biv(P_LV, P_RV, 1, 1), Jf_biv(P_LV, P_RV, 1, 0)],
+                #       [Jf_biv(P_LV, P_RV, 0, 1), Jf_biv(P_LV, P_RV, 0, 0)],
+                #   ]
+                # )
+
+                # vlv, vrv = run_plvr(P_LV, P_RV)
+                ax_l, by_l, cz_l = JR_perturb(P_LV, P_RV, 1, V_LV, V_RV)
+                ax_r, by_r, cz_r = JR_perturb(P_LV, P_RV, 0, V_LV, V_RV)
+
                 J = np.array(
                     [
-                        [Jf_biv(P_LV, P_RV, 1, 1), Jf_biv(P_LV, P_RV, 1, 0)],
-                        [Jf_biv(P_LV, P_RV, 0, 1), Jf_biv(P_LV, P_RV, 0, 0)],
+                        [ax_l, by_l],
+                        [ax_r, by_r],
                     ]
                 )
 
-            if isLV or iswaorta:
-                F = Rp(P_LV, V_LV)
-            elif isBiV or isFCH:
                 # F = Rp_biv(P_LV, P_RV, V_LV, V_RV)
-                F = np.array([[vfe] for vfe in Rp_biv(P_LV, P_RV, V_LV, V_RV)])
+                # F = np.array([[vfe] for vfe in Rp_biv(P_LV, P_RV, V_LV, V_RV)])
+                F = np.array([cz_l, cz_r])
 
-            with open(outputfolder + folderName + "output_JRp.txt", "a") as f_JRp:
-                if MPI.rank(comm_me) == 0:
-                    f_JRp.write(
-                        f"t = {state_obj.t}, iter = {iter}, Rp = {F}, J = {J} \n"
-                    )
+            # with open(
+            #    outputfolder + folderName + "output_JRp_serial.txt", "a"
+            # ) as f_JRp:
+            #    if MPI.rank(comm_me) == 0:
+            #        f_JRp.write(
+            #            # f"t = {state_obj.t}, iter = {iter}, Rp = {F}, J = {J} \n"
+            #            f"t = {state_obj.t}, iter = {iter}, J = {J}, F = {F} \n"
+            #        )
 
             # Solve for the update
             if isLV or iswaorta:
                 if abs(J) < 1e-10:
                     printout("Jac is too small: " + str(du), comm_me)
-                    if MPI.rank(comm_me) == 0:
-                        f_JRp.write(f"break due to small Jac: du = {du}.")
+                    # if MPI.rank(comm_me) == 0:
+                    # f_JRp.write(f"break due to small Jac: du = {du}.")
                     # continue
+                    break
+            elif isBiV or isFCH:
+                if np.linalg.norm(J) < 1e-10:
+                    printout("Jac is too small: " + str(du), comm_me)
                     break
 
             if isLV or iswaorta:
@@ -502,6 +566,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
             if isLV or iswaorta:
                 while abs(du) > 220:
+                    du /= 2
+            elif isBiV or isFCH:
+                while np.linalg.norm(du) > 220:
                     du /= 2
 
             if isLV or iswaorta:
@@ -518,9 +585,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                 if np.linalg.norm(F) < tol and np.linalg.norm(du) < tol:
                     break
 
-            with open(outputfolder + folderName + "output_JRp.txt", "a") as f_JRp:
-                if MPI.rank(comm_me) == 0:
-                    f_JRp.write(f"t = {state_obj.t}, iter = {iter}, du = {du} \n")
+            # with open(outputfolder + folderName + "output_JRp.txt", "a") as f_JRp:
+            #    if MPI.rank(comm_me) == 0:
+            #        f_JRp.write(f"t = {state_obj.t}, iter = {iter}, du = {du} \n")
 
             # if cnt % SimDet["writeStep"] == 0.0:
             #    export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)

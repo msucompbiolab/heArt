@@ -603,11 +603,15 @@ class MEmodel(object):
             septumid = self.SimDet["septumid"]
             aorta_wall = self.SimDet["aorta_wall"]
             pulm_wall = self.SimDet["pulm_wall"]
+            first_rv_valve = self.SimDet["first_rv_valve"]
+            second_rv_valve = self.SimDet["second_rv_valve"]
         else:
             mitral_vplane = None  # Default
             septumid = None
             aorta_wall = None
             pulm_wall = None
+            first_rv_valve = None
+            second_rv_valve = None
 
         if self.iswaorta:
             aorta_int_wall = self.SimDet["aorta_int_wall"]
@@ -853,6 +857,8 @@ class MEmodel(object):
             "basid": basid,
             "aortic_vplane": aortic_vplane,
             "mitral_vplane": mitral_vplane,
+            "first_rv_valve": first_rv_valve,
+            "second_rv_valve": second_rv_valve,
             "septumid": septumid,
             "aorta_wall": aorta_wall,
             "pulm_wall": pulm_wall,
@@ -1003,16 +1009,16 @@ class MEmodel(object):
                 F3_epi = inner(
                     outer(N_me, N_me)
                     * (
-                        # k_spring[0] * epiid_Kadj_coeff * Laplace_u * u_me
-                        k_spring[0] * abs(X_me[2]) * u_me
+                        k_spring[0] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
+                        # k_spring[0] * abs(X_me[2]) * u_me
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
                 ) * ds_me(epiid) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
-                        # k_spring[1] * epiid_Kadj_coeff * Laplace_u * u_me
-                        k_spring[1] * abs(X_me[2]) * u_me
+                        k_spring[1] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
+                        # k_spring[1] * abs(X_me[2]) * u_me
                         + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,
@@ -1023,25 +1029,26 @@ class MEmodel(object):
                 F3 = F3_epi
 
                 if self.isFCH:
-                    septum_Kadj_coeff = Constant(20.0)
+                    pass
+                #    septum_Kadj_coeff = Constant(20.0)
 
-                    F3_septum = inner(
-                        outer(N_me, N_me)
-                        * (
-                            k_spring[0] * septum_Kadj_coeff * Laplace_u * u_me
-                            + c_damping[0] * (u_me - u_me_n)
-                        ),
-                        v_me,
-                    ) * ds_me(septumid) + inner(
-                        (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                        * (
-                            k_spring[1] * septum_Kadj_coeff * Laplace_u * u_me
-                            + c_damping[1] * (u_me - u_me_n)
-                        ),
-                        v_me,
-                    ) * ds_me(
-                        septumid
-                    )
+                #    F3_septum = inner(
+                #        outer(N_me, N_me)
+                #        * (
+                #            k_spring[0] * septum_Kadj_coeff * Laplace_u * u_me
+                #            + c_damping[0] * (u_me - u_me_n)
+                #        ),
+                #        v_me,
+                #    ) * ds_me(septumid) + inner(
+                #        (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                #        * (
+                #            k_spring[1] * septum_Kadj_coeff * Laplace_u * u_me
+                #            + c_damping[1] * (u_me - u_me_n)
+                #        ),
+                #        v_me,
+                #    ) * ds_me(
+                #        septumid
+                #    )
 
                     # F3 += F3_septum
 
@@ -1349,7 +1356,8 @@ class MEmodel(object):
 
     def GetLaplace(self):
         if self.isFCH:
-            return self.uflforms.solveLaplaceEquation_fch()
+            # return self.uflforms.solveLaplaceEquation_fch()
+            return
         elif self.iswaorta:
             return self.uflforms.solveLaplaceEquation_waorta()
         elif self.isLV or self.isBiV:
@@ -1394,7 +1402,10 @@ class MEmodel(object):
             else:
                 return self.uflforms.RVcavityvol()
         elif self.isFCH:
-            return self.uflforms.RVcavityvol()  # *
+            if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                return self.uflforms.RVcavityvol_fch()
+            else:
+                return
 
     def GetSActive(self):
         Sactive = self.activeforms.PK2StressTensor()

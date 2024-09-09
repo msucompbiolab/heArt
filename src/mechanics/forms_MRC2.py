@@ -203,6 +203,30 @@ class Forms(object):
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
 
+    def RVcavityvol_fch(self):  # cavity volume for rv in fch mesh
+        u = self.parameters["displacement_variable"]
+        N = self.parameters["facet_normal"]
+        mesh = self.parameters["mesh"]
+        X = SpatialCoordinate(mesh)
+        ds = dolfin.ds(
+            subdomain_data=self.parameters["facetboundaries"],
+            metadata={"quadrature_degree": 4},
+        )
+
+        F = self.Fmat()
+        vol_form = (
+            -Constant(1.0 / 3.0)
+            * inner(det(F) * dot(inv(F).T, N), X + u)
+            * (
+                ds(self.parameters["RVendoid"])
+                + ds(self.parameters["first_rv_valve"])
+                + ds(self.parameters["second_rv_valve"])
+            )
+        )
+
+        return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
+
+
     def topspringbc(self):  # for v_base computation
         N = self.parameters["facet_normal"]
         ds = dolfin.ds(

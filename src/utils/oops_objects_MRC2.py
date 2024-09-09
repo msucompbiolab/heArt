@@ -520,6 +520,13 @@ class fch_mesh(object):
 
         self.EpiBCid_me = EpiBCid
 
+        self.poissonFS = FunctionSpace(
+            self.mesh, FiniteElement("Lagrange", self.mesh.ufl_cell(), 1)
+        )
+        self.poissonF = Function(self.poissonFS)
+
+        if f.has_dataset(casename + "/" + "varyingspring"):
+            f.read(self.poissonF, casename + "/" + "varyingspring")
         f.close()
 
         self.LVendoid = self.parameters["LVendoid"]
@@ -1717,7 +1724,7 @@ class exportfiles(object):
         if "isBiV" in list(SimDet.keys()):
             self.isBiV = SimDet["isBiV"]
         else:
-            self.isBiV = False # Default
+            self.isBiV = False  # Default
 
         self.outputfolder = IODet["outputfolder"]
         self.folderName = IODet["folderName"] + IODet["caseID"] + "/"

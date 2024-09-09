@@ -114,20 +114,20 @@ class NSolver(object):
             opts.setValue("ksp_monitor_true_residual", "")
 
             # SNES Solver Parameters
-            opts.setValue("snes_type", "newtontr")
-            # opts.setValue("snes_type", "vinewtonssls")
+            # opts.setValue("snes_type", "newtontr")
+            opts.setValue("snes_type", "vinewtonssls")
             # opts.setValue("snes_atol", 1.e-4)
             # opts.setValue("snes_rtol", 1.e-4)
 
-            opts.setValue("ksp_type", "gmres")  # bcgs # gmres
+            opts.setValue("ksp_type", "bcgs")  # bcgs # gmres
 
             opts.setValue("pc_type", "fieldsplit")
             opts.setValue("pc_fieldsplit_type", "additive")  # multiplicative
             opts.setValue("pc_fieldsplit_detect_saddle_point", True)
-            opts.setValue("fieldsplit_0_ksp_type", "cg")  # preonly # gmres # cg
+            opts.setValue("fieldsplit_0_ksp_type", "preonly")  # preonly # gmres # cg
             # opts.setValue("fieldsplit_0_ksp_type", "richardson")
-            opts.setValue("fieldsplit_0_pc_type", "hypre")
-            opts.setValue("fieldsplit_0_pc_hypre_type", "boomeramg")
+            opts.setValue("fieldsplit_0_pc_type", "lu") # hypre
+            # opts.setValue("fieldsplit_0_pc_hypre_type", "boomeramg")
 
             opts.setValue("fieldsplit_1_ksp_type", "preonly")
             # opts.setValue("fieldsplit_1_ksp_type", "richardson")
@@ -135,11 +135,11 @@ class NSolver(object):
 
             self.snes = PETSc.SNES().create(MPI.comm_world)
 
-            # opts.setValue("snes_linesearch_type", "bt")  # bt # l2 # basic # cp
+            opts.setValue("snes_linesearch_type", "basic")  # bt # l2 # basic # cp
             opts.setValue("snes_monitor", "")
             # opts.setValue("snes_linesearch_monitor", "")
             opts.setValue("snes_converged_reason", "")
-            opts.setValue("snes_trust_region_monitor", "")
+            # opts.setValue("snes_trust_region_monitor", "")
             self.snes.setFromOptions()
 
             self.snes.setFunction(self.problem_snes.F, b.vec())
