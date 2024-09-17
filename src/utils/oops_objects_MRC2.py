@@ -148,13 +148,28 @@ class biventricle_mesh(object):
         f.read(self.facetboundaries, casename + "/" + "facetboundaries")
 
         self.edgeboundaries = MeshFunction("size_t", self.mesh, 1)
-        f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
+        try:
+            f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
+        except MemoryError:
+            print("No edge boundaries read")
 
-        deg = self.parameters["fibre_quad_degree"]
-        VQuadelem = VectorElement(
-            "Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default"
-        )
+        #VQuadelem = VectorElement(
+        #    "Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default"
+        #)
+        #VQuadelem._quad_scheme = "default"
+
+        if "fiber_fspace" in list(SimDet.keys()) and "fiber_fspace_deg" in list(SimDet.keys()):
+            deg = SimDet["fiber_fspace_deg"]
+            VQuadelem = VectorElement(
+                SimDet["fiber_fspace"], self.mesh.ufl_cell(), degree=SimDet["fiber_fspace_deg"]
+            )
+        else:
+            deg = self.parameters["fibre_quad_degree"]
+            VQuadelem = VectorElement(
+                "Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default"
+            )
         VQuadelem._quad_scheme = "default"
+
 
         self.fiberFS = FunctionSpace(self.mesh, VQuadelem)
 

@@ -43,7 +43,10 @@ from ..mechanics.JRp import *
 
 
 def run_BiV_ClosedLoop(IODet, SimDet):
-    deg = 4
+    if "fiber_fspace_deg" in SimDet: 
+        deg = SimDet["fiber_fspace_deg"]
+    else:
+        deg = 4
     flags = ["-O3", "-ffast-math", "-march=native"]
     parameters["form_compiler"]["representation"] = "uflacs"
     parameters["form_compiler"]["quadrature_degree"] = deg
@@ -107,10 +110,20 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     Quadelem_ep._quad_scheme = "default"
     Quad_ep = FunctionSpace(mesh_ep, Quadelem_ep)
 
-    VQuadelem_ep = VectorElement(
-        "Quadrature", mesh_ep.ufl_cell(), degree=deg_ep, quad_scheme="default"
-    )
-    VQuadelem_ep._quad_scheme = "default"
+
+    if "fiber_fspace" in list(SimDet.keys()) and "fiber_fspace_deg" in list(SimDet.keys()):
+        VQuadelem_ep = VectorElement(
+            SimDet["fiber_fspace"], mesh_ep.ufl_cell(), degree=SimDet["fiber_fspace_deg"], quad_scheme="default"
+        )
+        VQuadelem_ep._quad_scheme = "default"
+    else:
+        VQuadelem_ep = VectorElement(
+            "Quadrature", mesh_ep.ufl_cell(), degree=deg_ep, quad_scheme="default"
+        )
+        VQuadelem_ep._quad_scheme = "default"
+
+
+
 
     fiberFS_ep = FunctionSpace(mesh_ep, VQuadelem_ep)
 
@@ -233,6 +246,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     preinc = default_params["preinc"]
 
     it = 0
+    tempfile = File(os.path.join(IODet["outputfolder"], "displacement.pvd")) 
     while 1:
         printout("Loading", comm_me)
         MEmodel_.LVCavitypres.pres += (EDP / 0.0075) / nloadstep
@@ -240,6 +254,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             MEmodel_.RVCavitypres.pres += (EDP / 0.0075) / 2 / nloadstep
 
         solver_elas.solvenonlinear()
+
+        tempfile << MEmodel_.GetDisplacement()
 
         export.writePV(MEmodel_, 0)
         export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
@@ -257,11 +273,15 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         # )
 
         printout(
-            "Pressure = "
+            "LV Pressure = "
             + str(MEmodel_.GetLVP() * 0.0075)
-            + " Vol = "
-            + str(MEmodel_.GetLVV()),  # GetVolumeComputation()),
-            comm_me,
+            + " LV Vol = "
+            + str(MEmodel_.GetLVV())  # GetVolumeComputation()),
+            + "RV Pressure = "
+            + str(MEmodel_.GetRVP() * 0.0075)
+            + "RV Vol = "
+            + str(MEmodel_.GetRVV()),  # GetVolumeComputation()),
+            comm_me
         )
 
         if MEmodel_.LVCavitypres.pres * 0.0075 >= EDP:
@@ -593,6 +613,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             #    export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
             #    # export.hdf.write(c_n, "ME/u_diff", writecnt)
             #    writecnt += 1
+
+
+        tempfile << MEmodel_.GetDisplacement() #LCL
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)

@@ -60,6 +60,7 @@ class MEmodel(object):
         elif self.isBiV:
             self.Mesh = biv_mechanics_mesh(self.parameters, SimDet)
 
+
         f0_me_Gauss = self.Mesh.f0
         s0_me_Gauss = self.Mesh.s0
         n0_me_Gauss = self.Mesh.n0
@@ -73,9 +74,23 @@ class MEmodel(object):
         self.dx_me = self.Mesh.dx
 
         LVendoid = self.SimDet["LVendoid"]
-        dsendo = self.ds_me(
-            LVendoid, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
-        )
+
+        if(isinstance(self.SimDet["LVendoid"], list)):
+            cnt = 0
+            for id_ in self.SimDet["LVendoid"]:
+                if(cnt == 0):
+                    dsendo = self.ds_me(
+                                id_, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
+                    )
+                else:
+                    dsendo += self.ds_me(
+                                id_, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
+                    )
+                cnt += 1
+        else:
+            dsendo = self.ds_me(
+                LVendoid, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
+            )
         self.LVendo_area_me = Expression(("val"), val=0.0, degree=2)
         self.LVendo_area_me.val = assemble(
             Constant(1.0) * dsendo,
@@ -626,6 +641,17 @@ class MEmodel(object):
         RVendoid = self.SimDet["RVendoid"]
         epiid = self.SimDet["epiid"]
 
+        if not "LVPid" in list(self.SimDet.keys()):
+            LVPid= self.SimDet["LVendoid"]
+        else:
+            LVPid= self.SimDet["LVPid"]
+
+        if not "RVPid" in list(self.SimDet.keys()):
+            RVPid= self.SimDet["RVendoid"]
+        else:
+            RVPid= self.SimDet["RVPid"]
+
+
         isincomp = GuccioneParams["incompressible"]
         deg_me = GuccioneParams["deg"]
 
@@ -855,6 +881,8 @@ class MEmodel(object):
             "epiid": epiid,
             "topid": topid,
             "basid": basid,
+            "LVPid": LVPid,
+            "RVPid": RVPid,
             "aortic_vplane": aortic_vplane,
             "mitral_vplane": mitral_vplane,
             "first_rv_valve": first_rv_valve,
@@ -879,6 +907,7 @@ class MEmodel(object):
             "lv_constrained_pres": self.LVCavitypres,
             "rv_constrained_pres": self.RVCavitypres,
         }
+
 
         uflforms = Forms(params)
         self.uflforms = uflforms

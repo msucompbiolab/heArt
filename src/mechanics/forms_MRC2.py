@@ -266,10 +266,24 @@ class Forms(object):
 
         F = self.Fmat()
 
+        if(isinstance(self.parameters["LVendoid"], list)):
+            cnt = 0
+            for id_ in self.parameters["LVendoid"]:
+                if(cnt == 0):
+                    surface_ = ds(id_)
+                else:
+                    surface_ += ds(id_)
+
+                cnt += 1
+        else:
+            surface_ = ds(self.parameters["LVendoid"])
+
+       #vol_form = vol_form_ * ( surface_ )
+
         vol_form = (
             -Constant(1.0 / 3.0)
             * inner(det(F) * dot(inv(F).T, N), X + u)
-            * ds(self.parameters["LVendoid"])
+            * surface_#ds(self.parameters["LVendoid"])
         )
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
@@ -286,10 +300,22 @@ class Forms(object):
 
         F = self.Fmat()
 
+        if(isinstance(self.parameters["RVendoid"], list)):
+            cnt = 0
+            for id_ in self.parameters["RVendoid"]:
+                if(cnt == 0):
+                    surface_ = ds(id_)
+                else:
+                    surface_ += ds(id_)
+
+                cnt += 1
+        else:
+            surface_ = ds(self.parameters["RVendoid"])
+
         vol_form = (
             -Constant(1.0 / 3.0)
             * inner(det(F) * dot(inv(F).T, N), X + u)
-            * ds(self.parameters["RVendoid"])
+            * surface_#ds(self.parameters["RVendoid"])
         )
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
@@ -327,13 +353,20 @@ class Forms(object):
         J = self.J()
         u = self.parameters["displacement_variable"]
         F = self.Fmat()
-        # dsendo = ds(
-        #    self.parameters["LVendoid"],
-        #    domain=self.parameters["mesh"],
-        #    subdomain_data=self.parameters["facetboundaries"],
-        # )
 
-        pres = pe * inner(J * inv(F.T) * N, u) * ds(self.parameters["LVendoid"])
+        if(isinstance(self.parameters["LVPid"], list)):
+            cnt = 0
+            for id_ in self.parameters["LVPid"]:
+                if(cnt == 0):
+                    surface_ = ds(id_)
+                else:
+                    surface_ += ds(id_)
+
+                cnt += 1
+        else:
+            surface_ = ds(self.parameters["LVPid"])
+
+        pres = pe * inner(J * inv(F.T) * N, u) * surface_#ds(self.parameters["LVendoid"])
 
         # pres = 1 * dsendo
         return pres
@@ -356,7 +389,22 @@ class Forms(object):
         #    subdomain_data=self.parameters["facetboundaries"],
         # )
 
-        pres = pe * inner(J * inv(F.T) * N, u) * ds(self.parameters["RVendoid"])
+        if not ("RVPid" in list(self.parameters.keys())):
+            self.parameters.update({"RVPid": self.parameters["RVendoid"]})
+
+        if(isinstance(self.parameters["RVPid"], list)):
+            cnt = 0
+            for id_ in self.parameters["RVPid"]:
+                if(cnt == 0):
+                    surface_ = ds(id_)
+                else:
+                    surface_ += ds(id_)
+
+                cnt += 1
+        else:
+            surface_ = ds(self.parameters["RVPid"])
+
+        pres = pe * inner(J * inv(F.T) * N, u) * surface_#ds(self.parameters["RVendoid"])
 
         # pres = 1 * dsendo
         return pres
