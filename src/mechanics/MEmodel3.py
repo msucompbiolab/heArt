@@ -615,7 +615,8 @@ class MEmodel(object):
 
         if self.isFCH:
             mitral_vplane = self.SimDet["mitral_vplane"]
-            septumid = self.SimDet["septumid"]
+            # septumid = self.SimDet["septumid"]
+            septumid = None
             aorta_wall = self.SimDet["aorta_wall"]
             pulm_wall = self.SimDet["pulm_wall"]
             first_rv_valve = self.SimDet["first_rv_valve"]
@@ -1023,17 +1024,20 @@ class MEmodel(object):
                 k_spring = [2.0e3, 2.0e3]  # default
                 c_damping = [2.0e2, 2.0e2]  # default
 
-            if self.isLV or self.iswaorta or self.isBiV or self.isFCH:
-                Laplace_u = self.GetLaplace()
+            if self.isLV:
+                if "epiid_Kadj_coeff" in list(self.SimDet.keys()):
+                    epiid_Kadj_coeff = self.SimDet["epiid_Kadj_coeff"]
+                else:
+                    epiid_Kadj_coeff = Constant(10.0)
+            elif self.iswaorta:
+                epiid_Kadj_coeff = Constant(10.0)
+            elif self.isBiV:
+                epiid_Kadj_coeff = Constant(10.0)
+            elif self.isFCH:
+                epiid_Kadj_coeff = Constant(25.0)
 
-                if self.isLV:
-                    epiid_Kadj_coeff = Constant(5.0)
-                if self.iswaorta:
-                    epiid_Kadj_coeff = Constant(1.0)
-                elif self.isBiV:
-                    epiid_Kadj_coeff = Constant(10.0)
-                elif self.isFCH:
-                    epiid_Kadj_coeff = Constant(10.0)
+            if self.iswaorta or self.isFCH:
+                Laplace_u = self.GetLaplace()
 
                 F3_epi = inner(
                     outer(N_me, N_me)
@@ -1043,7 +1047,7 @@ class MEmodel(object):
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
-                ) * ds_me(epiid) + inner(
+                ) * (ds_me(epiid) + ds_me(apxid)) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
                         k_spring[1] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
@@ -1051,8 +1055,8 @@ class MEmodel(object):
                         + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,
-                ) * ds_me(
-                    epiid
+                ) * (
+                    ds_me(epiid) + ds_me(apxid)
                 )
 
                 F3 = F3_epi
@@ -1079,7 +1083,7 @@ class MEmodel(object):
                 #        septumid
                 #    )
 
-                    # F3 += F3_septum
+                # F3 += F3_septum
 
                 elif self.iswaorta:
                     if (
@@ -1111,40 +1115,62 @@ class MEmodel(object):
                             aorta_ring
                         )
 
-                        # F3 += F3_aorta_ring
-                    else:
-
-                        F3_bas = inner(
-                            outer(N_me, N_me)
-                            * (k_spring[0] * u_me + c_damping[0] * (u_me - u_me_n)),
-                            v_me,
-                        ) * ds_me(basid) + inner(
-                            (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                            * (k_spring[1] * u_me + c_damping[1] * (u_me - u_me_n)),
-                            v_me,
-                        ) * ds_me(
-                            basid
-                        )
-
-                        F3 += F3_bas
+                        F3 += F3_aorta_ring
 
             elif self.isLV:
                 # F3_epi = inner(
                 #    outer(N_me, N_me)
-                #    * (k_spring[0] * u_me + c_damping[0] * (u_me - u_me_n)),
+                #    * (
+                #        k_spring[0] * abs(X_me[2]) * u_me
+                #        + c_damping[0] * (u_me - u_me_n)
+                #    ),
                 #    v_me,
                 # ) * ds_me(epiid) + inner(
                 #    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                #    * (k_spring[1] * u_me + c_damping[1] * (u_me - u_me_n)),
+                #    * (
+                #        k_spring[1] * abs(X_me[2]) * u_me
+                #        + c_damping[1] * (u_me - u_me_n)
+                #    ),
                 #    v_me,
                 # ) * ds_me(
                 #    epiid
                 # )
 
-                a_, b_ = self.GetTopSpring()
-                F3_base = a_ * inner(b_, v_me) * ds_me(topid)
+                Laplace_u = self.GetLaplace()
 
-                # F3 -= F3_base
+                F3_epi = inner(
+                    outer(N_me, N_me)
+                    * (
+                        k_spring[0] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
+                        # k_spring[0] * abs(X_me[2]) * u_me
+                        + c_damping[0] * (u_me - u_me_n)
+                    ),
+                    v_me,
+                ) * (ds_me(epiid)) + inner(
+                    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                    * (
+                        k_spring[1] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
+                        # k_spring[1] * abs(X_me[2]) * u_me
+                        + c_damping[1] * (u_me - u_me_n)
+                    ),
+                    v_me,
+                ) * (
+                    ds_me(epiid)
+                )
+
+                F3 = F3_epi
+
+                # spring at base
+                if (
+                    "spring_atbase" in list(self.SimDet.keys())
+                    and self.SimDet["spring_atbase"]
+                ):
+                    a_, b_ = self.GetTopSpring()
+                    F3_base = a_ * inner(b_, v_me) * ds_me(topid)
+                    F3 -= F3_base
+
+            elif self.isBiV:
+                F3 = 0
 
             Ftotal += F3
 

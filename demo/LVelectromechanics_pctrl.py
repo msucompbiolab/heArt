@@ -28,9 +28,9 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    "casename": "ellipsoidal",
-    "directory_me": "./",
-    "directory_ep": "./",
+    "casename": "ellipsoidal_baselinegeo",
+    "directory_me": "../LVMesh/vh/",
+    "directory_ep": "../LVMesh/vh/",
     "outputfolder": "./outputs_LVelectromechanics/",
     "folderName": "",
     "caseID": "LVelectromechanics_pctrl",
@@ -134,6 +134,7 @@ SimDetails = {
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
+    "epiid_Kadj_coeff": 10,
 }
 
 # Run Simulation

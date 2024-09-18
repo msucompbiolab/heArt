@@ -386,33 +386,56 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         # if state_obj.t > 100:
         # break
 
-        params = {
-            "P_LV": P_LV,
-            "V_LV": V_LV,
-            "P_RV": P_RV,
-            "V_RV": V_RV,
-            "t": state_obj.t,
-            "delTat": state_obj.dt.dt,
-        }
+        if isLV or iswaorta:
+            params = {
+                "P_LV": P_LV,
+                "V_LV": V_LV,
+                "t": state_obj.t,
+                "delTat": state_obj.dt.dt,
+            }
+        elif isBiV or isFCH:
+            params = {
+                "P_LV": P_LV,
+                "V_LV": V_LV,
+                "P_RV": P_RV,
+                "V_RV": V_RV,
+                "t": state_obj.t,
+                "delTat": state_obj.dt.dt,
+            }
 
         if isLV or iswaorta:
             V_LV = CLmodel_.UpdateLVV(params)
         elif isBiV or isFCH:
             V_LV, V_RV = CLmodel_.UpdateLVV(params)
 
-        printout(
-            "t = "
-            + str(state_obj.t)
-            + "V_LV = "
-            + str(V_LV)
-            + " Psa = "
-            + str(CLmodel_.Psa)
-            + " PLA = "
-            + str(CLmodel_.GetPLoRA(params, 1))
-            + " P_LV = "
-            + str(P_LV),
-            comm_me,
-        )
+        if isLV or iswaorta:
+            printout(
+                "t = "
+                + str(state_obj.t)
+                + "V_LV = "
+                + str(V_LV)
+                + " Psa = "
+                + str(CLmodel_.Psa)
+                + " P_LV = "
+                + str(P_LV),
+                comm_me,
+            )
+
+        elif isBiV or isFCH:
+            printout(
+                "t = "
+                + str(state_obj.t)
+                + "V_LV = "
+                + str(V_LV)
+                + " Psa = "
+                + str(CLmodel_.Psa)
+                + " PLA = "
+                + str(CLmodel_.GetPLoRA(params, 1))
+                + " P_LV = "
+                + str(P_LV),
+                comm_me,
+            )
+
         with open(outputfolder + folderName + "output_PV.txt", "a") as f_PV:
             if MPI.rank(comm_me) == 0:
                 if isLV or iswaorta:
@@ -605,9 +628,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                 if np.linalg.norm(F) < tol and np.linalg.norm(du) < tol:
                     break
 
-            # with open(outputfolder + folderName + "output_JRp.txt", "a") as f_JRp:
-            #    if MPI.rank(comm_me) == 0:
-            #        f_JRp.write(f"t = {state_obj.t}, iter = {iter}, du = {du} \n")
+            with open(outputfolder + folderName + "output_JRp.txt", "a") as f_JRp:
+                if MPI.rank(comm_me) == 0:
+                    f_JRp.write(f"t = {state_obj.t}, iter = {iter}, du = {du} \n")
 
             # if cnt % SimDet["writeStep"] == 0.0:
             #    export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
