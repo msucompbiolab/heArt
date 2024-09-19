@@ -19,16 +19,23 @@ def find_nearest(array, value):
     return idx
 
 
-def extract_PV(filename, BCL, ncycle):
+def extract_PV(filename, BCL, ncycle, SimDet):
     reader = csv.reader(open(filename), delimiter=" ")
     tpt_array = []
     LVP_array = []
     LVV_array = []
+    RVP_array = []
+    RVV_array = []
     Qmv_array = []
     for row in reader:
         tpt_array.append(float(row[0]))
         LVP_array.append(float(row[1]))
         LVV_array.append(float(row[2]))
+        if "isBiV" in list(SimDet.keys()):
+            if SimDet["isBiV"]:
+                RVP_array.append(float(row[3]))
+                RVV_array.append(float(row[4]))
+ 
         try:
             Qmv_array.append(float(row[6]))
         except IndexError:
@@ -37,13 +44,21 @@ def extract_PV(filename, BCL, ncycle):
     tpt_array = np.array(tpt_array)
     LVP_array = np.array(LVP_array)
     LVV_array = np.array(LVV_array)
+    RVP_array = np.array(RVP_array)
+    RVV_array = np.array(RVV_array)
     Qmv_array = np.array(Qmv_array)
 
     ind = np.where(
         np.logical_and(tpt_array >= ncycle * BCL, tpt_array <= (ncycle + 1) * BCL)
     )
 
-    return tpt_array[ind], LVP_array[ind], LVV_array[ind], Qmv_array[ind]
+    if "isBiV" in list(SimDet.keys()):
+        if SimDet["isBiV"]:
+            return tpt_array[ind], LVP_array[ind], LVV_array[ind], RVP_array[ind], RVV_array[ind], Qmv_array[ind]
+        else:
+            return tpt_array[ind], LVP_array[ind], LVV_array[ind], [], [], Qmv_array[ind]
+    else:
+        return tpt_array[ind], LVP_array[ind], LVV_array[ind], [], [], Qmv_array[ind]
 
 
 def extract_Q(filename, BCL, ncycle):

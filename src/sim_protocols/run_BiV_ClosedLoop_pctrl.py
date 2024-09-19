@@ -246,7 +246,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     preinc = default_params["preinc"]
 
     it = 0
-    tempfile = File(os.path.join(IODet["outputfolder"], "displacement.pvd")) 
+    tempfile = File(outputfolder + folderName + "displacement.pvd")
     while 1:
         printout("Loading", comm_me)
         MEmodel_.LVCavitypres.pres += (EDP / 0.0075) / nloadstep
@@ -255,7 +255,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         solver_elas.solvenonlinear()
 
-        tempfile << MEmodel_.GetDisplacement()
+        if(it % 10 == 0):
+            tempfile << MEmodel_.GetDisplacement()
 
         export.writePV(MEmodel_, 0)
         export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
@@ -615,7 +616,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             #    writecnt += 1
 
 
-        tempfile << MEmodel_.GetDisplacement() #LCL
+        if(cnt % 10 == 0):
+            tempfile << MEmodel_.GetDisplacement() #LCL
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)

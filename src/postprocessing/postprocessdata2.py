@@ -4,6 +4,8 @@ from ..mechanics.forms_MRC2 import Forms
 from ..utils.oops_objects_MRC2 import State_Variables
 from ..utils.oops_objects_MRC2 import lv_mesh as lv_mechanics_mesh
 from ..mechanics.MEmodel3 import MEmodel
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pylab as plt
 from mpi4py import MPI as pyMPI
 
@@ -17,7 +19,7 @@ def postprocessdata(IODet, SimDet, cycle=None):
 
     for ncycle in range(cycle - 1, cycle):
         filename = directory + casename + "/" + "BiV_PV.txt"
-        homo_tptt, homo_LVP, homo_LVV, homo_Qmv = extract_PV(filename, BCL, ncycle)
+        homo_tptt, homo_LVP, homo_LVV, homo_RVP, homo_RVV, homo_Qmv = extract_PV(filename, BCL, ncycle, SimDet) 
 
         filename = directory + casename + "/" + "BiV_Q.txt"
         (
@@ -221,7 +223,7 @@ def compute_activation(IODet, SimDet, cycle=None):
     File_act = df.File(os.path.join(act_outdirectory, "act.pvd"))
     File_act << time_act
 
-def normalize_directionalbasis(Mesh_obj):
+def normalize_directionalbasis(Mesh_obj, deg):
 
     eC0 = Mesh_obj.eC0
     eL0 = Mesh_obj.eL0
@@ -231,13 +233,29 @@ def normalize_directionalbasis(Mesh_obj):
     eL0_normalized = eL0 / df.sqrt(df.inner(eL0, eL0))
     eR0_normalized = eR0 / df.sqrt(df.inner(eR0, eR0))
 
-    eC0_normalized = df.project(eC0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0)).vector().get_local()
+    eC0_normalized = df.project(eC0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0),
+                     form_compiler_parameters={
+                                     "representation": "uflacs",
+                                     "quadrature_degree": deg,
+                                 }
+                     ).vector().get_local()
     isnan_eC0_normalized = np.argwhere(np.isnan(eC0_normalized)).flatten()
 
-    eL0_normalized = df.project(eL0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0)).vector().get_local()
+    eL0_normalized = df.project(eL0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0),
+                     form_compiler_parameters={
+                                     "representation": "uflacs",
+                                     "quadrature_degree": deg,
+                                 }
+                     ).vector().get_local()
     isnan_eL0_normalized = np.argwhere(np.isnan(eL0_normalized)).flatten()
 
-    eR0_normalized = df.project(eR0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0)).vector().get_local()
+    eR0_normalized = df.project(eR0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0),
+                     form_compiler_parameters={
+                                     "representation": "uflacs",
+                                     "quadrature_degree": deg,
+                                 }
+
+                     ).vector().get_local()
     isnan_eR0_normalized = np.argwhere(np.isnan(eR0_normalized)).flatten()
 
     mesh_coordinates = df.FunctionSpace(Mesh_obj.mesh, "DG",0).tabulate_dof_coordinates()
@@ -306,7 +324,8 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
     eL0 = Mesh_obj.eL0
     eR0 = Mesh_obj.eR0
 
-    eC0_normalized, eL0_normalized, eR0_normalized = normalize_directionalbasis(Mesh_obj)
+    deg = SimDet["GiccioneParams"]["deg"]
+    eC0_normalized, eL0_normalized, eR0_normalized = normalize_directionalbasis(Mesh_obj, deg)
 
     if SimDet["Mechanics Discretization"] is "P1P1":
         var_deg = 1
@@ -325,7 +344,6 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
         "incompressible": GuccioneParams["incompressible"],
         "growth_tensor": None,
     }
-    deg = SimDet["GiccioneParams"]["deg"]
 
     uflforms = Forms(params)
     Fref = df.project(uflforms.Fmat(), df.TensorFunctionSpace(Mesh_obj.mesh, "DG", 0))
@@ -626,8 +644,11 @@ def plothemodynamics(IODet, SimDet, cycle=None):
     plt.figure()
     for ncycle in range(cycle):
         filename = directory + casename + "/" + "BiV_PV.txt"
-        homo_tptt, homo_LVP, homo_LVV, homo_Qmv = extract_PV(filename, BCL, ncycle)
-        plt.plot(homo_LVV, homo_LVP * 0.0075, label=f"Cycle = {ncycle}")
+        homo_tptt, homo_LVP, homo_LVV, homo_RVP, homo_RVV, homo_Qmv = extract_PV(filename, BCL, ncycle, SimDet)
+        plt.plot(homo_LVV, homo_LVP , label=f"LV Cycle = {ncycle}")
+        if "isBiV" in list(SimDet.keys()):
+            if SimDet["isBiV"]:
+                plt.plot(homo_RVV, homo_RVP , label=f"RV Cycle = {ncycle}")
 
     hemodynamics_outdirectory = os.path.join(
         IODet["outputfolder"], IODet["caseID"], "hemodynamics"

@@ -30,15 +30,21 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
-    "casename": "003_LVAD",
-    "directory_me": "../../LVAD/Corewell/003/OutputDir/",
-    "directory_ep": "../../LVAD/Corewell/003/OutputDir/",
-    "outputfolder": "./outputs_BiVelectromechanics_LVAD/",
+    #"casename": "003_LVAD",
+    #"directory_me": "../../LVAD/Corewell/003/OutputDir/",
+    #"directory_ep": "../../LVAD/Corewell/003/OutputDir/",
+    #"outputfolder": "./outputs_BiVelectromechanics_LVAD/",
+    #"folderName": "",
+    #"caseID": "003",
+    "casename": "003_coarse_LVAD",
+    "directory_me": "/mnt/Research/LVAD/Corewell/003_coarse/OutputDir/",
+    "directory_ep": "/mnt/Research/LVAD/Corewell/003_coarse/OutputDir/",
+    "outputfolder": "/mnt/Research/heArt_py3/demo/outputs_BiVelectromechanics_LVAD_coarse/",
     "folderName": "",
-    "caseID": "003",
+    "caseID": "003_coarse",
 }
 
-contRactility = 100e3
+contRactility = 50e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -98,7 +104,7 @@ Circparam = {
     "Cpa": 0.0125,
     "Cpv": 0.9,
     "Vpa0": 360,
-    "Vpv0": 15,
+    "Vpv0": 150,
     "Rpv": 500.0,
     "Rtv": 400.0,
     "Rpa": 10000.0,
@@ -124,7 +130,7 @@ Circparam = {
     "V_RV": 160.584621758,
     "V_pa": 375.714158013,
     "V_RA": 26.1123080465,
-    "stop_iter": 1,
+    "stop_iter": 5,
     # LVAD
     #'Q_lvad_rpm' : 28,
     #'Q_lvad_scale' : 0.0
@@ -149,17 +155,23 @@ SimDetails = {
     "isLV": False,
     "ispctrl": True,
     "isBiV": True,
-    "topid": 4,
-    "LVendoid": [7,8],
-    "RVendoid": [5,6],
+    #"topid": 4, # Regular
+    "topid": 2, # Coarse
+    #"LVendoid": [7,8], # Regular
+    #"RVendoid": [5,6], # Regular
+    "LVendoid": [3,4], # Coarse
+    "RVendoid": [5,6], # Coarse
     "epiid": 1,
     "fiber_fspace": "DG",
     "fiber_fspace_deg": 0,
     "abs_tol": 1e-8,
     "rel_tol": 1e-9,
     "active_region": [0, 1],  # only lv is activated
-    "LVPid": 7,
-    "RVPid": 5
+    #"LVPid": 7, # Regular
+    #"RVPid": 5 # Regular
+    "LVPid": 3, # Coarse
+    "RVPid": 6, # Coarse
+    "fix_surf": 7
 }
 
 
@@ -168,7 +180,7 @@ run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
 # compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
-# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=1)
+plothemodynamics(IODet=IODetails, SimDet=SimDetails)#, cycle=1)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

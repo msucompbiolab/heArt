@@ -539,12 +539,24 @@ class MEmodel(object):
             )
 
         elif self.isLV or self.isBiV:
+
             bctop = DirichletBC(
                 W.sub(0).sub(2),
                 Expression(("0.0"), degree=2),
                 facetboundaries,
                 topid,
             )
+
+            if "fix_surf" in self.SimDet.keys():
+                fix_surf = self.SimDet["fix_surf"]
+                bc_fix = DirichletBC(
+                    W.sub(0),
+                    Expression(("0.0", "0.0", "0.0"), degree=2),
+                    facetboundaries,
+                    fix_surf,
+                )
+            else:
+                bc_fix = None
 
         elif self.isFCH:
             pulm_wall = self.SimDet["pulm_wall"]
@@ -585,7 +597,10 @@ class MEmodel(object):
             if self.iswaorta:
                 bcs = [bc_aorta_ring]
             elif self.isLV or self.isBiV:
-                bcs = [bctop]
+                #bcs = [bctop] #LCL
+                bcs = []
+                if bc_fix is not None:
+                    bcs.append(bc_fix) 
             elif self.isFCH:
                 bcs = []
         return bcs

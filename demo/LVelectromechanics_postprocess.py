@@ -2,11 +2,14 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/home/ziaeirad")
-from heArt.src.sim_protocols.run_BiV_ClosedLoop import (
+sys.path.append("/mnt/Research")
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
-from heArt.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
-
+from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    compute_strain as compute_strain,
+)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
     "casename": "ellipsoidal_baselinegeo",
@@ -98,12 +101,14 @@ SimDetails = {
     "abs_tol": 1e-9,
     "rel_tol": 5e-7,
     "isunloading": False,
+    "Mechanics Discretization":"P1P1"
 }
 
 # Run Simulation
 # run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
-postprocessdata(
-    IODet=IODetails, SimDet=SimDetails
-)  # vahid: will cut-off this into a separate file
+#postprocessdata(
+#    IODet=IODetails, SimDet=SimDetails
+#)  # vahid: will cut-off this into a separate file
+compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
