@@ -393,6 +393,13 @@ class lv_mesh(object):
 
         self.EpiBCid_me = EpiBCid
 
+        self.poissonFS = FunctionSpace(
+            self.mesh, FiniteElement("Lagrange", self.mesh.ufl_cell(), 1)
+        )
+        self.poissonF = Function(self.poissonFS)
+
+        if f.has_dataset(casename + "/" + "varyingspring"):
+            f.read(self.poissonF, casename + "/" + "varyingspring")
         f.close()
 
         self.topid = self.parameters["topid"]
