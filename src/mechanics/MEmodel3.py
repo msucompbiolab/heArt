@@ -1043,7 +1043,7 @@ class MEmodel(object):
                 if "epiid_Kadj_coeff" in list(self.SimDet.keys()):
                     epiid_Kadj_coeff = self.SimDet["epiid_Kadj_coeff"]
                 else:
-                    epiid_Kadj_coeff = Constant(10.0)
+                    epiid_Kadj_coeff = [10.0, 10.0]
             elif self.iswaorta:
                 epiid_Kadj_coeff = Constant(10.0)
             elif self.isBiV:
@@ -1058,7 +1058,6 @@ class MEmodel(object):
                     outer(N_me, N_me)
                     * (
                         k_spring[0] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
-                        # k_spring[0] * abs(X_me[2]) * u_me
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
@@ -1066,7 +1065,6 @@ class MEmodel(object):
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
                         k_spring[1] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
-                        # k_spring[1] * abs(X_me[2]) * u_me
                         + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,
@@ -1133,39 +1131,20 @@ class MEmodel(object):
                         F3 += F3_aorta_ring
 
             elif self.isLV:
-                # F3_epi = inner(
-                #    outer(N_me, N_me)
-                #    * (
-                #        k_spring[0] * abs(X_me[2]) * u_me
-                #        + c_damping[0] * (u_me - u_me_n)
-                #    ),
-                #    v_me,
-                # ) * ds_me(epiid) + inner(
-                #    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                #    * (
-                #        k_spring[1] * abs(X_me[2]) * u_me
-                #        + c_damping[1] * (u_me - u_me_n)
-                #    ),
-                #    v_me,
-                # ) * ds_me(
-                #    epiid
-                # )
 
                 Laplace_u = self.GetLaplace()
 
                 F3_epi = inner(
                     outer(N_me, N_me)
                     * (
-                        k_spring[0] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
-                        # k_spring[0] * abs(X_me[2]) * u_me
+                        k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * u_me
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
                 ) * (ds_me(epiid)) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
-                        k_spring[1] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
-                        # k_spring[1] * abs(X_me[2]) * u_me
+                        k_spring[1] * epiid_Kadj_coeff[1] * u_me
                         + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,

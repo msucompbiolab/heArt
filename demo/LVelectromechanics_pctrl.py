@@ -134,7 +134,10 @@ SimDetails = {
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
-    "epiid_Kadj_coeff": 10,
+    "epiid_Kadj_coeff": [50, 10],
+    "springparam": [2.0e3, 2.0e2],  # Kepi_n / Kepi_t
+    "dashpotparam": [2.0e2, 2.0e1],  # Cepi_n / Cepi_t
+    # "spring_atbase": 0,
 }
 
 # Run Simulation
@@ -143,6 +146,6 @@ run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
-# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
+# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
 # plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=2)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
