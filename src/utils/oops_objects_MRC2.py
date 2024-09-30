@@ -1896,7 +1896,10 @@ class exportfiles(object):
             if isBiV:
                 RVP = MEmodel.RVCavitypres.pres * 0.0075
                 RVV = MEmodel.GetRVV()
-
+            if MEmodel.islumped:
+                LVP = MEmodel.lumped_pres
+                LVV = MEmodel.lumped_vol
+                # pass
         else:
             LVP = MEmodel.GetLVP() * 0.0075
             LVV = MEmodel.GetLVV()

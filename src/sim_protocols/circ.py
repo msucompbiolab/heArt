@@ -12,6 +12,15 @@ class CLmodel(object):
             out = 0.5 * math.exp((-self.t_la + (1.5 * self.Tmax_la)) / self.tau_la)
         return out
 
+    def et_lv(self):  # for P_LV
+        if self.t_lv <= 1.5 * self.Tmax_lv:
+            out = 0.5 * (
+                math.sin((math.pi / self.Tmax_lv) * self.t_lv - math.pi / 2) + 1
+            )
+        else:
+            out = 0.5 * math.exp((-self.t_lv + (1.5 * self.Tmax_lv)) / self.tau_lv)
+        return out
+
     def default_parameters(self):  # default values for Q
         return {"Qsa": 0.0, "Qad": 0.0, "Qsv": 0.0, "Qav": 0.0, "Qmv": 0.0}
 
@@ -64,6 +73,14 @@ class CLmodel(object):
         self.tau_la = SimDet["closedloopparam"]["tau_la"]
         self.tdelay_la = SimDet["closedloopparam"]["tdelay_la"]
 
+        # For LV
+        self.Ees_lv = SimDet["closedloopparam"]["Ees_lv"]
+        self.V0_lv = SimDet["closedloopparam"]["V0_lv"]
+        self.A_lv = SimDet["closedloopparam"]["A_lv"]
+        self.B_lv = SimDet["closedloopparam"]["B_lv"]
+        self.Tmax_lv = SimDet["closedloopparam"]["Tmax_lv"]
+        self.tau_lv = SimDet["closedloopparam"]["tau_lv"]
+        self.tdelay_lv = SimDet["closedloopparam"]["tdelay_lv"]
         # perhaps we initialized V_LV here
         self.V_LV = V_LV
 
@@ -109,7 +126,7 @@ class CLmodel(object):
         else:
             self.t_la = (
                 self.parameters["t"] - self.SimDet["HeartBeatLength"] + self.tdelay_la
-            )  #
+            )
 
         self.PLA = self.et() * self.Ees_la * (self.V_LA - self.V0_la) + (
             1 - self.et()
@@ -118,3 +135,26 @@ class CLmodel(object):
 
     def GetLVV(self):
         return self.V_LV
+
+    def GetPLoRV(self, params):
+
+        self.parameters.update(params)
+        # For PLV
+        if self.parameters["t"] < self.SimDet["HeartBeatLength"] - self.tdelay_lv:
+            self.t_lv = self.parameters["t"] + self.tdelay_lv
+        else:
+            self.t_lv = (
+                self.parameters["t"] - self.SimDet["HeartBeatLength"] + self.tdelay_lv
+            )
+
+        PLV = 0
+        # PLV = e(t_LV,Tmax_LV,tau_LV, trans_LV)*Ees_LV.*(VLV - V0_LV) + (1 - e(t_LV,Tmax_LV,tau_LV,trans_LV))*A_LV
+        # Ees_lv, V0_lv, A_lv
+        # PLV = (
+        #    self.et_lv() * self.Ees_lv * (self.V_LV - self.V0_lv)
+        #    + (1 - self.et_lv()) * self.A_lv
+        # )
+        self.PLV = self.et_lv() * self.Ees_lv * (self.V_LV - self.V0_lv) + (
+            1 - self.et_lv()
+        ) * self.A_lv * (math.exp(self.B_lv * (self.V_LV - self.V0_lv)) - 1)
+        return self.PLV
