@@ -56,6 +56,11 @@ class CLmodel(object):
         self.Rav = SimDet["closedloopparam"]["Rav"]
         self.Rmv = SimDet["closedloopparam"]["Rmv"]
 
+        # Regurgitation resistance
+        self.Rav_rg = 1e9
+        if "Rav_rg" in list(SimDet["closedloopparam"].keys()):
+            self.Rav_rg = SimDet["closedloopparam"]["Rav_rg"]
+
         self.V_sa = SimDet["closedloopparam"]["V_sa"]
         self.V_ad = SimDet["closedloopparam"]["V_ad"]
         self.V_sv = SimDet["closedloopparam"]["V_sv"]
@@ -80,6 +85,15 @@ class CLmodel(object):
         #    self.parameters["Qav"] = SimDet["closedloopparam"]["Q_av"]
         #if "Q_mv" in list(SimDet["closedloopparam"].keys()):
         #    self.parameters["Qmv"] = SimDet["closedloopparam"]["Q_mv"]
+
+        # Parameters for LVAD #############################################
+        self.LVADrpm = 0
+        if "Q_lvad_rpm" in list(SimDet["closedloopparam"].keys()):
+            self.LVADrpm = self.SimDet["closedloopparam"]["Q_lvad_rpm"]
+        if "Q_lvad_characteristic" in list(SimDet["closedloopparam"].keys()):
+            self.QLVADFn = self.SimDet["closedloopparam"]["Q_lvad_characteristic"]
+    
+        self.Qlvad = 0
 
         # for LA
         self.Ees_la = SimDet["closedloopparam"]["Ees_la"]
@@ -121,7 +135,8 @@ class CLmodel(object):
 
         # update Q
         if self.PLV <= self.Psa:
-            self.Qav = 0.0
+            #self.Qav = 0.0
+            self.Qav = 1.0 / self.Rav_rg * (self.PLV - self.Psa)
         else:
             self.Qav = 1.0 / self.Rav * (self.PLV - self.Psa)
 
@@ -146,8 +161,12 @@ class CLmodel(object):
         self.Qpa = 1.0 / self.Rpa * (self.Ppa - self.Ppv)
         self.Qpv = 1.0 / self.Rpv * (self.Ppv - self.PLA)
 
-        self.V_LV = self.V_LV + self.parameters["delTat"] * (self.Qmv - self.Qav)
-        self.V_sa = self.V_sa + self.parameters["delTat"] * (self.Qav - self.Qsa)
+        if "Q_lvad_characteristic" in list(self.SimDet["closedloopparam"].keys()):
+            H = (self.Psa - self.PLV) * 0.0075  # Pump head in mmHg
+            self.Qlvad = self.QLVADFn.Flowrate(H, self.LVADrpm) / 60  # Flow rate of LVAD in mL/ms
+
+        self.V_LV = self.V_LV + self.parameters["delTat"] * (self.Qmv - self.Qav - self.Qlvad)
+        self.V_sa = self.V_sa + self.parameters["delTat"] * (self.Qav - self.Qsa + self.Qlvad)
         self.V_ad = self.V_ad + self.parameters["delTat"] * (self.Qsa - self.Qad)
         self.V_sv = self.V_sv + self.parameters["delTat"] * (self.Qad - self.Qsv)
         self.V_RA = self.V_RA + self.parameters["delTat"] * (self.Qsv - self.Qtv)

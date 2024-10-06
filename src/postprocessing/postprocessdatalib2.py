@@ -61,82 +61,151 @@ def extract_PV(filename, BCL, ncycle, SimDet):
         return tpt_array[ind], LVP_array[ind], LVV_array[ind], [], [], Qmv_array[ind]
 
 
-def extract_Q(filename, BCL, ncycle):
+def extract_Q(filename, BCL, ncycle, SimDet):
+
+    isBiV = False
+    isBiV = SimDet["isBiV"]
+
     reader = csv.reader(open(filename), delimiter=" ")
+
     tpt_array = []
-    Qao_array = []
+    Qav_array = []
     Qmv_array = []
-    Qper_array = []
-    Qla_array = []
-    Qlad1_array = []
-    Qlad2_array = []
+    Qsa_array = []
+    Qsv_array = []
+    Qpvv_array = []
+    Qtv_array = []
+    Qpa_array = []
+    Qpv_array = []
     Qlvad_array = []
+
     for row in reader:
         tpt_array.append(float(row[0]))
-        Qao_array.append(float(row[1]))
+        Qav_array.append(float(row[1]))
         Qmv_array.append(float(row[2]))
-        Qper_array.append(float(row[3]))
-        Qla_array.append(float(row[4]))
-        Qlad1_array.append(float(row[5]))
-        Qlad2_array.append(float(row[6]))
-        Qlvad_array.append(float(row[7]))
+        Qsa_array.append(float(row[3]))
+        Qsv_array.append(float(row[4]))
+
+        if(isBiV):
+            Qpvv_array.append(float(row[5]))
+            Qtv_array.append(float(row[6]))
+            Qpa_array.append(float(row[7]))
+            Qpv_array.append(float(row[8]))
+            Qlvad_array.append(float(row[9]))
+        else:
+            Qlvad_array.append(float(row[5]))
+
 
     tpt_array = np.array(tpt_array)
-    Qao_array = np.array(Qao_array)
+    Qav_array = np.array(Qav_array)
     Qmv_array = np.array(Qmv_array)
-    Qper_array = np.array(Qper_array)
-    Qla_array = np.array(Qla_array)
-    Qlad1_array = np.array(Qlad1_array)
-    Qlad2_array = np.array(Qlad2_array)
+    Qsa_array = np.array(Qsa_array)
+    Qsv_array = np.array(Qsv_array)
+    Qpvv_array = np.array(Qpvv_array)
+    Qtv_array = np.array(Qtv_array)
+    Qpa_array = np.array(Qpa_array)
+    Qpv_array = np.array(Qpv_array)
     Qlvad_array = np.array(Qlvad_array)
 
     ind = np.where(
         np.logical_and(tpt_array >= ncycle * BCL, tpt_array <= (ncycle + 1) * BCL)
     )
 
-    return (
-        tpt_array[ind],
-        Qao_array[ind],
-        Qmv_array[ind],
-        Qper_array[ind],
-        Qla_array[ind],
-        Qlad1_array[ind],
-        Qlad2_array[ind],
-        Qlvad_array[ind],
-    )
+    if(isBiV):
+        return (
+            tpt_array[ind],
+            Qav_array[ind],
+            Qmv_array[ind],
+            Qsa_array[ind],
+            Qsv_array[ind],
+            Qpvv_array[ind],
+            Qtv_array[ind],
+            Qpa_array[ind],
+            Qpv_array[ind],
+            Qlvad_array[ind]
+        )
+    else:
+        return (
+            tpt_array[ind],
+            Qav_array[ind],
+            Qmv_array[ind],
+            Qsa_array[ind],
+            Qsv_array[ind],
+            None,
+            None,
+            None,
+            None,
+            Qlvad_array[ind]
+        )
 
 
-def extract_P(filename, BCL, ncycle):
+def extract_P(filename, BCL, ncycle, SimDet):
+
+    isBiV = False
+    isBiV = SimDet["isBiV"]
+
     reader = csv.reader(open(filename), delimiter=" ")
     tpt_array = []
-    Pven_array = []
+    Psv_array = []
     PLV_array = []
-    Part_array = []
+    Psa_array = []
     PLA_array = []
+    Ppv_array = []
+    PRV_array = []
+    Ppa_array = []
+    PRA_array = []
     for row in reader:
         tpt_array.append(float(row[0]))
-        Pven_array.append(float(row[1]))
+        Psv_array.append(float(row[1]))
         PLV_array.append(float(row[2]))
-        Part_array.append(float(row[3]))
+        Psa_array.append(float(row[3]))
         PLA_array.append(float(row[4]))
 
+        if(isBiV):
+            Ppv_array.append(float(row[5]))
+            PRV_array.append(float(row[6]))
+            Ppa_array.append(float(row[7]))
+            PRA_array.append(float(row[8]))
+
+
     tpt_array = np.array(tpt_array)
-    Pven_array = np.array(Pven_array)
+    Psv_array = np.array(Psv_array)
     PLV_array = np.array(PLV_array)
-    Part_array = np.array(Part_array)
+    Psa_array = np.array(Psa_array)
     PLA_array = np.array(PLA_array)
+    Ppv_array = np.array(Ppv_array)
+    PRV_array = np.array(PRV_array)
+    Ppa_array = np.array(Ppa_array)
+    PRA_array = np.array(PRA_array)
 
     ind = np.where(
         np.logical_and(tpt_array >= ncycle * BCL, tpt_array <= (ncycle + 1) * BCL)
     )
 
-    return (
-        tpt_array[ind],
-        Pven_array[ind],
-        PLV_array[ind],
-        Part_array[ind],
-        PLA_array[ind],
-    )
+    if(isBiV):
+        return (
+            tpt_array[ind],
+            Psv_array[ind],
+            PLV_array[ind],
+            Psa_array[ind],
+            PLA_array[ind],
+            Ppv_array[ind],
+            PRV_array[ind],    
+            Ppa_array[ind],
+            PRA_array[ind]
+        )
+    else:
+        return (
+            tpt_array[ind],
+            Psv_array[ind],
+            PLV_array[ind],
+            Psa_array[ind],
+            PLA_array[ind],
+            None,
+            None,    
+            None,
+            None
+        )
 
 
 def extract_probe(filename, BCL, ncycle):

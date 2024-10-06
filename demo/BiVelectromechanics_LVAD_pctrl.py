@@ -37,14 +37,16 @@ IODetails = {
     #"folderName": "",
     #"caseID": "003",
     "casename": "003_coarse_LVAD",
-    "directory_me": "/mnt/Research/LVAD/Corewell/003_coarse/OutputDir/",
-    "directory_ep": "/mnt/Research/LVAD/Corewell/003_coarse/OutputDir/",
-    "outputfolder": "/mnt/Research/heArt_py3/demo/outputs_BiVelectromechanics_LVAD_coarse/",
+    "directory_me": "/mnt/home/lclee/LVAD/Corewell/003_coarse/OutputDir/",
+    "directory_ep": "/mnt/home/lclee/LVAD/Corewell/003_coarse/OutputDir/",
+    "outputfolder": "/mnt/home/lclee/heArt_py3/demo/outputs_BiVelectromechanics_LVAD_coarse/",
     "folderName": "",
-    "caseID": "003_coarse",
+    #"caseID": "003_coarse",
+    "caseID": "003_coarse_1",
 }
 
-contRactility = 50e3
+#contRactility = 80e3
+contRactility = 100e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -130,7 +132,7 @@ Circparam = {
     "V_RV": 160.584621758,
     "V_pa": 375.714158013,
     "V_RA": 26.1123080465,
-    "stop_iter": 5,
+    "stop_iter": 2,
     # LVAD
     #'Q_lvad_rpm' : 28,
     #'Q_lvad_scale' : 0.0

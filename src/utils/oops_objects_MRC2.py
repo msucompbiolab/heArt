@@ -1908,13 +1908,13 @@ class exportfiles(object):
         if MPI.rank(comm) == 0:
             fdataPV = self.fdataPV
             if isLV:
-                print(t, LVP, LVV, file=fdataPV)
+                print(t, LVP, LVV, file=fdataPV, flush=True)
             elif iswaorta:
-                print(t, LVP, LVV, file=fdataPV)
+                print(t, LVP, LVV, file=fdataPV, flush=True)
             elif isFCH:
-                print(t, LVP, LVV, file=fdataPV)
+                print(t, LVP, LVV, file=fdataPV, flush=True)
             elif isBiV:
-                print(t, LVP, LVV, RVP, RVV, file=fdataPV)
+                print(t, LVP, LVV, RVP, RVV, file=fdataPV, flush=True)
 
         return
 
@@ -1925,7 +1925,7 @@ class exportfiles(object):
         if MPI.rank(comm) == 0:
             fdataQ = self.fdataQ
             # if(MPI.rank(MEmodel.mesh_me.mpi_comm()) == 0):
-            print(t, " ".join(map(str, Qarray)), file=fdataQ)
+            print(t, " ".join(map(lambda x: "%.5e" % x, Qarray)), file=fdataQ, flush=True)
 
         return
 
@@ -1936,7 +1936,7 @@ class exportfiles(object):
         if MPI.rank(comm) == 0:
             fdataP = self.fdataP
             # if(MPI.rank(MEmodel.mesh_me.mpi_comm()) == 0):
-            print(t, " ".join(map(str, Parray)), file=fdataP)
+            print(t, " ".join(map(lambda x: "%.5e" % x, Parray)), file=fdataP, flush=True)
 
         return
 
@@ -1946,7 +1946,7 @@ class exportfiles(object):
         if MPI.rank(comm) == 0:
             fdatatpt = self.fdatatpt
             # if(MPI.rank(MEmodel.mesh_me.mpi_comm()) == 0):
-            print(tpt, file=fdatatpt)
+            print(tpt, file=fdatatpt, flush=True)
 
         return
 
@@ -2034,4 +2034,4 @@ class exportfiles(object):
         comm = self.comm_ep
         if MPI.rank(comm) == 0:
             fdata_log = self.fdatalog
-            print(statement, file=fdata_log)
+            print(statement, file=fdata_log, flush=True)
