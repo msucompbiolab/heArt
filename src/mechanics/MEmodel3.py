@@ -38,6 +38,10 @@ class MEmodel(object):
             self.ispctrl = SimDet["ispctrl"]
         else:
             self.ispctrl = False  # Default
+        if "islumped" in list(self.SimDet.keys()):
+            self.islumped = SimDet["islumped"]
+        else:
+            self.islumped = False  # Default
         if "iswaorta" in list(self.SimDet.keys()):
             self.iswaorta = SimDet["iswaorta"]
         else:
@@ -60,7 +64,6 @@ class MEmodel(object):
         elif self.isBiV:
             self.Mesh = biv_mechanics_mesh(self.parameters, SimDet)
 
-
         f0_me_Gauss = self.Mesh.f0
         s0_me_Gauss = self.Mesh.s0
         n0_me_Gauss = self.Mesh.n0
@@ -75,16 +78,16 @@ class MEmodel(object):
 
         LVendoid = self.SimDet["LVendoid"]
 
-        if(isinstance(self.SimDet["LVendoid"], list)):
+        if isinstance(self.SimDet["LVendoid"], list):
             cnt = 0
             for id_ in self.SimDet["LVendoid"]:
-                if(cnt == 0):
+                if cnt == 0:
                     dsendo = self.ds_me(
-                                id_, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
+                        id_, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
                     )
                 else:
                     dsendo += self.ds_me(
-                                id_, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
+                        id_, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
                     )
                 cnt += 1
         else:
@@ -106,6 +109,9 @@ class MEmodel(object):
 
         self.LVCavitypres = Expression(("pres"), pres=0.0, degree=2)
         self.RVCavitypres = Expression(("pres"), pres=0.0, degree=2)
+
+        self.lumped_pres = 0.0
+        self.lumped_vol = 0.0
 
         self.isincomp = SimDet["GiccioneParams"]["incompressible"]
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
@@ -597,10 +603,10 @@ class MEmodel(object):
             if self.iswaorta:
                 bcs = [bc_aorta_ring]
             elif self.isLV or self.isBiV:
-                #bcs = [bctop] #LCL
+                # bcs = [bctop] #LCL
                 bcs = []
                 if bc_fix is not None:
-                    bcs.append(bc_fix) 
+                    bcs.append(bc_fix)
             elif self.isFCH:
                 bcs = []
         return bcs
@@ -658,15 +664,14 @@ class MEmodel(object):
         epiid = self.SimDet["epiid"]
 
         if not "LVPid" in list(self.SimDet.keys()):
-            LVPid= self.SimDet["LVendoid"]
+            LVPid = self.SimDet["LVendoid"]
         else:
-            LVPid= self.SimDet["LVPid"]
+            LVPid = self.SimDet["LVPid"]
 
         if not "RVPid" in list(self.SimDet.keys()):
-            RVPid= self.SimDet["RVendoid"]
+            RVPid = self.SimDet["RVendoid"]
         else:
-            RVPid= self.SimDet["RVPid"]
-
+            RVPid = self.SimDet["RVPid"]
 
         isincomp = GuccioneParams["incompressible"]
         deg_me = GuccioneParams["deg"]
@@ -924,7 +929,6 @@ class MEmodel(object):
             "rv_constrained_pres": self.RVCavitypres,
         }
 
-
         uflforms = Forms(params)
         self.uflforms = uflforms
 
@@ -1043,7 +1047,7 @@ class MEmodel(object):
                 if "epiid_Kadj_coeff" in list(self.SimDet.keys()):
                     epiid_Kadj_coeff = self.SimDet["epiid_Kadj_coeff"]
                 else:
-                    epiid_Kadj_coeff = Constant(10.0)
+                    epiid_Kadj_coeff = [10.0, 10.0]
             elif self.iswaorta:
                 epiid_Kadj_coeff = Constant(10.0)
             elif self.isBiV:
@@ -1058,7 +1062,6 @@ class MEmodel(object):
                     outer(N_me, N_me)
                     * (
                         k_spring[0] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
-                        # k_spring[0] * abs(X_me[2]) * u_me
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
@@ -1066,7 +1069,6 @@ class MEmodel(object):
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
                         k_spring[1] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
-                        # k_spring[1] * abs(X_me[2]) * u_me
                         + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,
@@ -1133,39 +1135,20 @@ class MEmodel(object):
                         F3 += F3_aorta_ring
 
             elif self.isLV:
-                # F3_epi = inner(
-                #    outer(N_me, N_me)
-                #    * (
-                #        k_spring[0] * abs(X_me[2]) * u_me
-                #        + c_damping[0] * (u_me - u_me_n)
-                #    ),
-                #    v_me,
-                # ) * ds_me(epiid) + inner(
-                #    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                #    * (
-                #        k_spring[1] * abs(X_me[2]) * u_me
-                #        + c_damping[1] * (u_me - u_me_n)
-                #    ),
-                #    v_me,
-                # ) * ds_me(
-                #    epiid
-                # )
 
                 Laplace_u = self.GetLaplace()
 
                 F3_epi = inner(
                     outer(N_me, N_me)
                     * (
-                        k_spring[0] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
-                        # k_spring[0] * abs(X_me[2]) * u_me
+                        k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * u_me
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
                 ) * (ds_me(epiid)) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
-                        k_spring[1] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
-                        # k_spring[1] * abs(X_me[2]) * u_me
+                        k_spring[1] * epiid_Kadj_coeff[1] * u_me
                         + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,

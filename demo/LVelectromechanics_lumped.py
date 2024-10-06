@@ -2,7 +2,7 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
-from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_lumped import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
@@ -33,7 +33,7 @@ IODetails = {
     "directory_ep": "../LVMesh/vh/",
     "outputfolder": "./outputs_LVelectromechanics/",
     "folderName": "",
-    "caseID": "LVelectromechanics_pctrl",
+    "caseID": "LVelectromechanics_lumped",
     "isLV": True,
 }
 
@@ -147,5 +147,5 @@ run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 # compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
-# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=2)
+# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=1)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)

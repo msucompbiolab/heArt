@@ -2,7 +2,7 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
-from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_lumped import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
@@ -33,7 +33,7 @@ IODetails = {
     "directory_ep": "../LVMesh/vh/",
     "outputfolder": "./outputs_LVelectromechanics/",
     "folderName": "",
-    "caseID": "LVelectromechanics_pctrl",
+    "caseID": "LVelectromechanics_lumped",
     "isLV": True,
 }
 
@@ -67,13 +67,20 @@ GuccioneParams = {
 }
 
 Circparam = {
-    "Ees_la": 10,
-    "A_la": 2.67,
-    "B_la": 0.019,
+    "Ees_lv": 400,
+    "V0_lv": 10,
+    "A_lv": 135,
+    "B_lv": 0.027,
+    "Tmax_lv": 280,
+    "tau_lv": 25,
+    "tdelay_lv": 325,
+    "Ees_la": 80,
+    "A_la": 58.0,
+    "B_la": 0.027,
     "V0_la": 10,
-    "Tmax_la": 120,
+    "Tmax_la": 150,
     "tau_la": 25,
-    "tdelay_la": 160,
+    "tdelay_la": 225,
     "Csa": 0.0032,
     "Cad": 0.0330,
     "Csv": 0.28,
@@ -86,12 +93,12 @@ Circparam = {
     "Rad": 21200,
     "Rmv": 200.0,
     # volumes
-    "V_sv": 3700,
-    "V_LV": 112,
-    "V_sa": 740,
-    "V_ad": 100,
-    "V_LA": 12,
-    "stop_iter": 1,
+    "V_sv": 3326,
+    "V_LV": 114,
+    "V_sa": 1857,
+    "V_ad": 37,
+    "V_LA": 35,
+    "stop_iter": 5,
 }
 
 SimDetails = {
@@ -134,6 +141,7 @@ SimDetails = {
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
+    "islumped": True,
     "epiid_Kadj_coeff": [50, 10],
     "springparam": [2.0e3, 2.0e2],  # Kepi_n / Kepi_t
     "dashpotparam": [2.0e2, 2.0e1],  # Cepi_n / Cepi_t
