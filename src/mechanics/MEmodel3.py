@@ -554,13 +554,26 @@ class MEmodel(object):
             )
 
             if "fix_surf" in self.SimDet.keys():
-                fix_surf = self.SimDet["fix_surf"]
-                bc_fix = DirichletBC(
-                    W.sub(0),
-                    Expression(("0.0", "0.0", "0.0"), degree=2),
-                    facetboundaries,
-                    fix_surf,
-                )
+                if(isinstance(self.SimDet["fix_surf"], list)):
+                    cnt = 0
+                    bc_fix = []
+                    for id_ in self.SimDet["fix_surf"]:
+                        bc_fix.append(
+                                       DirichletBC(
+                                       W.sub(0),
+                                       Expression(("0.0", "0.0", "0.0"), degree=2),
+                                       facetboundaries,
+                                       id_,
+                                       )
+                                     )
+                else:
+                    fix_surf = self.SimDet["fix_surf"]
+                    bc_fix = DirichletBC(
+                        W.sub(0),
+                        Expression(("0.0", "0.0", "0.0"), degree=2),
+                        facetboundaries,
+                        fix_surf,
+                    )
             else:
                 bc_fix = None
 
@@ -606,7 +619,11 @@ class MEmodel(object):
                 # bcs = [bctop] #LCL
                 bcs = []
                 if bc_fix is not None:
-                    bcs.append(bc_fix)
+                    if(isinstance(self.SimDet["fix_surf"], list)):
+                        for bc_fix_ in bc_fix:
+                            bcs.append(bc_fix_)
+                    else:
+                        bcs.append(bc_fix)
             elif self.isFCH:
                 bcs = []
         return bcs
