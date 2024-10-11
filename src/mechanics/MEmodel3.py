@@ -605,7 +605,7 @@ class MEmodel(object):
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             if self.iswaorta:
                 if "mv_aorta" in list(self.SimDet.keys()) and self.SimDet["mv_aorta"]:
-                    bcs = [bc_aorta_ring]
+                    bcs = []
                 else:
                     bcs = [bc_aorta_ring]
             elif self.isLV or self.isBiV:
@@ -616,8 +616,8 @@ class MEmodel(object):
             if self.iswaorta:
                 bcs = [bc_aorta_ring]
             elif self.isLV or self.isBiV:
-                # bcs = [bctop] #LCL
-                bcs = []
+                bcs = [bctop] #LCL
+                # bcs = []
                 if bc_fix is not None:
                     if(isinstance(self.SimDet["fix_surf"], list)):
                         for bc_fix_ in bc_fix:
@@ -1070,7 +1070,7 @@ class MEmodel(object):
             elif self.isBiV:
                 epiid_Kadj_coeff = Constant(10.0)
             elif self.isFCH:
-                epiid_Kadj_coeff = Constant(25.0)
+                epiid_Kadj_coeff = Constant(20.0)
 
             if self.iswaorta or self.isFCH:
                 # Laplace_u = self.GetLaplace()
@@ -1095,8 +1095,8 @@ class MEmodel(object):
 
                 F3 = F3_epi
 
-                if self.isFCH:
-                    pass
+                # if self.isFCH:
+                #    pass
                 #    septum_Kadj_coeff = Constant(20.0)
 
                 #    F3_septum = inner(
@@ -1119,13 +1119,13 @@ class MEmodel(object):
 
                 # F3 += F3_septum
 
-                elif self.iswaorta:
+                if self.iswaorta:
                     if (
                         "mv_aorta" in list(self.SimDet.keys())
                         and self.SimDet["mv_aorta"]
                     ):
 
-                        ring_Kadj_coeff = Constant(1.0)
+                        ring_Kadj_coeff = Constant(5.0)
 
                         # kaorta_spring = self.SimDet["springaortaparam"]
                         # caorta_damping = self.SimDet["dashpotaortaparam"]
@@ -1141,7 +1141,7 @@ class MEmodel(object):
                                 + c_damping[0] * (u_me - u_me_n)
                             ),
                             v_me,
-                        ) * ds_me(aorta_ext_wall) + inner(
+                        ) * ds_me(aorta_ring) + inner(
                             (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
                             * (
                                 ring_Kadj_coeff * k_spring[1] * u_me
@@ -1149,7 +1149,7 @@ class MEmodel(object):
                             ),
                             v_me,
                         ) * (
-                            ds_me(aorta_ext_wall)
+                            ds_me(aorta_ring)
                         )
 
                         F3 += F3_aorta_ring
