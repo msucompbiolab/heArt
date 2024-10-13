@@ -258,7 +258,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         solver_elas.solvenonlinear()
 
-        if(it % 1 == 0):
+        if(it % 10 == 0):
             tempfile << MEmodel_.GetDisplacement()
 
         export.writePV(MEmodel_, 0)
@@ -654,7 +654,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             #    writecnt += 1
 
 
-        if(cnt % 1 == 0):
+        if(cnt % 10 == 0):
             tempfile << MEmodel_.GetDisplacement() #LCL
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt

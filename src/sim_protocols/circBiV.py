@@ -173,7 +173,7 @@ class CLmodel(object):
         self.V_RV = self.V_RV + self.parameters["delTat"] * (self.Qtv - self.Qpvv)
         self.V_pa = self.V_pa + self.parameters["delTat"] * (self.Qpvv - self.Qpa)
         self.V_pv = self.V_pv + self.parameters["delTat"] * (self.Qpa - self.Qpv)
-        self.V_LA = self.V_LA + self.parameters["delTat"] * (self.Qsv - self.Qmv)
+        self.V_LA = self.V_LA + self.parameters["delTat"] * (self.Qpv - self.Qmv) #LCL fixed bug
 
         return self.V_LV, self.V_RV
 

@@ -609,7 +609,14 @@ class MEmodel(object):
                 else:
                     bcs = [bc_aorta_ring]
             elif self.isLV or self.isBiV:
+                # bcs = [bctop] #LCL
                 bcs = []
+                if bc_fix is not None:
+                    if(isinstance(self.SimDet["fix_surf"], list)):
+                        for bc_fix_ in bc_fix:
+                            bcs.append(bc_fix_)
+                    else:
+                        bcs.append(bc_fix)
             elif self.isFCH:
                 bcs = [bc_aorta_wall, bc_pulm_wall]
         else:
@@ -1056,6 +1063,8 @@ class MEmodel(object):
             if "springparam" in list(self.SimDet.keys()):
                 k_spring = self.SimDet["springparam"]
                 c_damping = self.SimDet["dashpotparam"]
+                if "springfacets" in list(self.SimDet.keys()):
+                    spr_facetids = self.SimDet["springfacets"]
             else:
                 k_spring = [2.0e3, 2.0e3]  # default
                 c_damping = [2.0e2, 2.0e2]  # default
@@ -1185,9 +1194,30 @@ class MEmodel(object):
                     F3 -= F3_base
 
             elif self.isBiV:
-                F3 = 0
+                
+                F3_spr = 0
+                for k_s, c_d, spr_f in zip(k_spring, c_damping, spr_facetids):
+                    F3_spr += inner(
+                        outer(N_me, N_me)
+                        * (
+                            k_s[0] *  u_me
+                            + c_d[0] * (u_me - u_me_n)
+                        ),
+                        v_me,
+                    ) * (ds_me(spr_f)) + inner(
+                        (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                        * (
+                            k_s[1] *  u_me
+                            + c_d[1] * (u_me - u_me_n)
+                        ),
+                        v_me,
+                    ) * (
+                        ds_me(spr_f)
+                    )
 
-            Ftotal += F3
+                F3 = F3_spr
+
+            Ftotal += F3 #LCL
 
         else:
             if self.isLV or self.isBiV:
@@ -1248,7 +1278,7 @@ class MEmodel(object):
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             Jac3 = derivative(F3, w_me, dw_me)
-            Jac += Jac3
+            Jac += Jac3 #LCL
         elif self.isLV or self.isBiV:
             Jac5 = derivative(F5, w_me, dw_me)
             Jac += Jac5
@@ -1450,11 +1480,13 @@ class MEmodel(object):
             return self.uflforms.LVcavityvol_waorta()
         elif self.isFCH:
             return self.uflforms.LVcavityvol_fch()
-        elif self.isLV or self.isBiV:
+        elif self.isLV: 
             if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
                 return self.uflforms.LVcavityvol_mvb()
             else:
                 return self.uflforms.LVcavityvol()
+        elif self.isBiV:
+            return self.uflforms.LVcavityvol()
 
     def GetTopSpring(self):
         return self.uflforms.topspringbc()
