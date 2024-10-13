@@ -472,7 +472,7 @@ class fch_mesh(object):
         self.facetboundaries = MeshFunction(
             "size_t", self.mesh, self.mesh.topology().dim() - 1
         )
-        f.read(self.facetboundaries, casename + "/" + "facetboundaries")
+        f.read(self.facetboundaries, casename + "/" + "facetboundaries2")
 
         self.edgeboundaries = MeshFunction("size_t", self.mesh, 1)
         # f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
