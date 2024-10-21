@@ -39,7 +39,11 @@ class Forms(object):
         return Wp
 
     def PassiveRubSEF(self):
-        Wp = self.passiveforms.PassiveRubSEF()  # + self.Wvolumetric()
+        Wp = self.passiveforms.PassiveRubSEF() + self.Wvolumetric()
+        return Wp
+
+    def PassiveAortaSEF(self):
+        Wp = self.passiveforms.PassiveAortaSEF() + self.Wvolumetric()
         return Wp
 
     def PK1(self):
@@ -175,7 +179,11 @@ class Forms(object):
         vol_form = (
             -Constant(1.0 / 3.0)
             * inner(det(F) * dot(inv(F).T, N), X + u)
-            * (ds(self.parameters["LVendoid"]) + ds(self.parameters["aortic_vplane"]))
+            * (
+                ds(self.parameters["LVendoid"])
+                + ds(self.parameters["aortic_vplane"])
+                + ds(self.parameters["mitral_vplane"])
+            )
         )
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
@@ -226,7 +234,6 @@ class Forms(object):
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
 
-
     def topspringbc(self):  # for v_base computation
         N = self.parameters["facet_normal"]
         ds = dolfin.ds(
@@ -266,10 +273,10 @@ class Forms(object):
 
         F = self.Fmat()
 
-        if(isinstance(self.parameters["LVendoid"], list)):
+        if isinstance(self.parameters["LVendoid"], list):
             cnt = 0
             for id_ in self.parameters["LVendoid"]:
-                if(cnt == 0):
+                if cnt == 0:
                     surface_ = ds(id_)
                 else:
                     surface_ += ds(id_)
@@ -278,12 +285,12 @@ class Forms(object):
         else:
             surface_ = ds(self.parameters["LVendoid"])
 
-       #vol_form = vol_form_ * ( surface_ )
+        # vol_form = vol_form_ * ( surface_ )
 
         vol_form = (
             -Constant(1.0 / 3.0)
             * inner(det(F) * dot(inv(F).T, N), X + u)
-            * surface_#ds(self.parameters["LVendoid"])
+            * surface_  # ds(self.parameters["LVendoid"])
         )
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
@@ -300,10 +307,10 @@ class Forms(object):
 
         F = self.Fmat()
 
-        if(isinstance(self.parameters["RVendoid"], list)):
+        if isinstance(self.parameters["RVendoid"], list):
             cnt = 0
             for id_ in self.parameters["RVendoid"]:
-                if(cnt == 0):
+                if cnt == 0:
                     surface_ = ds(id_)
                 else:
                     surface_ += ds(id_)
@@ -315,7 +322,7 @@ class Forms(object):
         vol_form = (
             -Constant(1.0 / 3.0)
             * inner(det(F) * dot(inv(F).T, N), X + u)
-            * surface_#ds(self.parameters["RVendoid"])
+            * surface_  # ds(self.parameters["RVendoid"])
         )
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
@@ -354,10 +361,10 @@ class Forms(object):
         u = self.parameters["displacement_variable"]
         F = self.Fmat()
 
-        if(isinstance(self.parameters["LVPid"], list)):
+        if isinstance(self.parameters["LVPid"], list):
             cnt = 0
             for id_ in self.parameters["LVPid"]:
-                if(cnt == 0):
+                if cnt == 0:
                     surface_ = ds(id_)
                 else:
                     surface_ += ds(id_)
@@ -366,7 +373,9 @@ class Forms(object):
         else:
             surface_ = ds(self.parameters["LVPid"])
 
-        pres = pe * inner(J * inv(F.T) * N, u) * surface_#ds(self.parameters["LVendoid"])
+        pres = (
+            pe * inner(J * inv(F.T) * N, u) * surface_
+        )  # ds(self.parameters["LVendoid"])
 
         # pres = 1 * dsendo
         return pres
@@ -392,10 +401,10 @@ class Forms(object):
         if not ("RVPid" in list(self.parameters.keys())):
             self.parameters.update({"RVPid": self.parameters["RVendoid"]})
 
-        if(isinstance(self.parameters["RVPid"], list)):
+        if isinstance(self.parameters["RVPid"], list):
             cnt = 0
             for id_ in self.parameters["RVPid"]:
-                if(cnt == 0):
+                if cnt == 0:
                     surface_ = ds(id_)
                 else:
                     surface_ += ds(id_)
@@ -404,7 +413,9 @@ class Forms(object):
         else:
             surface_ = ds(self.parameters["RVPid"])
 
-        pres = pe * inner(J * inv(F.T) * N, u) * surface_#ds(self.parameters["RVendoid"])
+        pres = (
+            pe * inner(J * inv(F.T) * N, u) * surface_
+        )  # ds(self.parameters["RVendoid"])
 
         # pres = 1 * dsendo
         return pres

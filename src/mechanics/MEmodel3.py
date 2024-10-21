@@ -554,18 +554,18 @@ class MEmodel(object):
             )
 
             if "fix_surf" in self.SimDet.keys():
-                if(isinstance(self.SimDet["fix_surf"], list)):
+                if isinstance(self.SimDet["fix_surf"], list):
                     cnt = 0
                     bc_fix = []
                     for id_ in self.SimDet["fix_surf"]:
                         bc_fix.append(
-                                       DirichletBC(
-                                       W.sub(0),
-                                       Expression(("0.0", "0.0", "0.0"), degree=2),
-                                       facetboundaries,
-                                       id_,
-                                       )
-                                     )
+                            DirichletBC(
+                                W.sub(0),
+                                Expression(("0.0", "0.0", "0.0"), degree=2),
+                                facetboundaries,
+                                id_,
+                            )
+                        )
                 else:
                     fix_surf = self.SimDet["fix_surf"]
                     bc_fix = DirichletBC(
@@ -609,24 +609,24 @@ class MEmodel(object):
                 else:
                     bcs = [bc_aorta_ring]
             elif self.isLV or self.isBiV:
-                # bcs = [bctop] #LCL
                 bcs = []
                 if bc_fix is not None:
-                    if(isinstance(self.SimDet["fix_surf"], list)):
+                    if isinstance(self.SimDet["fix_surf"], list):
                         for bc_fix_ in bc_fix:
                             bcs.append(bc_fix_)
                     else:
                         bcs.append(bc_fix)
+
             elif self.isFCH:
                 bcs = [bc_aorta_wall, bc_pulm_wall]
         else:
             if self.iswaorta:
                 bcs = [bc_aorta_ring]
             elif self.isLV or self.isBiV:
-                bcs = [bctop] #LCL
+                bcs = [bctop]  # LCL
                 # bcs = []
                 if bc_fix is not None:
-                    if(isinstance(self.SimDet["fix_surf"], list)):
+                    if isinstance(self.SimDet["fix_surf"], list):
                         for bc_fix_ in bc_fix:
                             bcs.append(bc_fix_)
                     else:
@@ -645,8 +645,10 @@ class MEmodel(object):
 
         if self.iswaorta or self.isFCH:
             aortic_vplane = self.SimDet["aortic_vplane"]
+            mitral_vplane = self.SimDet["mitral_vplane"]
         else:
             aortic_vplane = None
+            mitral_vplane = None
 
         if "apxid" in list(self.SimDet.keys()):
             apxid = self.SimDet["apxid"]
@@ -659,7 +661,6 @@ class MEmodel(object):
             basid = None
 
         if self.isFCH:
-            mitral_vplane = self.SimDet["mitral_vplane"]
             # septumid = self.SimDet["septumid"]
             septumid = None
             aorta_wall = self.SimDet["aorta_wall"]
@@ -667,7 +668,6 @@ class MEmodel(object):
             first_rv_valve = self.SimDet["first_rv_valve"]
             second_rv_valve = self.SimDet["second_rv_valve"]
         else:
-            mitral_vplane = None  # Default
             septumid = None
             aorta_wall = None
             pulm_wall = None
@@ -999,6 +999,7 @@ class MEmodel(object):
 
         Wp_me = uflforms.PassiveMatSEF()
         WpRub_me = uflforms.PassiveRubSEF()
+        WpAorta_me = uflforms.PassiveAortaSEF()
 
         if not self.ispctrl:
             LV_Wvol = uflforms.LVV0constrainedE()
@@ -1010,14 +1011,37 @@ class MEmodel(object):
 
         X_me = SpatialCoordinate(mesh_me)
 
-        if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
-            nonLVid = set(self.matid_me.array()) - set(self.SimDet["active_region"])
+        # if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
+        #     nonLVid = set(self.matid_me.array()) - set(self.SimDet["active_region"])
 
         if self.iswaorta:
-            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me(1)
 
-            for nonLVid_ in list(nonLVid):
-                F1 += derivative(WpRub_me, w_me, wtest_me) * dx_me(int(nonLVid_))
+            if (
+                "active_region" in list(self.SimDet.keys())
+                and self.SimDet["active_region"]
+            ):
+                region_cnt = 0
+                for regionid in self.SimDet["active_region"]:
+                    if region_cnt == 0:
+                        F1 = derivative(Wp_me, w_me, wtest_me) * (dx_me(int(regionid)))
+                    else:
+                        F1 += derivative(Wp_me, w_me, wtest_me) * (dx_me(int(regionid)))
+                    region_cnt += 1
+            if (
+                "rubber_region" in list(self.SimDet.keys())
+                and self.SimDet["rubber_region"]
+            ):
+                for regionid in self.SimDet["rubber_region"]:
+                    F1 += derivative(WpRub_me, w_me, wtest_me) * dx_me(int(regionid))
+            if (
+                "aorta_region" in list(self.SimDet.keys())
+                and self.SimDet["aorta_region"]
+            ):
+                for regionid in self.SimDet["aorta_region"]:
+                    F1 += derivative(WpAorta_me, w_me, wtest_me) * dx_me(int(regionid))
+            # for nonLVid_ in list(nonLVid):
+            #    F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(nonLVid_))
+
         else:
             F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
 
@@ -1065,6 +1089,7 @@ class MEmodel(object):
                 c_damping = self.SimDet["dashpotparam"]
                 if "springfacets" in list(self.SimDet.keys()):
                     spr_facetids = self.SimDet["springfacets"]
+
             else:
                 k_spring = [2.0e3, 2.0e2]  # default
                 c_damping = [2.0e2, 2.0e1]  # default
@@ -1091,7 +1116,7 @@ class MEmodel(object):
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
-                ) * (ds_me(epiid)) + inner(
+                ) * (ds_me(epiid) + ds_me(apxid)) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
                     * (
                         k_spring[1] * epiid_Kadj_coeff * u_me
@@ -1099,7 +1124,7 @@ class MEmodel(object):
                     ),
                     v_me,
                 ) * (
-                    ds_me(epiid)
+                    ds_me(epiid) + ds_me(apxid)
                 )
 
                 F3 = F3_epi
@@ -1197,22 +1222,15 @@ class MEmodel(object):
                     F3 -= F3_base
 
             elif self.isBiV:
-                
+
                 F3_spr = 0
                 for k_s, c_d, spr_f in zip(k_spring, c_damping, spr_facetids):
                     F3_spr += inner(
-                        outer(N_me, N_me)
-                        * (
-                            k_s[0] *  u_me
-                            + c_d[0] * (u_me - u_me_n)
-                        ),
+                        outer(N_me, N_me) * (k_s[0] * u_me + c_d[0] * (u_me - u_me_n)),
                         v_me,
                     ) * (ds_me(spr_f)) + inner(
                         (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                        * (
-                            k_s[1] *  u_me
-                            + c_d[1] * (u_me - u_me_n)
-                        ),
+                        * (k_s[1] * u_me + c_d[1] * (u_me - u_me_n)),
                         v_me,
                     ) * (
                         ds_me(spr_f)
@@ -1220,7 +1238,7 @@ class MEmodel(object):
 
                 F3 = F3_spr
 
-            Ftotal += F3 #LCL
+            Ftotal += F3  # LCL
 
         else:
             if self.isLV or self.isBiV:
@@ -1281,7 +1299,7 @@ class MEmodel(object):
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             Jac3 = derivative(F3, w_me, dw_me)
-            Jac += Jac3 #LCL
+            Jac += Jac3
         elif self.isLV or self.isBiV:
             Jac5 = derivative(F5, w_me, dw_me)
             Jac += Jac5
@@ -1483,7 +1501,7 @@ class MEmodel(object):
             return self.uflforms.LVcavityvol_waorta()
         elif self.isFCH:
             return self.uflforms.LVcavityvol_fch()
-        elif self.isLV: 
+        elif self.isLV:
             if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
                 return self.uflforms.LVcavityvol_mvb()
             else:

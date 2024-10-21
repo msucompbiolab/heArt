@@ -69,9 +69,6 @@ class GuccionePas(object):
         n0 = self.parameters["sheet-normal"]
 
         b_iso = self.parameters["material params"]["b_iso"]
-        # bff = self.parameters["material params"]["bff"]
-        # bfx = self.parameters["material params"]["bfx"]
-        # bxx = self.parameters["material params"]["bxx"]
         isincomp = self.parameters["incompressible"]
 
         if isincomp:
@@ -79,22 +76,26 @@ class GuccionePas(object):
 
         C = self.parameters["material params"]["Cparam"]
 
-        Eff = inner(f0, Ea * f0)
-        Ess = inner(s0, Ea * s0)
-        Enn = inner(n0, Ea * n0)
-        Efs = inner(f0, Ea * s0)
-        Efn = inner(f0, Ea * n0)
-        Ens = inner(n0, Ea * s0)
-        Esf = inner(s0, Ea * f0)
-        Enf = inner(n0, Ea * f0)
-        Esn = inner(s0, Ea * n0)
+        QQ = b_iso * inner(Ea, Ea)
+        Wp = C / 2.0 * (exp(QQ) - 1.0)
 
-        QQ = (
-            b_iso * Eff**2.0
-            + b_iso * (Ess**2.0 + Enn**2.0 + Ens**2.0 + Esn**2.0)
-            + b_iso * (Efs**2.0 + Esf**2.0 + Efn**2.0 + Enf**2.0)
-        )
+        return Wp
 
+    def PassiveAortaSEF(self):
+        Ea = self.Emat()
+        f0 = self.parameters["fiber"]
+        s0 = self.parameters["sheet"]
+        n0 = self.parameters["sheet-normal"]
+
+        b_iso = self.parameters["material params"]["b_iso"]
+        isincomp = self.parameters["incompressible"]
+
+        if isincomp:
+            p = self.parameters["pressure_variable"]
+
+        C = self.parameters["material params"]["Cparam"]
+        compliance_reduction = self.parameters["material params"]["aorta_comp_red"]
+        QQ = compliance_reduction * b_iso * inner(Ea, Ea)
         Wp = C / 2.0 * (exp(QQ) - 1.0)
 
         return Wp
