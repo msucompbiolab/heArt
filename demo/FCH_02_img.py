@@ -32,7 +32,7 @@ IODetails = {
     "directory_ep": "../FCHMesh/vh/",
     "outputfolder": "./outputs_FCHMesh/",
     "folderName": "",
-    "caseID": "FCHMesh_img_dev",
+    "caseID": "FCHMesh_img",
     "isLV": False,
     "isFCH": True,
 }
@@ -101,7 +101,7 @@ Circparam = {
     "Ees_la": 350,
     "A_la": 58.67,
     "B_la": 0.049,
-    "V0_la": 10,
+    "V0_la": 20,
     "Tmax_la": 120,
     "tau_la": 75,
     "tdelay_la": 160,
@@ -109,12 +109,12 @@ Circparam = {
     "Cad": 0.0330,
     "Csv": 0.3,
     "Vsa0": 700,
-    "Vsv0": 2500.0,
+    "Vsv0": 2200.0,
     "Vad0": 40,
     "Rav": 500.0,
     "Rsv": 100.0,
-    "Rsa": 18000,
-    "Rad": 106000,
+    "Rsa": 9000,
+    "Rad": 53000,
     "Rmv": 1500.0,
     # Pulmonary
     "Ees_ra": 81.33,
@@ -127,10 +127,10 @@ Circparam = {
     "Cpa": 0.0125,
     "Cpv": 0.9,
     "Vpa0": 360,
-    "Vpv0": 15,
+    "Vpv0": 400,
     "Rpv": 500.0,
     "Rtv": 400.0,
-    "Rpa": 10000.0,
+    "Rpa": 13000.0,
     "Rpvv": 400,
     # flow rate
     "Q_lvad": 0.0,
@@ -144,15 +144,15 @@ Circparam = {
     "Q_pv": 0.0646105314407,
     "Q_pvv": 0.0,
     # volumes
-    "V_sv": 2620.36391023,
-    "V_LV": 114.197219883,
-    "V_sa": 747.095750279,
-    "V_ad": 332.137059531,
-    "V_LA": 14.6706180758,
-    "V_pv": 1135.52295648,
-    "V_RV": 107.18412269,
-    "V_pa": 375.714158013,
-    "V_RA": 26.1123080465,
+    "V_sv" : 2588.061593085814,
+    "V_LV" : 385.4392936741486,
+    "V_sa" : 745.5442367107188,
+    "V_ad" : 324.09275211537874,
+    "V_LA" : 100.27407807159136,
+    "V_pv" : 3250.1659341523064,
+    "V_RV" : 388.6390992866472,
+    "V_pa" : 401.04292933635935,
+    "V_RA" : 53.330654485216826,
     "stop_iter": 1,
     # LVAD
     #'Q_lvad_rpm' : 28,
@@ -163,13 +163,13 @@ Circparam = {
 SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
-    "dt": 2.0,
-    "writeStep": 20.0,
+    "dt": 1.0,
+    "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
-    "nLoadSteps": 15,
+    "nLoadSteps": 25,
     "DTI_EP": False,
     "DTI_ME": False,
-    "d_iso": 1.5 * 0.005,
+    "d_iso": 1.5 * 0.01,
     "d_ani_factor": 4.0,
     #    "probepts": [
     #        [3.54982, 4.85747, -1.56241],
@@ -194,9 +194,9 @@ SimDetails = {
     "pulm_wall": 12,  # pulmonary ring
     "LVendoid": 18,
     "RVendoid": 15,
-    "epiid": 10,
+    "epiid": 19,
     # "apxid": 20,
-    "septumid": 13,
+    # "septumid": 13,
     "mitral_vplane": 16,
     "aortic_vplane": 17,
     "first_rv_valve": 13,
@@ -211,7 +211,7 @@ SimDetails = {
     # "springparam": [2.0e3, 2.0e3],  # Kepi_n / Kepi_t
     # "dashpotparam": [2.0e2, 2.0e2],  # Cepi_n / Cepi_t
     "active_region": [1, 2],  # only lv is activated
-    "Type": 1,
+    "Type": 0,
 }
 
 # Run Simulation

@@ -94,7 +94,11 @@ class GuccionePas(object):
             p = self.parameters["pressure_variable"]
 
         C = self.parameters["material params"]["Cparam"]
-        compliance_reduction = self.parameters["material params"]["aorta_comp_red"]
+        if ("aorta_comp_red") in self.parameters["material params"]:
+            compliance_reduction = self.parameters["material params"]["aorta_comp_red"]
+        else:
+            compliance_reduction = 1.0  # default
+
         QQ = compliance_reduction * b_iso * inner(Ea, Ea)
         Wp = C / 2.0 * (exp(QQ) - 1.0)
 

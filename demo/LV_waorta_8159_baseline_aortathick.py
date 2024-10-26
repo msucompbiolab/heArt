@@ -44,13 +44,13 @@ GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(100.0),
+        "Cparam": Constant(50.0),
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
         "mu_iso": Constant(5e2),
         "b_iso": Constant(25.0),
-        "aorta_comp_red": Constant(1.0),
+        "aorta_comp_red": Constant(5.0),
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
@@ -88,7 +88,7 @@ Circparam = {
     "Rsv": 900.0,  # Venous resistance --> Pa ms ml-1
     "Rsa": 18000,  # Proximal aorta resistance --> Pa ms ml-1
     "Rad": 105000,  # Distal aorta resistance (10600, 12800, 21200, 31800) --> Pa ms ml-1
-    "Rmv": 19000.0,  # Mitral valve resistance --> Pa ms ml-1
+    "Rmv": 1900.0,  # Mitral valve resistance --> Pa ms ml-1
     "V_sv": 3326,
     "V_sa": 1857,
     "V_ad": 37,
