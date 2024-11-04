@@ -592,6 +592,13 @@ class MEmodel(object):
                 facetboundaries,
                 aorta_wall,
             )
+            RA_RV = self.SimDet["RA_RV"]
+            bc_RA_RV = DirichletBC(
+                W.sub(0),
+                Expression(("0.0", "0.0", "0.0"), degree=2),
+                facetboundaries,
+                RA_RV,
+            )
 
         # endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
 
@@ -618,7 +625,7 @@ class MEmodel(object):
                         bcs.append(bc_fix)
 
             elif self.isFCH:
-                bcs = [bc_aorta_wall, bc_pulm_wall]
+                bcs = [bc_aorta_wall, bc_pulm_wall, bc_RA_RV]
         else:
             if self.iswaorta:
                 bcs = [bc_aorta_ring]
@@ -655,10 +662,10 @@ class MEmodel(object):
         else:
             apxid = None
 
-        if "basid" in list(self.SimDet.keys()):
-            basid = self.SimDet["basid"]
+        if "aortaid" in list(self.SimDet.keys()):
+            aortaid = self.SimDet["aortaid"]
         else:
-            basid = None
+            aortaid = None
 
         if self.isFCH:
             # septumid = self.SimDet["septumid"]
@@ -925,7 +932,7 @@ class MEmodel(object):
             "RVendoid": RVendoid,
             "epiid": epiid,
             "topid": topid,
-            "basid": basid,
+            "aortaid": aortaid,
             "LVPid": LVPid,
             "RVPid": RVPid,
             "aortic_vplane": aortic_vplane,
@@ -1011,6 +1018,43 @@ class MEmodel(object):
 
         X_me = SpatialCoordinate(mesh_me)
 
+        state_obj = self.parameters["state_obj"]
+
+        def poro_Forms():
+            if "poro" in list(self.SimDet.keys()):
+                permeability = self.SimDet["permeability"]
+                p_a = self.SimDet["p_a"]  # prefusion_pressure
+                p_v = self.SimDet["p_v"]  # ???
+                beta_a = self.SimDet["beta_a"]
+                beta_v = self.SimDet["beta_v"]
+            else:
+                permeability = 0
+                p_a = 0
+                p_v = 0
+                beta_a = 0
+                beta_v = 0
+
+            p_a = p_a * 135  # perfusion pressure # converted to mmHg
+            p_v = p_v * 135  # Q: needed?
+            source_ = (
+                J * beta_a * (p_a - uflforms.poro_pressure()) * q_me * dx_me
+                - J * beta_v * (uflforms.poro_pressure() - p_v) * q_me * dx_me
+            )
+
+            F_1 = (1 / state_obj.dt.dt) * (p_me - p_me_n) * q_me * dx_me + dot(
+                permeability * grad(uflforms.poro_pressure()), grad(q_me)
+            ) * dx_me
+            F_2 = (
+                self.LVCavitypres * inner(v_me, N_me) * ds_me(LVendoid)
+                + inner(grad(v_me), uflforms.poro_PK_1()) * dx_me
+            )
+
+            return F_1, F_2
+
+        poro_F1, poro_F2 = poro_Forms()
+        # Assem_poro_F4 = assemble(poro_F4)
+        # print(Assem_poro_F4.get_local())
+
         # if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
         #     nonLVid = set(self.matid_me.array()) - set(self.SimDet["active_region"])
 
@@ -1043,7 +1087,10 @@ class MEmodel(object):
             #    F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(nonLVid_))
 
         else:
-            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+            if "poro" in list(self.SimDet.keys()):
+                F1 = poro_F1
+            else:
+                F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
 
         if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
             print("Active region = ", self.SimDet["active_region"])
@@ -1073,8 +1120,11 @@ class MEmodel(object):
 
         else:
             if self.isLV or self.iswaorta:
-                Fp_me = uflforms.LVcavitypres()
-                Fp = derivative(Fp_me, w_me, wtest_me)
+                if "poro" in list(self.SimDet.keys()):
+                    Fp = poro_F2
+                else:
+                    Fp_me = uflforms.LVcavitypres()
+                    Fp = derivative(Fp_me, w_me, wtest_me)
             elif self.isBiV or self.isFCH:
                 Fp_lv_me = uflforms.LVcavitypres()
                 Fp_rv_me = uflforms.RVcavitypres()
@@ -1091,7 +1141,7 @@ class MEmodel(object):
                     spr_facetids = self.SimDet["springfacets"]
 
             else:
-                k_spring = [2.0e3, 2.0e2]  # default
+                k_spring = [2.0e3, 2.0e3]  # default
                 c_damping = [2.0e2, 2.0e1]  # default
 
             if self.isLV:
@@ -1116,7 +1166,7 @@ class MEmodel(object):
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
-                ) * (ds_me(epiid) + ds_me(apxid)) + inner(
+                ) * (ds_me(epiid) + ds_me(aortaid)) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
                     * (
                         k_spring[1] * epiid_Kadj_coeff * u_me
@@ -1124,7 +1174,7 @@ class MEmodel(object):
                     ),
                     v_me,
                 ) * (
-                    ds_me(epiid) + ds_me(apxid)
+                    ds_me(epiid) + ds_me(aortaid)
                 )
 
                 F3 = F3_epi
@@ -1284,7 +1334,10 @@ class MEmodel(object):
                     * dx_me
                 )
 
-            Ftotal += Fs
+            if "poro" in list(self.SimDet.keys()):
+                pass
+            else:
+                Ftotal += Fs
 
         Jac = derivative(F1, w_me, dw_me)
         if not self.ispctrl:
@@ -1305,8 +1358,11 @@ class MEmodel(object):
             Jac += Jac5
 
         if self.discretization == "P1P1":
-            Jacs = derivative(Fs, w_me, dw_me)
-            Jac += Jacs
+            if "poro" in list(self.SimDet.keys()):
+                pass
+            else:
+                Jacs = derivative(Fs, w_me, dw_me)
+                Jac += Jacs
 
         # Initialize LV cavity volume
         if not self.ispctrl:

@@ -751,3 +751,15 @@ class Forms(object):
 
         i, j = indices(2)
         return (J * inv(F.T) * N)[i] * n[i] * ds(self.parameters["epiid"])
+
+    def poro_PK_1(self):
+        PK_1 = (
+            self.passiveforms.PK1()
+            + self.passiveforms.poro_volumetricstress()
+            + self.passiveforms.poro_porositystress()
+        )
+        return PK_1
+
+    def poro_pressure(self):
+        pressure_ = self.passiveforms.poro_pressure()
+        return pressure_

@@ -27,7 +27,14 @@ class GuccionePas(object):
                 "Cparam": Constant(100),
                 "mu_iso": Constant(5e4),
                 "b_iso": Constant(10),
-            }
+            },
+            "porous params": {
+                "Ks": Constant(5.0e4),
+                "phi0": Constant(0.35),
+                "c1": Constant(1.33),
+                "c2": Constant(550.0),
+                "c3": Constant(45.0),
+            },
         }
 
     def Getmatparam(self):
@@ -180,3 +187,54 @@ class GuccionePas(object):
 
         PK1 = dolfin.diff(Wp, F)
         return PK1
+
+    def poro_volumetricstress(self):
+        Ks = self.parameters["porous params"]["Ks"]
+        u = self.parameters["displacement_variable"]
+        d = u.ufl_domain().geometric_dimension()
+        I = Identity(d)
+        F = variable(I + grad(u))
+        J = det(F)
+        psi_skel = (Ks / 2) * (J - 1) * ln(J)
+        return diff(psi_skel, F)
+
+    def poro_porositystress(self):
+        Ks = self.parameters["porous params"]["Ks"]
+        phi = self.parameters["pressure_variable"]
+        phi0 = self.parameters["porous params"]["phi0"]
+        u = self.parameters["displacement_variable"]
+        d = u.ufl_domain().geometric_dimension()
+        I = Identity(d)
+        F = variable(I + grad(u))
+        J = det(F)
+        phi_s = variable(J - phi)
+        # phi_s0 = 1.0 - phi0
+        psi_s = Ks * (
+            phi_s - (1 - phi0) - ln(phi_s / (1 - phi0))
+        )  # with phi_s ~= phi_s0 constrain
+        # psi_s = self.Ks*(phi_s-phi_s0)
+        P1 = diff(psi_s, phi_s) * J * inv(F.T)
+        return P1
+
+    def poro_pressure(self):
+        Ks = self.parameters["porous params"]["Ks"]
+        phi0 = self.parameters["porous params"]["phi0"]
+        c1 = self.parameters["porous params"]["c1"]
+        c2 = self.parameters["porous params"]["c2"]
+        c3 = self.parameters["porous params"]["c3"]
+        u = self.parameters["displacement_variable"]
+        phi = self.parameters["pressure_variable"]
+        d = u.ufl_domain().geometric_dimension()
+        I = Identity(d)
+        F = variable(I + grad(u))
+        J = det(F)
+        psi = c1 * exp(c3 * phi) + c2 * ln(c3 * phi)
+        phi_s = variable(J - phi)
+        # phi_s0 = 1.0 - phi0
+        psi_s = Ks * (
+            phi_s - (1 - phi0) - ln(phi_s / (1 - phi))
+        )  # with phi_s ~= phi_s0 constrain
+        # psi_s = Ks * (phi_s - (1 - phi0))
+        p1 = diff(psi, variable(phi))
+        p2 = diff(psi_s, phi_s)
+        return p1 - p2

@@ -2,6 +2,8 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
+sys.path.append("/mnt/Output")
+
 from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
@@ -31,7 +33,7 @@ IODetails = {
     "casename": "ellipsoidal_baselinegeo",
     "directory_me": "../LVMesh/vh/",
     "directory_ep": "../LVMesh/vh/",
-    "outputfolder": "./outputs_LVelectromechanics/",
+    "outputfolder": "/mnt/Output/outputs_LVelectromechanics/",
     "folderName": "",
     "caseID": "LVelectromechanics_pctrl",
     "isLV": True,
@@ -95,6 +97,7 @@ Circparam = {
 }
 
 SimDetails = {
+    "poro": True,
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
@@ -121,23 +124,27 @@ SimDetails = {
     "Isclosed": True,
     "closedloopparam": Circparam,
     "Ischemia": False,
-    "springbc": 1,
+    "springbc": 0,
     "Mechanics Discretization": "P1P1",
     "isLV": True,
     "topid": 4,
     "LVendoid": 2,
     "RVendoid": 0,
     "epiid": 1,
-    "apxid": 5,
     "abs_tol": 1e-8,
     "rel_tol": 1e-9,
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
     "epiid_Kadj_coeff": [50, 10],
-    "springparam": [2.0e3, 2.0e2],  # Kepi_n / Kepi_t
-    "dashpotparam": [2.0e2, 2.0e1],  # Cepi_n / Cepi_t
+    # "springparam": [2.0e3, 2.0e2],  # Kepi_n / Kepi_t
+    # "dashpotparam": [2.0e2, 2.0e1],  # Cepi_n / Cepi_t
     # "spring_atbase": 0,
+    "permeability": 1.0e-9,
+    "p_a": 0.0,
+    "p_v": 1300.0,
+    "beta_a": 3.5e-5,
+    "beta_v": 3.0e-5,
 }
 
 # Run Simulation
