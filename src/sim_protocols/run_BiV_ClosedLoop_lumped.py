@@ -32,7 +32,7 @@ from ..ep.EPmodel import EPmodel
 from ..mechanics.MEmodel3 import MEmodel
 
 # from ..mechanics.MEmodel_pctrl import MEmodel
-from .circ import CLmodel
+from .circ_ import CLmodel
 from .circBiV import CLmodel as CLmodel_biv
 
 # from ..mechanics.volume_ca import MeshModifier
@@ -657,8 +657,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         isrestart = 0
         state_obj.dt.dt = delTat
-        if state_obj.t >= 400.0:
-            state_obj.dt.dt = 2.0 * delTat
+        # if state_obj.t >= 400.0:
+        #    state_obj.dt.dt = 2.0 * delTat
 
         # Reset phi and r in EP at end of diastole
         if state_obj.t < state_obj.dt.dt:
