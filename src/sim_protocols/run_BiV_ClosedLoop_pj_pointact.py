@@ -91,7 +91,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if state_obj_ep.cycle > stop_iter:
             break
 
-        if(state_obj_ep.tstep > 1600):
+        if(state_obj_ep.tstep > stop_iter * SimDet["HeartBeatLength"]):
             break
 
         # Activate PK fiber
@@ -301,10 +301,27 @@ def createEPmodel(IODet, SimDet):
     facetboundaries_ep = MeshFunction("size_t", mesh_ep, 2)
     f.read(facetboundaries_ep, casename + "/" + "facetboundaries")
 
-    # Set Fiber
-    f0 = Expression(("1.0", "0.0", "0.0"), degree=1)
-    s0 = Expression(("0.0", "1.0", "0.0"), degree=1)
-    n0 = Expression(("0.0", "0.0", "1.0"), degree=1)
+    # # Set Fiber
+    # f0 = Expression(("1.0", "0.0", "0.0"), degree=1)
+    # s0 = Expression(("0.0", "1.0", "0.0"), degree=1)
+    # n0 = Expression(("0.0", "0.0", "1.0"), degree=1)
+    Quadelem_ep = FiniteElement("Quadrature", mesh_ep.ufl_cell(), degree=deg_ep, quad_scheme="default")
+    Quadelem_ep._quad_scheme = 'default'
+    Quad_ep = FunctionSpace(mesh_ep, Quadelem_ep)
+
+    VQuadelem_ep = VectorElement("Quadrature", mesh_ep.ufl_cell(), degree=deg_ep, quad_scheme="default")
+    VQuadelem_ep._quad_scheme = 'default'
+
+    fiberFS_ep = FunctionSpace(mesh_ep, VQuadelem_ep)
+
+    f0 = Function(fiberFS_ep)
+    s0 = Function(fiberFS_ep)
+    n0 = Function(fiberFS_ep)
+
+    f.read(f0, casename_ep+"/"+"eF")
+    f.read(s0, casename_ep+"/"+"eS")
+    f.read(n0, casename_ep+"/"+"eN")
+
 
     AHAid_ep = MeshFunction(
         "size_t", mesh_ep, 3, mesh_ep.domains()
