@@ -2,7 +2,9 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
-from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_lumped import (
+sys.path.append("/mnt/Output")
+
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_vctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
@@ -31,9 +33,9 @@ IODetails = {
     "casename": "ellipsoidal_baselinegeo",
     "directory_me": "../LVMesh/vh/",
     "directory_ep": "../LVMesh/vh/",
-    "outputfolder": "./outputs_LVelectromechanics/",
+    "outputfolder": "/mnt/Output/outputs_LVelectromechanics_vctrl/",
     "folderName": "",
-    "caseID": "LVelectromechanics_lumped",
+    "caseID": "LVelectromechanics_DT_1x",
     "isLV": True,
 }
 
@@ -62,42 +64,43 @@ GuccioneParams = {
     },
     "HomogenousActivation": True,
     "deg": 4,
-    "Kappa": 1e5,
+    "Kappa": 1e6,
     "incompressible": True,
 }
 
 Circparam = {
-    "Ees_la": 10,
-    "A_la": 2.67,
-    "B_la": 0.019,
+    "Ees_la": 120,
+    "A_la": 60.0,
+    "B_la": 0.03,
     "V0_la": 10,
-    "Tmax_la": 120,
-    "tau_la": 25,
-    "tdelay_la": 160,
-    "Csa": 0.0032,
-    "Cad": 0.0330,
-    "Csv": 0.28,
-    "Vsa0": 360,
+    "Tmax_la": 150,
+    "tau_la": 30,
+    "tdelay_la": 225,
+    "Csa": 0.0035,
+    "Cad": 0.04,
+    "Csv": 0.5,
+    "Vsa0": 320,
     "Vsv0": 3370.0,
     "Vad0": 40,
-    "Rav": 3000.0,
+    "Rav": 5000.0,
     "Rsv": 100.0,
     "Rsa": 18000,
-    "Rad": 21200,
-    "Rmv": 200.0,
+    "Rad": 25000,
+    "Rmv": 250.0,
     # volumes
-    "V_sv": 3700,
-    "V_LV": 112,
-    "V_sa": 740,
-    "V_ad": 100,
-    "V_LA": 12,
-    "stop_iter": 1,
+    "V_sv": 3600,
+    "V_LV": 105,
+    "V_sa": 1750,
+    "V_ad": 37,
+    "V_LA": 35,
+    "stop_iter": 4,
 }
 
 SimDetails = {
+   # "poro": False,
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
-    "dt": 1.0,
+    "dt": 0.5,
     "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
@@ -121,23 +124,28 @@ SimDetails = {
     "Isclosed": True,
     "closedloopparam": Circparam,
     "Ischemia": False,
-    "springbc": 1,
+    "springbc": 0,
     "Mechanics Discretization": "P1P1",
+    "Technique Discretization": 1,
     "isLV": True,
     "topid": 4,
     "LVendoid": 2,
     "RVendoid": 0,
     "epiid": 1,
-    "apxid": 5,
     "abs_tol": 1e-8,
     "rel_tol": 1e-9,
     "isunloading": False,
     "isunloadingonly": False,
-    "ispctrl": True,
+    "ispctrl": False,
     "epiid_Kadj_coeff": [50, 10],
-    "springparam": [2.0e3, 2.0e2],  # Kepi_n / Kepi_t
-    "dashpotparam": [2.0e2, 2.0e1],  # Cepi_n / Cepi_t
+    # "springparam": [2.0e3, 2.0e2],  # Kepi_n / Kepi_t
+    # "dashpotparam": [2.0e2, 2.0e1],  # Cepi_n / Cepi_t
     # "spring_atbase": 0,
+    "permeability": 1.0e-9,
+    "p_a": 0.0,
+    "p_v": 1300.0,
+    "beta_a": 3.5e-5,
+    "beta_v": 3.0e-5,
 }
 
 # Run Simulation
@@ -147,5 +155,5 @@ run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 # compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
-# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=1)
+# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=5)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)

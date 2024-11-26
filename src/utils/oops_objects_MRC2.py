@@ -153,15 +153,19 @@ class biventricle_mesh(object):
         except MemoryError:
             print("No edge boundaries read")
 
-        #VQuadelem = VectorElement(
+        # VQuadelem = VectorElement(
         #    "Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default"
-        #)
-        #VQuadelem._quad_scheme = "default"
+        # )
+        # VQuadelem._quad_scheme = "default"
 
-        if "fiber_fspace" in list(SimDet.keys()) and "fiber_fspace_deg" in list(SimDet.keys()):
+        if "fiber_fspace" in list(SimDet.keys()) and "fiber_fspace_deg" in list(
+            SimDet.keys()
+        ):
             deg = SimDet["fiber_fspace_deg"]
             VQuadelem = VectorElement(
-                SimDet["fiber_fspace"], self.mesh.ufl_cell(), degree=SimDet["fiber_fspace_deg"]
+                SimDet["fiber_fspace"],
+                self.mesh.ufl_cell(),
+                degree=SimDet["fiber_fspace_deg"],
             )
         else:
             deg = self.parameters["fibre_quad_degree"]
@@ -169,7 +173,6 @@ class biventricle_mesh(object):
                 "Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default"
             )
         VQuadelem._quad_scheme = "default"
-
 
         self.fiberFS = FunctionSpace(self.mesh, VQuadelem)
 
@@ -354,6 +357,14 @@ class lv_mesh(object):
             f.read(self.eL0, casename + "/" + "eL")
             # self.eL0 = self.eC0/sqrt(inner(self.eL0, self.eL0))
 
+        if f.has_dataset(casename + "/" + "eL_aorta"):
+            self.eL0_aorta = Function(self.fiberFS)
+            f.read(self.eL0_aorta, casename + "/" + "eL_aorta")
+
+        if f.has_dataset(casename + "/" + "eC_aorta"):
+            self.eC0_aorta = Function(self.fiberFS)
+            f.read(self.eC0_aorta, casename + "/" + "eC_aorta")
+
         if f.has_dataset(casename + "/" + "eR"):
             self.eR0 = Function(self.fiberFS)
             f.read(self.eR0, casename + "/" + "eR")
@@ -464,14 +475,16 @@ class fch_mesh(object):
 
         # meshfilename = directory + casename + ".hdf5"
         meshfilename = os.path.join(directory, casename + ".hdf5")
+        # meshfilename = os.path.join(directory, casename + ".hdf")
 
         f = HDF5File(MPI.comm_world, meshfilename, "r")
         f.read(self.mesh, casename, False)
-        self.mesh.scale(5.0e-2)
+        self.mesh.scale(1.0e-1)
 
         self.facetboundaries = MeshFunction(
             "size_t", self.mesh, self.mesh.topology().dim() - 1
         )
+        # f.read(self.facetboundaries, casename + "/" + "facetboundaries")
         f.read(self.facetboundaries, casename + "/" + "facetboundaries2")
 
         self.edgeboundaries = MeshFunction("size_t", self.mesh, 1)
@@ -521,6 +534,7 @@ class fch_mesh(object):
         self.n0 = self.n0 / sqrt(inner(self.n0, self.n0))
 
         self.matid = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
+
         if f.has_dataset(casename + "/" + "matid"):
             f.read(self.matid, casename + "/" + "matid")
         elif f.has_dataset(casename + "/" + "materialregion"):
@@ -1078,7 +1092,7 @@ class FHN(object):
 
         # Parameters for active stress
         e0 = Constant(1.0)
-        phi_mid = Constant(0.05)
+        phi_mid = Constant(0.1)
         ephi = conditional(gt(phi, phi_mid), e0, 10 * e0)
         kTa = Constant(2 * 84000.0)
 
@@ -1928,7 +1942,9 @@ class exportfiles(object):
         if MPI.rank(comm) == 0:
             fdataQ = self.fdataQ
             # if(MPI.rank(MEmodel.mesh_me.mpi_comm()) == 0):
-            print(t, " ".join(map(lambda x: "%.5e" % x, Qarray)), file=fdataQ, flush=True)
+            print(
+                t, " ".join(map(lambda x: "%.5e" % x, Qarray)), file=fdataQ, flush=True
+            )
 
         return
 
@@ -1939,7 +1955,9 @@ class exportfiles(object):
         if MPI.rank(comm) == 0:
             fdataP = self.fdataP
             # if(MPI.rank(MEmodel.mesh_me.mpi_comm()) == 0):
-            print(t, " ".join(map(lambda x: "%.5e" % x, Parray)), file=fdataP, flush=True)
+            print(
+                t, " ".join(map(lambda x: "%.5e" % x, Parray)), file=fdataP, flush=True
+            )
 
         return
 

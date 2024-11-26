@@ -21,39 +21,18 @@ class MEmodel(object):
         self.parameters = self.default_parameters()
         self.parameters.update(params)
         self.SimDet = SimDet
-        self.isLV = SimDet["isLV"]
+        self.isLV = self.SimDet.get("isLV", False)
         self.deg_me = SimDet["GiccioneParams"]["deg"]
 
-        if "Mechanics Discretization" in list(self.SimDet.keys()):
-            self.discretization = SimDet["Mechanics Discretization"]
-        else:
-            self.discretization = "P2P1"  # Default
+        self.aorta_params = self.SimDet.get("Aorta Params")
+        self.discretization = self.SimDet.get("Mechanics Discretization", "P2P1")
+        self.discretization_technique = self.SimDet.get("Technique Discretization", 1)
 
-        if "Technique Discretization" in list(self.SimDet.keys()):
-            self.discretization_technique = SimDet["Technique Discretization"]
-        else:
-            self.discretization_technique = 1  # Default
-
-        if "ispctrl" in list(self.SimDet.keys()):
-            self.ispctrl = SimDet["ispctrl"]
-        else:
-            self.ispctrl = False  # Default
-        if "islumped" in list(self.SimDet.keys()):
-            self.islumped = SimDet["islumped"]
-        else:
-            self.islumped = False  # Default
-        if "iswaorta" in list(self.SimDet.keys()):
-            self.iswaorta = SimDet["iswaorta"]
-        else:
-            self.iswaorta = False  # Default
-        if "isFCH" in list(self.SimDet.keys()):
-            self.isFCH = SimDet["isFCH"]
-        else:
-            self.isFCH = False  # Default
-        if "isBiV" in list(self.SimDet.keys()):
-            self.isBiV = SimDet["isBiV"]
-        else:
-            self.isBiV = False
+        self.ispctrl = self.SimDet.get("ispctrl", False)
+        self.islumped = self.SimDet.get("islumped", False)
+        self.iswaorta = self.SimDet.get("iswaorta", False)
+        self.isFCH = self.SimDet.get("isFCH", False)
+        self.isBiV = self.SimDet.get("isBiV", False)
 
         if self.isLV:
             self.Mesh = lv_mechanics_mesh(self.parameters, SimDet)
@@ -67,6 +46,8 @@ class MEmodel(object):
         f0_me_Gauss = self.Mesh.f0
         s0_me_Gauss = self.Mesh.s0
         n0_me_Gauss = self.Mesh.n0
+        eL0_me_Gauss = self.Mesh.eL0_aorta
+        eC0_me_Gauss = self.Mesh.eC0_aorta
 
         self.mesh_me = self.Mesh.mesh
         self.facetboundaries_me = self.Mesh.facetboundaries
@@ -103,6 +84,8 @@ class MEmodel(object):
         self.f0_me = f0_me_Gauss
         self.s0_me = s0_me_Gauss
         self.n0_me = n0_me_Gauss
+        self.eL0_me = eL0_me_Gauss
+        self.eC0_me = eC0_me_Gauss
 
         self.LVCavityvol = Expression(("vol"), vol=0.0, degree=2)
         self.RVCavityvol = Expression(("vol"), vol=0.0, degree=2)
@@ -512,10 +495,9 @@ class MEmodel(object):
 
         facetboundaries = self.facetboundaries_me
         edgeboundaries = self.edgeboundaries_me
-        if self.isLV or self.isBiV:
-            topid = self.SimDet["topid"]
-        else:
-            topid = None
+
+        # isLV or isBiV
+        topid = self.SimDet.get("topid")
 
         W = self.W
 
@@ -592,13 +574,13 @@ class MEmodel(object):
                 facetboundaries,
                 aorta_wall,
             )
-            RA_RV = self.SimDet["RA_RV"]
-            bc_RA_RV = DirichletBC(
-                W.sub(0),
-                Expression(("0.0", "0.0", "0.0"), degree=2),
-                facetboundaries,
-                RA_RV,
-            )
+            # RA_RV = self.SimDet["RA_RV"]
+            # bc_RA_RV = DirichletBC(
+            #    W.sub(0),
+            #    Expression(("0.0", "0.0", "0.0"), degree=2),
+            #    facetboundaries,
+            #    RA_RV,
+            # )
 
         # endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
 
@@ -625,7 +607,7 @@ class MEmodel(object):
                         bcs.append(bc_fix)
 
             elif self.isFCH:
-                bcs = [bc_aorta_wall, bc_pulm_wall, bc_RA_RV]
+                bcs = [bc_aorta_wall, bc_pulm_wall]
         else:
             if self.iswaorta:
                 bcs = [bc_aorta_ring]
@@ -645,50 +627,27 @@ class MEmodel(object):
 
     def Problem(self):
         GuccioneParams = self.SimDet["GiccioneParams"]
-        if self.isLV or self.isBiV:
-            topid = self.SimDet["topid"]
-        else:
-            topid = None  # Default
 
-        if self.iswaorta or self.isFCH:
-            aortic_vplane = self.SimDet["aortic_vplane"]
-            mitral_vplane = self.SimDet["mitral_vplane"]
-        else:
-            aortic_vplane = None
-            mitral_vplane = None
+        # isLV or isBiV
+        topid = self.SimDet.get("topid")
 
-        if "apxid" in list(self.SimDet.keys()):
-            apxid = self.SimDet["apxid"]
-        else:
-            apxid = None
+        # iswaorta or isFCH
+        aortic_vplane = self.SimDet.get("aortic_vplane")
+        mitral_vplane = self.SimDet.get("mitral_vplane")
+        aortaid = self.SimDet.get("aortaid")
+        apxid = self.SimDet.get("apxid")
 
-        if "aortaid" in list(self.SimDet.keys()):
-            aortaid = self.SimDet["aortaid"]
-        else:
-            aortaid = None
+        # isFCH
+        septumid = self.SimDet.get("septumid")
+        aorta_wall = self.SimDet.get("aorta_wall")
+        pulm_wall = self.SimDet.get("pulm_wall")
+        first_rv_valve = self.SimDet.get("first_rv_valve")
+        second_rv_valve = self.SimDet.get("second_rv_valve")
 
-        if self.isFCH:
-            # septumid = self.SimDet["septumid"]
-            septumid = None
-            aorta_wall = self.SimDet["aorta_wall"]
-            pulm_wall = self.SimDet["pulm_wall"]
-            first_rv_valve = self.SimDet["first_rv_valve"]
-            second_rv_valve = self.SimDet["second_rv_valve"]
-        else:
-            septumid = None
-            aorta_wall = None
-            pulm_wall = None
-            first_rv_valve = None
-            second_rv_valve = None
-
-        if self.iswaorta:
-            aorta_int_wall = self.SimDet["aorta_int_wall"]
-            aorta_ext_wall = self.SimDet["aorta_ext_wall"]
-            aorta_ring = self.SimDet["aorta_ring"]
-        else:
-            aorta_int_wall = None
-            aorta_ext_wall = None
-            aorta_ring = None
+        # iswaorta
+        aorta_int_wall = self.SimDet.get("aorta_int_wall")
+        aorta_ext_wall = self.SimDet.get("aorta_ext_wall")
+        aorta_ring = self.SimDet.get("aorta_ring")
 
         LVendoid = self.SimDet["LVendoid"]
         RVendoid = self.SimDet["RVendoid"]
@@ -712,6 +671,8 @@ class MEmodel(object):
         f0_me = self.f0_me
         s0_me = self.s0_me
         n0_me = self.n0_me
+        eL0_me = self.eL0_me
+        eC0_me = self.eC0_me
 
         N_me = FacetNormal(mesh_me)
         W_me = self.W
@@ -951,9 +912,12 @@ class MEmodel(object):
             "fiber": f0_me,
             "sheet": s0_me,
             "sheet-normal": n0_me,
+            "fiberz-aorta": eL0_me,
+            "fiberc-aorta": eC0_me,
             "growth_tensor": None,
             "material model": GuccioneParams["Passive model"],
             "material params": GuccioneParams["Passive params"],
+            "aorta params": self.aorta_params,
             "incompressible": GuccioneParams["incompressible"],
             "LVendo_area": LVendo_area_me,
             "lv_constrained_pres": self.LVCavitypres,
@@ -1057,7 +1021,6 @@ class MEmodel(object):
 
         # if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
         #     nonLVid = set(self.matid_me.array()) - set(self.SimDet["active_region"])
-
         if self.iswaorta:
 
             if (
@@ -1156,9 +1119,29 @@ class MEmodel(object):
             elif self.isFCH:
                 epiid_Kadj_coeff = Constant(20.0)
 
-            if self.iswaorta or self.isFCH:
-                # Laplace_u = self.GetLaplace()
+            if self.iswaorta:
 
+                F3_epi = inner(
+                    outer(n_me, n_me)
+                    * (
+                        k_spring[0] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
+                        + c_damping[0] * (u_me - u_me_n)
+                    ),
+                    v_me,
+                ) * (ds_me(epiid)) + inner(
+                    (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
+                    * (
+                        k_spring[1] * epiid_Kadj_coeff * u_me
+                        + c_damping[1] * (u_me - u_me_n)
+                    ),
+                    v_me,
+                ) * (
+                    ds_me(epiid)
+                )
+
+                F3 = F3_epi
+
+            elif self.isFCH:
                 F3_epi = inner(
                     outer(n_me, n_me)
                     * (
@@ -1308,31 +1291,43 @@ class MEmodel(object):
             # lhs_u = p_me * J * inv(Fmat) * inv(Fmat.T)
             # res_u = inner(lhs_u, Fmat.T * grad(v_me)) * dx_me
 
-            # Kappa = Constant(1.0e5)
+            Kappa = Constant(1.0e5)
             # res_p = ((J - 1) - p_me / Kappa) * q_me * dx_me
 
             h_elem = CellDiameter(mesh_me)
             mu = Constant(5.0e4)
 
             if self.discretization_technique == 1:
-                Fs = -(
-                    h_elem
-                    * h_elem
-                    * Constant(0.5)
-                    / mu
-                    * J
-                    * inner(inv(Fmat.T) * grad(p_me), inv(Fmat.T) * grad(q_me))
-                    * dx_me
+                Fs = (
+                    -(
+                        h_elem
+                        * h_elem
+                        * Constant(0.5)
+                        / mu
+                        * J
+                        * inner(inv(Fmat.T) * grad(p_me), inv(Fmat.T) * grad(q_me))
+                        * dx_me
+                    )
+                    - p_me * q_me / Kappa * dx_me
                 )
 
-            else:
+            elif self.discretization_technique == 2:
                 Fs = (
-                    1.0
-                    / (CellVolume(mesh_me)) ** (1.0 / 3.0)
+                    (1.0 / (CellVolume(mesh_me)) ** (1.0 / 3.0))
                     * (p_me - p_me / CellVolume(mesh_me))
                     * (q_me - q_me / CellVolume(mesh_me))
                     * dx_me
                 )
+            elif self.discretization_technique == 0:
+                p_bar = project(p_me, self.QDG)
+                Fs = (
+                    (1.0 / (CellVolume(mesh_me)) ** (1.0 / 3.0))
+                    * (p_me - p_bar)
+                    * (q_me)
+                    * dx_me
+                )
+            else:
+                pass
 
             if "poro" in list(self.SimDet.keys()):
                 pass

@@ -4,10 +4,9 @@ from dolfin import *
 sys.path.append("/mnt/Research")
 sys.path.append("/mnt/Output")
 
-from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_lumped import (
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
-
 
 from heArt_py3.src.postprocessing.postprocessdata2 import (
     postprocessdata as postprocessdata,
@@ -26,20 +25,20 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
     extractdisplacement as extractdisplacement,
 )
 
-
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    "casename": "ellipsoidal_baselinegeo",
-    "directory_me": "../LVMesh/vh/",
-    "directory_ep": "../LVMesh/vh/",
-    "outputfolder": "/mnt/Output/outputs_LVelectromechanics/",
+    # "casename": "8159_baseline_ES_t11",
+    "casename": "8159_baseline_ES_t11_basethick2",
+    "directory_me": "../LV_waorta/vh/",
+    "directory_ep": "../LV_waorta/vh/",
+    "outputfolder": "/mnt/Output/outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "LVelectromechanics_lumped",
-    "isLV": True,
+    "caseID": "8159_baseline_P1P1_1_dev",
+    "isLV": False,
 }
 
-contRactility = 600e3
+contRactility = 1200e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -49,13 +48,30 @@ GuccioneParams = {
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
+        "mu_iso": Constant(5e2),
+        "b_iso": Constant(25.0),
+        "aorta_comp_red": Constant(5.0),
+    },
+    "Aorta params": {
+        "Name": "Delfino",
+        # Neo-Hookean
+        "mu": Constant(63.80e3),
+        # Delfino
+        "D1": Constant(33.04e3),
+        "D2": Constant(5.05),
+        # HGO two-fiber
+        "Cgr": Constant(51.68e3),
+        "gamma": Constant(24.65),
+        "C1": [0.51e3, 0.51e3],
+        "C2": [27.99, 27.99],
+        # HGo four-fiber
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
         "tau": 25,
         "t_trans": 300,
         "B": 4.75,
-        "t0": 275,
+        "t0": 900,
         "l0": 1.58,
         "Tmax": Constant(contRactility),
         "Ca0": 4.35,
@@ -68,45 +84,40 @@ GuccioneParams = {
     "incompressible": True,
 }
 
+
 Circparam = {
-    "Ees_lv": 400,
-    "V0_lv": 10,
-    "A_lv": 135,
-    "B_lv": 0.027,
-    "Tmax_lv": 280,
-    "tau_lv": 25,
-    "tdelay_lv": 325,
-    "Ees_la": 80,
-    "A_la": 58.0,
-    "B_la": 0.027,
+    "Ees_la": 120,
+    "A_la": 60.0,
+    "B_la": 0.03,
     "V0_la": 10,
     "Tmax_la": 150,
-    "tau_la": 25,
+    "tau_la": 30,
     "tdelay_la": 225,
-    "Csa": 0.0032,
-    "Cad": 0.0330,
-    "Csv": 0.28,
-    "Vsa0": 360,
+    "Csa": 0.0035,
+    "Cad": 0.04,
+    "Csv": 0.5,
+    "Vsa0": 320,
     "Vsv0": 3370.0,
     "Vad0": 40,
-    "Rav": 3000.0,
+    "Rav": 5000.0,
     "Rsv": 100.0,
     "Rsa": 18000,
-    "Rad": 21200,
-    "Rmv": 200.0,
+    "Rad": 30000, # prev: 25000
+    "Rmv": 250.0,
     # volumes
-    "V_sv": 3326,
-    "V_LV": 114,
-    "V_sa": 1857,
+    "V_sv": 3600,
+    "V_LV": 105,
+    "V_sa": 1750,
     "V_ad": 37,
     "V_LA": 35,
     "stop_iter": 4,
 }
 
+
 SimDetails = {
     "diaplacementInfo_ref": False,
-    "HeartBeatLength": 800.0,
-    "dt": 1.0,
+    "HeartBeatLength": 700.0,
+    "dt": 0.5,
     "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
@@ -114,48 +125,49 @@ SimDetails = {
     "DTI_ME": False,
     "d_iso": 1.5 * 0.005,
     "d_ani_factor": 4.0,
-    #    "probepts": [
-    #        [3.54982, 4.85747, -1.56241],
-    #        [3.54982, 4.85747, -1.56241],
-    #        [3.54982, 4.85747, -1.56241],
-    #        [3.54982, 4.85747, -1.56241],
-    #        [4.10888, 5.28499, -1.56241],
-    #        [4.77476, 5.69628, -1.56241],
-    #        [10.1261, 9.83341, -1.56241],
-    #        [10.3596, 10.0373, -1.56241],
-    #        [10.5715, 10.2127, -1.56241],
-    #    ],
     "ploc": [[1.4, 1.4, -3.0, 2.0, 1]],  # , [-1.4, -1.4, -3.0, 2.0, 2]],
     "pacing_timing": [[4.0, 20.0]],  # , [20.0, 20.0]],
     "Isclosed": True,
     "closedloopparam": Circparam,
     "Ischemia": False,
-    "springbc": 1,
     "Mechanics Discretization": "P1P1",
-    "isLV": True,
-    "topid": 4,
-    "LVendoid": 2,
+    "Technique Discretization": 1,
+    "isLV": False,
+    "aorta_ext_wall": 3,
+    "aorta_int_wall": 2,
+    "aorta_ring": 1,
+    "LVendoid": 8,
     "RVendoid": 0,
-    "epiid": 1,
-    "apxid": 5,
+    "epiid": 5,
+    "apxid": 9,
+    "mitral_vplane": 7,
+    "aortic_vplane": 6,
     "abs_tol": 1e-8,
     "rel_tol": 1e-9,
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
-    "islumped": True,
-    "epiid_Kadj_coeff": [50, 10],
-    "springparam": [2.0e3, 2.0e2],  # Kepi_n / Kepi_t
-    "dashpotparam": [2.0e2, 2.0e1],  # Cepi_n / Cepi_t
-    # "spring_atbase": 0,
+    "iswaorta": True,
+    "springbc": 1,
+    "mv_aorta": 0,
+    "springparam": [2.0e3, 2.0e3],  # paper's values Kepi_n = 2e3 / Kepi_t = 2e2
+    "dashpotparam": [2.0e2, 2.0e1],  # paper's values Cepi_n = 2e2 / Cepi_t = 2e1
+    "springaortaparam": [5.0e1, 5.0e1],  # Kepi_n / Kepi_t
+    "dashpotaortaparam": [5.0e1, 5.0e0],  # Cepi_n / Cepi_t
+    "active_region": [0],
+    "rubber_region": [3, 4, 5],
+    "aorta_region": [2],
+    "Type": 0,
 }
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
-#  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
+# run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
-# postprocessdata(IODet=IODetails, SimDet=SimDetails)
-# extractdisplacement(IODet=IODetails, SimDet=SimDetails)
-# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
-# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=5)
+# dumpvtk(IODet=IODetails, SimDet=SimDetails)
+compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
+plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=5)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
+# extractdisplacement(IODet=IODetails, SimDet=SimDetails)
+
+
+#  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

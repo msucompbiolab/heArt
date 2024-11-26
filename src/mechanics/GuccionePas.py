@@ -2,6 +2,8 @@ from dolfin import *
 from ufl import indices
 import dolfin as dolfin
 import collections.abc
+import math
+import numpy as np
 
 
 class GuccionePas(object):
@@ -238,3 +240,58 @@ class GuccionePas(object):
         p1 = diff(psi, variable(phi))
         p2 = diff(psi_s, phi_s)
         return p1 - p2
+
+    def PassiveAortaNeoHookean(self):
+        u = self.parameters["displacement_variable"]
+        d = u.ufl_domain().geometric_dimension()
+        I = Identity(d)
+        F = I + grad(u)
+        F = dolfin.variable(F)
+        Ic = tr(F.T * F)
+        mu = self.parameters["aorta params"]["mu"]
+        Wp = (mu / 2) * (Ic - 3)
+        return Wp
+
+    def PassiveAortaDelfino(self):
+        u = self.parameters["displacement_variable"]
+        d = u.ufl_domain().geometric_dimension()
+        I = Identity(d)
+        F = I + grad(u)
+        F = dolfin.variable(F)
+        Ic = tr(F.T * F)
+        mu = self.parameters["aorta params"]["mu"]
+        D1 = self.parameters["aorta params"]["D1"]
+        D2 = self.parameters["aorta params"]["D2"]
+        Wp = D1 / D2 * (exp(D2 / 2.0 * (Ic - 3)) - 1)
+        return Wp
+
+    def PassiveAortaHGO_twofiber(self):
+        u = self.parameters["displacement_variable"]
+        d = u.ufl_domain().geometric_dimension()
+        I = Identity(d)
+        F = I + grad(u)
+        F = dolfin.variable(F)
+        Ic = tr(F.T * F)
+        Cgr = self.parameters["aorta params"]["Cgr"]
+        Wp1 = Cgr / 2.0 * (Ic - 3)
+        # biaxial stretches
+        gamma = self.parameters["aorta params"]["gamma"]
+        C1 = np.array(self.parameters["aorta params"]["C1"])
+        lmbda_z, lmbda_c = self.lmbda()
+        iv = lambda_z**2 * np.cos(gamma) ** 2 + lambda_c**2 * np.sin(gamma) ** 2
+        IV = np.array([iv, iv])
+        W1 = C1 / (2 * C2) * (np.exp(C2 * (np.max(IV - 1, 0) ** 2)) - 1)
+        return Wp
+
+    def lmbda(self):
+        u = self.parameters["displacement_variable"]
+        d = u.ufl_domain().geometric_dimension()
+        I = Identity(d)
+        F = I + grad(u)
+        F = dolfin.variable(F)
+        fz0 = self.parameters["fiberz-aorta"]
+        fc0 = self.parameters["fiberc-aorta"]
+        Cmat = F.T * F
+        lmbda_z = sqrt(dot(fz0, Cmat * fz0))
+        lmbda_c = sqrt(dot(fc0, Cmat * fc0))
+        return lmbda_z, lmbda_c

@@ -43,7 +43,18 @@ class Forms(object):
         return Wp
 
     def PassiveAortaSEF(self):
-        Wp = self.passiveforms.PassiveAortaSEF() + self.Wvolumetric()
+        if self.parameters["aorta params"] is not None:
+            model_name = self.parameters["aorta params"]["Name"]
+        else:
+            model_name = None
+        if model_name == "NeoHookean":
+            Wp = self.passiveforms.PassiveAortaNeoHookean() + self.Wvolumetric()
+        elif model_name == "Delfino":
+            Wp = self.passiveforms.PassiveAortaDelfino() + self.Wvolumetric()
+        elif model_name == "HGO_twofiber":
+            Wp = self.passiveforms.PassiveAortaHGO_twofiber() + self.Wvolumetric()
+        else:
+            Wp = self.passiveforms.PassiveAortaSEF() + self.Wvolumetric()  # Default
         return Wp
 
     def PK1(self):
@@ -99,7 +110,8 @@ class Forms(object):
 
         if isincomp:
             p = self.parameters["pressure_variable"]
-            Wvolumetric = -1.0 * p * (J - 1.0)
+            # Wvolumetric = -1.0 * p * (J - 1.0)
+            Wvolumetric = p / 2.0 * (J - 1.0)
         else:
             Kappa = self.parameters["Kappa"]
             Wvolumetric = Kappa / 2.0 * (J - 1.0) ** 2.0

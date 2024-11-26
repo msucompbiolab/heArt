@@ -43,7 +43,7 @@ from ..mechanics.JRp import *
 
 
 def run_BiV_ClosedLoop(IODet, SimDet):
-    if "fiber_fspace_deg" in SimDet: 
+    if "fiber_fspace_deg" in SimDet:
         deg = SimDet["fiber_fspace_deg"]
     else:
         deg = 4
@@ -81,6 +81,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     comm_common = mesh_ep.mpi_comm()
 
     meshfilename_ep = directory_ep + casename + "_refine.hdf5"
+    # meshfilename_ep = directory_ep + casename + "_refine.hdf"
     f = HDF5File(comm_common, meshfilename_ep, "r")
     f.read(mesh_ep, casename, False)
 
@@ -110,10 +111,14 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     Quadelem_ep._quad_scheme = "default"
     Quad_ep = FunctionSpace(mesh_ep, Quadelem_ep)
 
-
-    if "fiber_fspace" in list(SimDet.keys()) and "fiber_fspace_deg" in list(SimDet.keys()):
+    if "fiber_fspace" in list(SimDet.keys()) and "fiber_fspace_deg" in list(
+        SimDet.keys()
+    ):
         VQuadelem_ep = VectorElement(
-            SimDet["fiber_fspace"], mesh_ep.ufl_cell(), degree=SimDet["fiber_fspace_deg"], quad_scheme="default"
+            SimDet["fiber_fspace"],
+            mesh_ep.ufl_cell(),
+            degree=SimDet["fiber_fspace_deg"],
+            quad_scheme="default",
         )
         VQuadelem_ep._quad_scheme = "default"
     else:
@@ -121,9 +126,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             "Quadrature", mesh_ep.ufl_cell(), degree=deg_ep, quad_scheme="default"
         )
         VQuadelem_ep._quad_scheme = "default"
-
-
-
 
     fiberFS_ep = FunctionSpace(mesh_ep, VQuadelem_ep)
 
@@ -255,7 +257,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         solver_elas.solvenonlinear()
 
-        if(it % 10 == 0):
+        if it % 10 == 0:
             tempfile << MEmodel_.GetDisplacement()
 
         export.writePV(MEmodel_, 0)
@@ -282,7 +284,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             + str(MEmodel_.GetRVP() * 0.0075)
             + "RV Vol = "
             + str(MEmodel_.GetRVV()),  # GetVolumeComputation()),
-            comm_me
+            comm_me,
         )
 
         if MEmodel_.LVCavitypres.pres * 0.0075 >= EDP:
@@ -387,55 +389,38 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         # if state_obj.t > 100:
         # break
 
-        if isLV or iswaorta:
-            params = {
-                "P_LV": P_LV,
-                "V_LV": V_LV,
-                "t": state_obj.t,
-                "delTat": state_obj.dt.dt,
-            }
-        elif isBiV or isFCH:
-            params = {
-                "P_LV": P_LV,
-                "V_LV": V_LV,
-                "P_RV": P_RV,
-                "V_RV": V_RV,
-                "t": state_obj.t,
-                "delTat": state_obj.dt.dt,
-            }
+        params = {
+            "P_LV": P_LV,
+            "V_LV": V_LV,
+            "t": state_obj.t,
+            "delTat": state_obj.dt.dt,
+        }
+        if isBiV or isFCH:
+            params.update(
+                {
+                    "P_RV": P_RV,
+                    "V_RV": V_RV,
+                }
+            )
 
         if isLV or iswaorta:
             V_LV = CLmodel_.UpdateLVV(params)
         elif isBiV or isFCH:
             V_LV, V_RV = CLmodel_.UpdateLVV(params)
 
-        if isLV or iswaorta:
-            printout(
-                "t = "
-                + str(state_obj.t)
-                + "V_LV = "
-                + str(V_LV)
-                + " Psa = "
-                + str(CLmodel_.Psa)
-                + " P_LV = "
-                + str(P_LV),
-                comm_me,
-            )
-
-        elif isBiV or isFCH:
-            printout(
-                "t = "
-                + str(state_obj.t)
-                + "V_LV = "
-                + str(V_LV)
-                + " Psa = "
-                + str(CLmodel_.Psa)
-                + " PLA = "
-                + str(CLmodel_.GetPLoRA(params, 1))
-                + " P_LV = "
-                + str(P_LV),
-                comm_me,
-            )
+        print_message = (
+            "t = "
+            + str(state_obj.t)
+            + " V_LV = "
+            + str(V_LV)
+            + " Psa = "
+            + str(CLmodel_.Psa)
+            + " P_LV = "
+            + str(P_LV)
+        )
+        if isBiV or isFCH:
+            print_message += " PLA = " + str(CLmodel_.GetPLoRA(params, 1))
+        printout(print_message, comm_me)
 
         with open(outputfolder + folderName + "output_PV.txt", "a") as f_PV:
             if MPI.rank(comm_me) == 0:
@@ -638,9 +623,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             #    # export.hdf.write(c_n, "ME/u_diff", writecnt)
             #    writecnt += 1
 
-
-        if(cnt % 10 == 0):
-            tempfile << MEmodel_.GetDisplacement() #LCL
+        if cnt % 10 == 0:
+            tempfile << MEmodel_.GetDisplacement()  # LCL
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)
@@ -650,8 +634,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         isrestart = 0
         state_obj.dt.dt = delTat
-        if state_obj.t >= 400.0:
-            state_obj.dt.dt = 2.0 * delTat
+        # if state_obj.t >= 400.0:
+        #     state_obj.dt.dt = 2.0 * delTat
 
         # Reset phi and r in EP at end of diastole
         if state_obj.t < state_obj.dt.dt:
