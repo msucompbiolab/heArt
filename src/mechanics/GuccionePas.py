@@ -4,6 +4,7 @@ import dolfin as dolfin
 import collections.abc
 import math
 import numpy as np
+from ufl import max_value
 
 
 class GuccionePas(object):
@@ -273,14 +274,53 @@ class GuccionePas(object):
         F = dolfin.variable(F)
         Ic = tr(F.T * F)
         Cgr = self.parameters["aorta params"]["Cgr"]
-        Wp1 = Cgr / 2.0 * (Ic - 3)
+        Wp_Cgr = Cgr / 2.0 * (Ic - 3)
+
         # biaxial stretches
         gamma = self.parameters["aorta params"]["gamma"]
         C1 = np.array(self.parameters["aorta params"]["C1"])
-        lmbda_z, lmbda_c = self.lmbda()
-        iv = lambda_z**2 * np.cos(gamma) ** 2 + lambda_c**2 * np.sin(gamma) ** 2
-        IV = np.array([iv, iv])
-        W1 = C1 / (2 * C2) * (np.exp(C2 * (np.max(IV - 1, 0) ** 2)) - 1)
+        C2 = np.array(self.parameters["aorta params"]["C2"])
+        lmbda_z, lmbda_c, lmbda_clgn0, lmbda_clgn1 = self.lmbda()
+
+        iv_1 = lmbda_clgn0**2
+        iv_2 = lmbda_clgn1**2
+
+        Wp_f1 = C1[0] / (2 * C2[0]) * (exp(C2[0] * (max_value(iv_1 - 1, 0) ** 2)) - 1)
+        Wp_f2 = C1[1] / (2 * C2[1]) * (exp(C2[1] * (max_value(iv_2 - 1, 0) ** 2)) - 1)
+
+        Wp = Wp_Cgr + Wp_f1 + Wp_f2
+
+        return Wp
+
+    def PassiveAortaHGO_fourfiber(self):
+        u = self.parameters["displacement_variable"]
+        d = u.ufl_domain().geometric_dimension()
+        I = Identity(d)
+        F = I + grad(u)
+        F = dolfin.variable(F)
+        Ic = tr(F.T * F)
+        Cgr = self.parameters["aorta params"]["Cgr_ff"]
+        Wp_Cgr = Cgr / 2.0 * (Ic - 3)
+
+        # biaxial stretches
+        gamma = self.parameters["aorta params"]["gamma_ff"]
+        C1 = np.array(self.parameters["aorta params"]["C1_ff"])
+        C2 = np.array(self.parameters["aorta params"]["C2_ff"])
+
+        lmbda_z, lmbda_c, lmbda_clgn0, lmbda_clgn1 = self.lmbda()
+
+        iv_1 = lmbda_clgn0**2
+        iv_2 = lmbda_clgn1**2
+        iv_3 = lmbda_c**2
+        iv_4 = lmbda_z**2
+
+        Wp_f1 = C1[0] / (2 * C2[0]) * (exp(C2[0] * (max_value(iv_1 - 1, 0) ** 2)) - 1)
+        Wp_f2 = C1[1] / (2 * C2[1]) * (exp(C2[1] * (max_value(iv_2 - 1, 0) ** 2)) - 1)
+        Wp_f3 = C1[2] / (2 * C2[2]) * (exp(C2[2] * (max_value(iv_3 - 1, 0) ** 2)) - 1)
+        Wp_f4 = C1[3] / (2 * C2[3]) * (exp(C2[3] * (max_value(iv_4 - 1, 0) ** 2)) - 1)
+
+        Wp = Wp_Cgr + Wp_f1 + Wp_f2 + Wp_f3 + Wp_f4
+
         return Wp
 
     def lmbda(self):
@@ -291,7 +331,15 @@ class GuccionePas(object):
         F = dolfin.variable(F)
         fz0 = self.parameters["fiberz-aorta"]
         fc0 = self.parameters["fiberc-aorta"]
+
+        f_clgn0 = self.parameters["fiberclgn0-aorta"]
+        f_clgn1 = self.parameters["fiberclgn1-aorta"]
+
         Cmat = F.T * F
         lmbda_z = sqrt(dot(fz0, Cmat * fz0))
         lmbda_c = sqrt(dot(fc0, Cmat * fc0))
-        return lmbda_z, lmbda_c
+
+        lmbda_clgn0 = sqrt(dot(f_clgn0, Cmat * f_clgn0))
+        lmbda_clgn1 = sqrt(dot(f_clgn1, Cmat * f_clgn1))
+
+        return lmbda_z, lmbda_c, lmbda_clgn0, lmbda_clgn1

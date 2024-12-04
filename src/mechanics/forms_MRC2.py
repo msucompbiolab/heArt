@@ -40,6 +40,7 @@ class Forms(object):
 
     def PassiveRubSEF(self):
         Wp = self.passiveforms.PassiveRubSEF() + self.Wvolumetric()
+        # Wp = self.passiveforms.PassiveAortaNeoHookean() + self.Wvolumetric()
         return Wp
 
     def PassiveAortaSEF(self):
@@ -47,12 +48,17 @@ class Forms(object):
             model_name = self.parameters["aorta params"]["Name"]
         else:
             model_name = None
+
         if model_name == "NeoHookean":
             Wp = self.passiveforms.PassiveAortaNeoHookean() + self.Wvolumetric()
+
         elif model_name == "Delfino":
             Wp = self.passiveforms.PassiveAortaDelfino() + self.Wvolumetric()
+
         elif model_name == "HGO_twofiber":
             Wp = self.passiveforms.PassiveAortaHGO_twofiber() + self.Wvolumetric()
+        elif model_name == "HGO_fourfiber":
+            Wp = self.passiveforms.PassiveAortaHGO_fourfiber() + self.Wvolumetric()
         else:
             Wp = self.passiveforms.PassiveAortaSEF() + self.Wvolumetric()  # Default
         return Wp

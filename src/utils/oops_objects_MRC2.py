@@ -357,13 +357,21 @@ class lv_mesh(object):
             f.read(self.eL0, casename + "/" + "eL")
             # self.eL0 = self.eC0/sqrt(inner(self.eL0, self.eL0))
 
-        if f.has_dataset(casename + "/" + "eL_aorta"):
-            self.eL0_aorta = Function(self.fiberFS)
-            f.read(self.eL0_aorta, casename + "/" + "eL_aorta")
+        if f.has_dataset(casename + "/" + "eC_ao"):
+            self.eC0_ao = Function(self.fiberFS)
+            f.read(self.eC0_ao, casename + "/" + "eC_ao")
 
-        if f.has_dataset(casename + "/" + "eC_aorta"):
-            self.eC0_aorta = Function(self.fiberFS)
-            f.read(self.eC0_aorta, casename + "/" + "eC_aorta")
+        if f.has_dataset(casename + "/" + "eL_ao"):
+            self.eL0_ao = Function(self.fiberFS)
+            f.read(self.eL0_ao, casename + "/" + "eL_ao")
+
+        if f.has_dataset(casename + "/" + "M1_ao"):
+            self.eclgn0_ao = Function(self.fiberFS)
+            f.read(self.eclgn0_ao, casename + "/" + "M1_ao")
+
+        if f.has_dataset(casename + "/" + "M2_ao"):
+            self.eclgn1_ao = Function(self.fiberFS)
+            f.read(self.eclgn1_ao, casename + "/" + "M2_ao")
 
         if f.has_dataset(casename + "/" + "eR"):
             self.eR0 = Function(self.fiberFS)

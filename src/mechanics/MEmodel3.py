@@ -24,7 +24,6 @@ class MEmodel(object):
         self.isLV = self.SimDet.get("isLV", False)
         self.deg_me = SimDet["GiccioneParams"]["deg"]
 
-        self.aorta_params = self.SimDet.get("Aorta Params")
         self.discretization = self.SimDet.get("Mechanics Discretization", "P2P1")
         self.discretization_technique = self.SimDet.get("Technique Discretization", 1)
 
@@ -46,8 +45,17 @@ class MEmodel(object):
         f0_me_Gauss = self.Mesh.f0
         s0_me_Gauss = self.Mesh.s0
         n0_me_Gauss = self.Mesh.n0
-        eL0_me_Gauss = self.Mesh.eL0_aorta
-        eC0_me_Gauss = self.Mesh.eC0_aorta
+
+        # eL0_me_Gauss = self.Mesh.eL0_ao
+        # eC0_me_Gauss = self.Mesh.eC0_ao
+        eL0_me_Gauss = getattr(self.Mesh, "eL0_ao", None)
+        eC0_me_Gauss = getattr(self.Mesh, "eC0_ao", None)
+
+        # eclgn0_me_Gauss = self.Mesh.eclgn0_ao
+        # eclgn1_me_Gauss = self.Mesh.eclgn1_ao
+
+        eclgn0_me_Gauss = getattr(self.Mesh, "eclgn0_ao", None)
+        eclgn1_me_Gauss = getattr(self.Mesh, "eclgn1_ao", None)
 
         self.mesh_me = self.Mesh.mesh
         self.facetboundaries_me = self.Mesh.facetboundaries
@@ -84,8 +92,12 @@ class MEmodel(object):
         self.f0_me = f0_me_Gauss
         self.s0_me = s0_me_Gauss
         self.n0_me = n0_me_Gauss
+
         self.eL0_me = eL0_me_Gauss
         self.eC0_me = eC0_me_Gauss
+
+        self.eclgn0_me = eclgn0_me_Gauss
+        self.eclgn1_me = eclgn1_me_Gauss
 
         self.LVCavityvol = Expression(("vol"), vol=0.0, degree=2)
         self.RVCavityvol = Expression(("vol"), vol=0.0, degree=2)
@@ -627,7 +639,7 @@ class MEmodel(object):
 
     def Problem(self):
         GuccioneParams = self.SimDet["GiccioneParams"]
-
+        aorta_params = GuccioneParams.get("Aorta params")
         # isLV or isBiV
         topid = self.SimDet.get("topid")
 
@@ -671,8 +683,12 @@ class MEmodel(object):
         f0_me = self.f0_me
         s0_me = self.s0_me
         n0_me = self.n0_me
+
         eL0_me = self.eL0_me
         eC0_me = self.eC0_me
+
+        eclgn0_me = self.eclgn0_me
+        eclgn1_me = self.eclgn1_me
 
         N_me = FacetNormal(mesh_me)
         W_me = self.W
@@ -914,10 +930,12 @@ class MEmodel(object):
             "sheet-normal": n0_me,
             "fiberz-aorta": eL0_me,
             "fiberc-aorta": eC0_me,
+            "fiberclgn0-aorta": eclgn0_me,
+            "fiberclgn1-aorta": eclgn1_me,
             "growth_tensor": None,
             "material model": GuccioneParams["Passive model"],
             "material params": GuccioneParams["Passive params"],
-            "aorta params": self.aorta_params,
+            "aorta params": aorta_params,
             "incompressible": GuccioneParams["incompressible"],
             "LVendo_area": LVendo_area_me,
             "lv_constrained_pres": self.LVCavitypres,
@@ -1128,7 +1146,7 @@ class MEmodel(object):
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
-                ) * (ds_me(epiid)) + inner(
+                ) * (ds_me(epiid) + ds_me(apxid)) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
                     * (
                         k_spring[1] * epiid_Kadj_coeff * u_me
@@ -1136,7 +1154,7 @@ class MEmodel(object):
                     ),
                     v_me,
                 ) * (
-                    ds_me(epiid)
+                    ds_me(epiid) + ds_me(apxid)
                 )
 
                 F3 = F3_epi
