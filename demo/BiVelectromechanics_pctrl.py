@@ -2,6 +2,8 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
+sys.path.append("/mnt/Output")
+
 from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
@@ -33,9 +35,9 @@ IODetails = {
     "casename": "biv_idealized",
     "directory_me": "../BiVMesh/",
     "directory_ep": "../BiVMesh/",
-    "outputfolder": "./outputs_BiVelectromechanics/",
+    "outputfolder": "/mnt/Output/outputs_BiVelectromechanics/",
     "folderName": "",
-    "caseID": "BiVelectromechanics_pctrl",
+    "caseID": "BiVelectromechanics_pctrl_p2p1",
 }
 
 contRactility = 100e3
@@ -145,7 +147,7 @@ SimDetails = {
     "pacing_timing": [[4.0, 20.0]],
     "closedloopparam": Circparam,
     "Ischemia": False,
-    "Mechanics Discretization": "P1P1",
+    "Mechanics Discretization": "P2P1",
     "isLV": False,
     "ispctrl": True,
     "isBiV": True,
@@ -159,11 +161,11 @@ SimDetails = {
 
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+# run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
 # compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
-# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=1)
+plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=2)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

@@ -34,11 +34,11 @@ IODetails = {
     "directory_ep": "../LV_waorta/vh/",
     "outputfolder": "/mnt/Output/outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "8159_baseline_dev_twofiber",
+    "caseID": "8159_baseline_Delfino",
     "isLV": False,
 }
 
-contRactility = 1200e3
+contRactility = 700e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -53,22 +53,22 @@ GuccioneParams = {
         "aorta_comp_red": Constant(5.0),
     },
     "Aorta params": {
-        "Name": "HGO_twofiber",
+        "Name": "Delfino",
         # Neo-Hookean
         "mu": Constant(63.80),
         # Delfino
-        "D1": Constant(33.04e3),
+        "D1": Constant(33.04e1),
         "D2": Constant(5.05),
         # HGO two-fiber # age: 71-78
-        "Cgr": Constant(51.68e1),
+        "Cgr": Constant(51.68),
         "gamma": Constant(29.24),
         # "gamma": Constant(45.0),
-        "C1": [0.51e2, 0.51e2],
+        "C1": [0.51, 0.51],
         "C2": [27.99, 27.99],
         # HGo four-fiber # age: 71-78
-        "Cgr_ff": Constant(12.67e1),
+        "Cgr_ff": Constant(12.67e3),
         "gamma_ff": Constant(39.55),
-        "C1_ff": [6.87, 6.87, 25.63, 13.68],
+        "C1_ff": [6.87e3, 6.87e3, 25.63e3, 13.68e3],
         "C2_ff": [14.86, 14.86, 1.19, 11.86],
     },
     "Active model": {"Name": "Time-varying"},
@@ -114,7 +114,7 @@ Circparam = {
     "V_sa": 1750,
     "V_ad": 37,
     "V_LA": 35,
-    "stop_iter": 0,
+    "stop_iter": 4,
 }
 
 

@@ -2,6 +2,7 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
+sys.path.append("/mnt/Output")
 
 from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
@@ -30,7 +31,7 @@ IODetails = {
     "casename": "fchmesh_scale_w_biv_valves_remarked",
     "directory_me": "../FCHMesh/vh/",
     "directory_ep": "../FCHMesh/vh/",
-    "outputfolder": "./outputs_FCHMesh/",
+    "outputfolder": "/mnt/Output/outputs_FCHMesh/",
     "folderName": "",
     "caseID": "FCHMesh_img",
     "isLV": False,
@@ -98,7 +99,7 @@ GuccioneParams = {
 
 
 Circparam = {
-    "Ees_la": 350,
+    "Ees_la": 50,
     "A_la": 58.67,
     "B_la": 0.049,
     "V0_la": 20,
@@ -127,10 +128,10 @@ Circparam = {
     "Cpa": 0.0125,
     "Cpv": 0.9,
     "Vpa0": 360,
-    "Vpv0": 400,
+    "Vpv0": 1000,
     "Rpv": 500.0,
     "Rtv": 400.0,
-    "Rpa": 13000.0,
+    "Rpa": 10000.0,
     "Rpvv": 400,
     # flow rate
     "Q_lvad": 0.0,
@@ -144,15 +145,15 @@ Circparam = {
     "Q_pv": 0.0646105314407,
     "Q_pvv": 0.0,
     # volumes
-    "V_sv" : 2588.061593085814,
-    "V_LV" : 385.4392936741486,
-    "V_sa" : 745.5442367107188,
-    "V_ad" : 324.09275211537874,
-    "V_LA" : 100.27407807159136,
-    "V_pv" : 3250.1659341523064,
-    "V_RV" : 388.6390992866472,
-    "V_pa" : 401.04292933635935,
-    "V_RA" : 53.330654485216826,
+    "V_sv" : 2600.552179214356, # 2531.4287717771,
+    "V_LV" : 240.45309857625395,# 247.165994117925,
+    "V_sa" : 739.0216450033537, # 747.2280963453285,
+    "V_ad" : 283.44736653638586,# 334.11186765219435,
+    "V_LA" : 84.0845980404501,  # 87.28936178805338,
+    "V_pv" : 3829.2686134880155,# 4163.418474063872,
+    "V_RV" : 270.3351965276392, # 263.99634893623113,
+    "V_pa" : 402.0404074875353, # 406.9850891016578,
+    "V_RA" : 49.29390846051992, # 46.056790571716704,
     "stop_iter": 1,
     # LVAD
     #'Q_lvad_rpm' : 28,
@@ -195,7 +196,7 @@ SimDetails = {
     "LVendoid": 18,
     "RVendoid": 15,
     "epiid": 19,
-    # "apxid": 20,
+    "aortaid": 21,
     # "septumid": 13,
     "mitral_vplane": 16,
     "aortic_vplane": 17,
@@ -208,8 +209,8 @@ SimDetails = {
     "ispctrl": True,
     "isFCH": True,
     "springbc": 1,
-    # "springparam": [2.0e3, 2.0e3],  # Kepi_n / Kepi_t
-    # "dashpotparam": [2.0e2, 2.0e2],  # Cepi_n / Cepi_t
+    "springparam": [2.0e3, 2.0e3],  # Kepi_n / Kepi_t
+    "dashpotparam": [2.0e2, 2.0e1],  # Cepi_n / Cepi_t
     "active_region": [1, 2],  # only lv is activated
     "Type": 0,
 }
