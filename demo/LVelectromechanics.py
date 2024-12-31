@@ -1,12 +1,13 @@
 import sys, pdb
 from dolfin import *
 
-sys.path.append("/mnt/Research")
-from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop import (
+sys.path.append("/mnt/home/naghavis/Documents/heArt_py3/heArt/")
+from src.sim_protocols.run_BiV_ClosedLoop import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
-from heArt_py3.src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+from src.postprocessing.postprocessdata2 import postprocessdata as postprocessdata
+from src.postprocessing.postprocessdata2 import compute_activation
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
@@ -81,12 +82,12 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "writeStep": 10.0,
+    "writeStep": 1.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
     "DTI_ME": False,
-    "d_iso": 1.5 * 0.005,
+    "d_iso": 1.5 * 0.05,
     "d_ani_factor": 4.0,
     #    "probepts": [
     #        [3.54982, 4.85747, -1.56241],
@@ -118,7 +119,8 @@ SimDetails = {
 }
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+# run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
+compute_activation(IODet=IODetails, SimDet=SimDetails)
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
