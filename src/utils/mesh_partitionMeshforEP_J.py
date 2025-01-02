@@ -7,6 +7,8 @@
 #      : nz = number of longitudinal partition
 #      : meas = measurements of size nz*nsectors
 
+import sys
+sys.path.append("/mnt/home/naghavis/Documents/Research/")
 
 import vtk_py3 as vtk_py
 import vtk

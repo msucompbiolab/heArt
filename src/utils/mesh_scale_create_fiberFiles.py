@@ -94,7 +94,7 @@ def create_EDFibers(meshData):
         fiber_angle_param.update({"outdirectory": outdir})
 
     if isLV:
-        ef, es, en = addLVfiber_LDRB.addLVfiber_LDRB(fiber_angle_param)
+        ef, es, en = addLVfiber_LDRB(fiber_angle_param)
     else:
         ef, es, en = SetBiVFiber_Quad_PyQ.SetBiVFiber_Quad_PyQ(fiber_angle_param)
 

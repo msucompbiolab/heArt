@@ -14,17 +14,20 @@ class EPmodel(object):
         self.parameters.update(params)
 
         self.mesh_ep = self.parameters["EPmesh"]
+        self.facetboundaries_ep = self.parameters["facetboundaries"]
         if "isPK" in list(self.parameters.keys()):
             self.isPK = self.parameters["isPK"]
         else:
             self.isPK = False
 
-        P1_ep = FiniteElement("CG", self.mesh_ep.ufl_cell(), 1, quad_scheme="default")
-        P1_ep._quad_scheme = "default"
-        P2_ep = FiniteElement("DG", self.mesh_ep.ufl_cell(), 0, quad_scheme="default")
-        P2_ep._quad_scheme = "default"
+        phi_el = FiniteElement("DG", self.mesh_ep.ufl_cell(), 0, quad_scheme="default")
+        phi_el._quad_scheme = "default"
+        q_el = FiniteElement("BDM", self.mesh_ep.ufl_cell(), 1, quad_scheme="default")
+        q_el._quad_scheme = "default"
+        r_el = FiniteElement("DG", self.mesh_ep.ufl_cell(), 0, quad_scheme="default")
+        r_el._quad_scheme = "default"
 
-        self.W_ep = FunctionSpace(self.mesh_ep, MixedElement([P1_ep, P2_ep]))
+        self.W_ep = FunctionSpace(self.mesh_ep, MixedElement([phi_el, q_el, r_el]))
         self.w_ep = Function(self.W_ep)
         self.dw_ep = TrialFunction(self.W_ep)
         self.wtest_ep = TestFunction(self.W_ep)
@@ -115,16 +118,27 @@ class EPmodel(object):
         wtest_ep = self.wtest_ep
 
         phi0 = interpolate(Expression("0.0", degree=0), W_ep.sub(0).collapse())
-        r0 = interpolate(Expression("0.0", degree=0), W_ep.sub(1).collapse())
+        q0 = interpolate(Expression(("0.0", "0.0", "0.0"), degree=1), W_ep.sub(1).collapse())
+        r0 = interpolate(Expression("0.0", degree=0), W_ep.sub(2).collapse())
 
-        assign(w_n_ep, [phi0, r0])
+        assign(w_n_ep, [phi0, q0, r0])
 
-        phi_n, r_n = split(w_n_ep)
-        phi, r = split(w_ep)
+        phi_n, q_n, r_n = split(w_n_ep)
+        phi, q, r = split(w_ep)
 
-        bcs_ep = []
+        self.bcs_ep = [
+            DirichletBC(W_ep.sub(1),
+                        Expression(("0.0", "0.0", "0.0"), degree=1),
+                        self.facetboundaries_ep, 1),
+            DirichletBC(W_ep.sub(1),
+                        Expression(("0.0", "0.0", "0.0"), degree=1),
+                        self.facetboundaries_ep, 2),
+            DirichletBC(W_ep.sub(1),
+                        Expression(("0.0", "0.0", "0.0"), degree=1),
+                        self.facetboundaries_ep, 4),
+            ]
 
-        phi_test, r_test = split(wtest_ep)
+        phi_test, q_test, r_test = split(wtest_ep)
 
         alpha = Constant(0.01)
         g = Constant(0.002)
@@ -190,13 +204,14 @@ class EPmodel(object):
 
         # pacing_integral2 = []
 
-        self.F_FHN = (
-            ((phi - phi_n) / k) * phi_test * dx_ep
-            + dot(Dmat * grad(phi), grad(phi_test)) * dx_ep
-            - f_phi * phi_test * dx_ep
-            + ((r - r_n) / k) * r_test * dx_ep
-            - f_r * r_test * dx_ep
-        )  # - sum( pacing_integral1 ) \
+        F1 = ((phi - phi_n) / k) * phi_test * dx_ep - \
+            dot(div(Dmat * q), phi_test) * dx_ep - f_phi * phi_test * dx_ep
+
+        F2 = dot(q, q_test) * dx_ep + phi * div(q_test) * dx_ep
+
+        F3 = ((r - r_n) / k) * r_test * dx_ep - f_r * r_test * dx_ep
+
+        self.F_FHN = F1 + F2 + F3  # - sum( pacing_integral1 ) \
         # - sum( pacing_integral2 )
 
         label = 1
@@ -220,7 +235,7 @@ class EPmodel(object):
             "Jacobian": self.J_FHN,
             "F": self.F_FHN,
             "w": self.w_ep,
-            "boundary_conditions": [],
+            "boundary_conditions": self.bcs_ep,
             "Type": 0,
             "mesh": self.mesh_ep,
             "mode": 1,
@@ -248,13 +263,21 @@ class EPmodel(object):
         self.w_ep.assign(self.w_n_ep)
 
     def getphivar(self):
-        phi_, r_ = self.w_n_ep.split(deepcopy=True)
-        phi_.rename("phi_", "phi_")
-
-        return phi_
+        phi_, q_, r_ = self.w_n_ep.split(deepcopy=True)
+        mesh = phi_.function_space().mesh()
+        
+        CG1_space = dolfin.FunctionSpace(mesh, "CG", 1)
+    
+        # Create a new function in CG1 space
+        phi_CG1 = dolfin.Function(CG1_space)
+        
+        # Project the DG0 function (phi_) onto CG1 space
+        phi_CG1.assign(dolfin.project(phi_, CG1_space))
+        phi_CG1.rename("phi_", "phi_")
+        return phi_CG1
 
     def getrvar(self):
-        phi_, r_ = self.w_n_ep.split(deepcopy=True)
+        phi_, q_, r_ = self.w_n_ep.split(deepcopy=True)
         r_.rename("r_", "r_")
 
         return r_
@@ -267,8 +290,9 @@ class EPmodel(object):
 
     def reset(self):
         phi0 = interpolate(Expression("0.0", degree=0), self.W_ep.sub(0).collapse())
-        r0 = interpolate(Expression("0.0", degree=0), self.W_ep.sub(1).collapse())
-        assign(self.w_n_ep, [phi0, r0])
-        assign(self.w_ep, [phi0, r0])
+        q0 = interpolate(Expression(("0.0", "0.0", "0.0"), degree=1), self.W_ep.sub(1).collapse())
+        r0 = interpolate(Expression("0.0", degree=0), self.W_ep.sub(2).collapse())
+        assign(self.w_n_ep, [phi0, q0, r0])
+        assign(self.w_ep, [phi0, q0, r0])
 
         return

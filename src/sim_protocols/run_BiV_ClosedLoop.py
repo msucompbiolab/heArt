@@ -72,14 +72,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     deg_ep = 4
 
-    Quadelem_ep = FiniteElement(
-        "Quadrature", mesh_ep.ufl_cell(), degree=deg_ep, quad_scheme="default"
-    )
-    Quadelem_ep._quad_scheme = "default"
-    Quad_ep = FunctionSpace(mesh_ep, Quadelem_ep)
-
     VQuadelem_ep = VectorElement(
-        "Quadrature", mesh_ep.ufl_cell(), degree=deg_ep, quad_scheme="default"
+        "CG", mesh_ep.ufl_cell(), degree=1, quad_scheme="default"
     )
     VQuadelem_ep._quad_scheme = "default"
 
