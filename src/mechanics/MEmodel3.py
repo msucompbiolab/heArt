@@ -1063,15 +1063,15 @@ class MEmodel(object):
                 and self.SimDet["aorta_region"]
             ):
                 for regionid in self.SimDet["aorta_region"]:
-                    F1 += derivative(WpAorta_me, w_me, wtest_me) * dx_me(int(regionid))
+                    F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(regionid))
+                    # F1 += derivative(WpAorta_me, w_me, wtest_me) * dx_me(int(regionid))
             # for nonLVid_ in list(nonLVid):
             #    F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(nonLVid_))
 
+        elif "poro" in list(self.SimDet.keys()):
+            F1 = poro_F1
         else:
-            if "poro" in list(self.SimDet.keys()):
-                F1 = poro_F1
-            else:
-                F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
 
         if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
             print("Active region = ", self.SimDet["active_region"])

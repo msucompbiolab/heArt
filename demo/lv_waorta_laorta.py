@@ -29,12 +29,12 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
 # ellipsoidal_baselinegeo
 IODetails = {
     # "casename": "8159_baseline_ES_t11",
-    "casename": "8159_twofiber",
+    "casename": "8159_baseline_longaorta_twofiber",
     "directory_me": "../LV_waorta/vh/",
     "directory_ep": "../LV_waorta/vh/",
     "outputfolder": "/mnt/Output/outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "8159_baseline_Delfino",
+    "caseID": "8159_baseline_longaorta_delfino_hpcc",
     "isLV": False,
 }
 
@@ -114,7 +114,7 @@ Circparam = {
     "V_sa": 1750,
     "V_ad": 37,
     "V_LA": 35,
-    "stop_iter": 1,
+    "stop_iter": 4,
 }
 
 
@@ -137,15 +137,15 @@ SimDetails = {
     "Mechanics Discretization": "P1P1",
     "Technique Discretization": 1,
     "isLV": False,
-    "aorta_ext_wall": 3,
-    "aorta_int_wall": 2,
+    "aorta_ext_wall": 2,
+    "aorta_int_wall": 3,
     "aorta_ring": 1,
-    "LVendoid": 8,
+    "LVendoid": 6,
     "RVendoid": 0,
-    "epiid": 5,
-    "apxid": 9,
+    "epiid": 8,
+    "apxid": 4,
     "mitral_vplane": 7,
-    "aortic_vplane": 6,
+    "aortic_vplane": 5,
     "abs_tol": 1e-8,
     "rel_tol": 1e-9,
     "isunloading": False,
