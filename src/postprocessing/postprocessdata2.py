@@ -203,7 +203,7 @@ def compute_activation(IODet, SimDet, cycle=None):
     time_act_vec = -1 * np.ones(len(time_act.vector()[:]))
 
     t = 0
-    dt = SimDet["writeStep"]
+    dt = SimDet["writeStep"] * SimDet["dt"]
     for phi in phi_arr:
         phi_vec = phi.sub(0).vector().get_local()[::3]
         for idx, (time_act_vec_, phi_vec_) in enumerate(zip(time_act_vec, phi_vec)):
