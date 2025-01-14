@@ -1063,8 +1063,8 @@ class MEmodel(object):
                 and self.SimDet["aorta_region"]
             ):
                 for regionid in self.SimDet["aorta_region"]:
-                    F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(regionid))
-                    # F1 += derivative(WpAorta_me, w_me, wtest_me) * dx_me(int(regionid))
+                    # F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(regionid))
+                    F1 += derivative(WpAorta_me, w_me, wtest_me) * dx_me(int(regionid))
             # for nonLVid_ in list(nonLVid):
             #    F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(nonLVid_))
 
@@ -1238,6 +1238,19 @@ class MEmodel(object):
                         )
 
                         F3 += F3_aorta_ring
+                    else:
+                        F3_aorta_wall = inner(
+                            outer(n_me, n_me)
+                            * (
+                                ring_Kadj_coeff
+                                * k_spring[0]
+                                * u_me
+                                + c_damping[0] * (u_me - u_e_n)
+                            ),
+                            v_me,
+                        ) * ds_me(aorta_ext_wall)
+
+                        # F3 += F3_aorta_wall
 
             elif self.isLV:
 

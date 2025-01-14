@@ -87,7 +87,8 @@ class GuccionePas(object):
         C = self.parameters["material params"]["Cparam"]
 
         QQ = b_iso * inner(Ea, Ea)
-        Wp = C / 2.0 * (exp(QQ) - 1.0)
+        redu_ = 0.1
+        Wp = redu_ * C / 2.0 * (exp(QQ) - 1.0)
 
         return Wp
 

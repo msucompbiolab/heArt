@@ -29,16 +29,16 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
 # ellipsoidal_baselinegeo
 IODetails = {
     # "casename": "8159_baseline_ES_t11",
-    "casename": "8159_baseline_longaorta_twofiber",
+    "casename": "8159_baseline_t11",
     "directory_me": "../LV_waorta/vh/",
     "directory_ep": "../LV_waorta/vh/",
     "outputfolder": "/mnt/Output/outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "8159_baseline_longaorta_delfino_hpcc",
+    "caseID": "8159_baseline_t11",
     "isLV": False,
 }
 
-contRactility = 700e3
+contRactility = 1000e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -49,26 +49,26 @@ GuccioneParams = {
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
         "mu_iso": Constant(5e2),
-        "b_iso": Constant(23.2),
-        "aorta_comp_red": Constant(5.0),
+        "b_iso": Constant(26.0),
+        "aorta_comp_red": Constant(1.0),
     },
     "Aorta params": {
         "Name": "Delfino",
         # Neo-Hookean
         "mu": Constant(63.80),
         # Delfino
-        "D1": Constant(1.5e4),
+        "D1": Constant(33.04),
         "D2": Constant(5.05),
-        # HGO two-fiber # age: 71-78
-        "Cgr": Constant(51.68),
-        "gamma": Constant(29.24),
+        # HGO_twofiber # age: 71-78
+        "Cgr": Constant(41.69),
+        "gamma": Constant(56.18),
         # "gamma": Constant(45.0),
-        "C1": [0.51, 0.51],
-        "C2": [27.99, 27.99],
-        # HGo four-fiber # age: 71-78
-        "Cgr_ff": Constant(12.67e3),
+        "C1": [1.20, 1.20],
+        "C2": [2.56, 2.56],
+        # HGO_fourfiber # age: 71-78
+        "Cgr_ff": Constant(12.67),
         "gamma_ff": Constant(39.55),
-        "C1_ff": [6.87e3, 6.87e3, 25.63e3, 13.68e3],
+        "C1_ff": [6.87, 6.87, 25.63, 13.88],
         "C2_ff": [14.86, 14.86, 1.19, 11.86],
     },
     "Active model": {"Name": "Time-varying"},
@@ -106,7 +106,7 @@ Circparam = {
     "Rav": 5000.0,
     "Rsv": 100.0,
     "Rsa": 18000,
-    "Rad": 30000,  # prev: 25000
+    "Rad": 40000,  # prev: 25000
     "Rmv": 250.0,
     # volumes
     "V_sv": 3600,
@@ -114,7 +114,7 @@ Circparam = {
     "V_sa": 1750,
     "V_ad": 37,
     "V_LA": 35,
-    "stop_iter": 4,
+    "stop_iter": 9,
 }
 
 
@@ -154,8 +154,8 @@ SimDetails = {
     "iswaorta": True,
     "springbc": 1,
     "mv_aorta": 0,
-    "springparam": [2.0e3, 2.0e3],  # paper's values Kepi_n = 2e3 / Kepi_t = 2e2
-    "dashpotparam": [2.0e2, 2.0e1],  # paper's values Cepi_n = 2e2 / Cepi_t = 2e1
+    "springparam": [5.0e3, 5.0e3],  # paper's values Kepi_n = 2e3 / Kepi_t = 2e2
+    "dashpotparam": [5.0e2, 5.0e1],  # paper's values Cepi_n = 2e2 / Cepi_t = 2e1
     "springaortaparam": [5.0e1, 5.0e1],  # Kepi_n / Kepi_t
     "dashpotaortaparam": [5.0e1, 5.0e0],  # Cepi_n / Cepi_t
     "active_region": [0],
