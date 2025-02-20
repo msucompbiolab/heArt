@@ -28,17 +28,18 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    # "casename": "8159_baseline_ES_t11",
-    "casename": "8159_baseline_t11",
+    # "casename": "8159_baseline_t11",
+    # "casename": "8159_baseline_longaorta_twofiber",
+    "casename": "8159_baseline_newmarked",
     "directory_me": "../LV_waorta/vh/",
     "directory_ep": "../LV_waorta/vh/",
-    "outputfolder": "/mnt/Output/outputs_LV_waorta/",
+    "outputfolder": "/mnt/Output/lv_waorta/",
     "folderName": "",
-    "caseID": "8159_baseline_t11",
+    "caseID": "aorta_newmarked_pres",
     "isLV": False,
 }
 
-contRactility = 1000e3
+contRactility = 600e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -50,15 +51,16 @@ GuccioneParams = {
         "bxx": Constant(26.6),
         "mu_iso": Constant(5e2),
         "b_iso": Constant(26.0),
-        "aorta_comp_red": Constant(1.0),
+        "aorta_comp": Constant(1.0),
+        "base_comp": Constant(0.5),
     },
     "Aorta params": {
-        "Name": "Delfino",
+        "Name": "other",
         # Neo-Hookean
         "mu": Constant(63.80),
         # Delfino
-        "D1": Constant(33.04),
-        "D2": Constant(5.05),
+        "D1": Constant(70.06),
+        "D2": Constant(3.24),
         # HGO_twofiber # age: 71-78
         "Cgr": Constant(41.69),
         "gamma": Constant(56.18),
@@ -76,7 +78,7 @@ GuccioneParams = {
         "tau": 25,
         "t_trans": 300,
         "B": 4.75,
-        "t0": 900,
+        "t0": 275,
         "l0": 1.58,
         "Tmax": Constant(contRactility),
         "Ca0": 4.35,
@@ -106,15 +108,15 @@ Circparam = {
     "Rav": 5000.0,
     "Rsv": 100.0,
     "Rsa": 18000,
-    "Rad": 40000,  # prev: 25000
+    "Rad": 60000,  # prev: 25000
     "Rmv": 250.0,
     # volumes
     "V_sv": 3600,
-    "V_LV": 105,
+    #"V_LV": 105,
     "V_sa": 1750,
     "V_ad": 37,
     "V_LA": 35,
-    "stop_iter": 9,
+    "stop_iter": 1,
 }
 
 
@@ -124,7 +126,7 @@ SimDetails = {
     "dt": 0.5,
     "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
-    "nLoadSteps": 15,
+    "nLoadSteps": 64,
     "DTI_EP": False,
     "DTI_ME": False,
     "d_iso": 1.5 * 0.005,
@@ -144,8 +146,9 @@ SimDetails = {
     "RVendoid": 0,
     "epiid": 8,
     "apxid": 4,
-    "mitral_vplane": 7,
-    "aortic_vplane": 5,
+    "mitral_valvep": 7,
+    "aortic_valvep": 5,
+    "aortaid": 3,
     "abs_tol": 1e-8,
     "rel_tol": 1e-9,
     "isunloading": False,
@@ -154,8 +157,9 @@ SimDetails = {
     "iswaorta": True,
     "springbc": 1,
     "mv_aorta": 0,
-    "springparam": [5.0e3, 5.0e3],  # paper's values Kepi_n = 2e3 / Kepi_t = 2e2
-    "dashpotparam": [5.0e2, 5.0e1],  # paper's values Cepi_n = 2e2 / Cepi_t = 2e1
+    "aorta_pres": 1,
+    "springparam": [2.0e3, 2.0e3],  # paper's values Kepi_n = 2e3 / Kepi_t = 2e2
+    "dashpotparam": [2.0e2, 2.0e1],  # paper's values Cepi_n = 2e2 / Cepi_t = 2e1
     "springaortaparam": [5.0e1, 5.0e1],  # Kepi_n / Kepi_t
     "dashpotaortaparam": [5.0e1, 5.0e0],  # Cepi_n / Cepi_t
     "active_region": [0],
@@ -169,7 +173,7 @@ run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
 # compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
-# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=5)
+# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=4)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 

@@ -31,11 +31,10 @@ def extract_PV(filename, BCL, ncycle, SimDet):
         tpt_array.append(float(row[0]))
         LVP_array.append(float(row[1]))
         LVV_array.append(float(row[2]))
-        if "isBiV" in list(SimDet.keys()):
-            if SimDet["isBiV"]:
-                RVP_array.append(float(row[3]))
-                RVV_array.append(float(row[4]))
- 
+        if SimDet.get("isBiV") or SimDet.get("isFCH"):
+            RVP_array.append(float(row[3]))
+            RVV_array.append(float(row[4]))
+
         try:
             Qmv_array.append(float(row[6]))
         except IndexError:
@@ -52,11 +51,15 @@ def extract_PV(filename, BCL, ncycle, SimDet):
         np.logical_and(tpt_array >= ncycle * BCL, tpt_array <= (ncycle + 1) * BCL)
     )
 
-    if "isBiV" in list(SimDet.keys()):
-        if SimDet["isBiV"]:
-            return tpt_array[ind], LVP_array[ind], LVV_array[ind], RVP_array[ind], RVV_array[ind], Qmv_array[ind]
-        else:
-            return tpt_array[ind], LVP_array[ind], LVV_array[ind], [], [], Qmv_array[ind]
+    if SimDet.get("isBiV") or SimDet.get("isFCH"):
+        return (
+            tpt_array[ind],
+            LVP_array[ind],
+            LVV_array[ind],
+            RVP_array[ind],
+            RVV_array[ind],
+            Qmv_array[ind],
+        )
     else:
         return tpt_array[ind], LVP_array[ind], LVV_array[ind], [], [], Qmv_array[ind]
 
@@ -86,7 +89,7 @@ def extract_Q(filename, BCL, ncycle, SimDet):
         Qsa_array.append(float(row[3]))
         Qsv_array.append(float(row[4]))
 
-        if(isBiV):
+        if isBiV:
             Qpvv_array.append(float(row[5]))
             Qtv_array.append(float(row[6]))
             Qpa_array.append(float(row[7]))
@@ -94,7 +97,6 @@ def extract_Q(filename, BCL, ncycle, SimDet):
             Qlvad_array.append(float(row[9]))
         else:
             Qlvad_array.append(float(row[5]))
-
 
     tpt_array = np.array(tpt_array)
     Qav_array = np.array(Qav_array)
@@ -111,7 +113,7 @@ def extract_Q(filename, BCL, ncycle, SimDet):
         np.logical_and(tpt_array >= ncycle * BCL, tpt_array <= (ncycle + 1) * BCL)
     )
 
-    if(isBiV):
+    if isBiV:
         return (
             tpt_array[ind],
             Qav_array[ind],
@@ -122,7 +124,7 @@ def extract_Q(filename, BCL, ncycle, SimDet):
             Qtv_array[ind],
             Qpa_array[ind],
             Qpv_array[ind],
-            Qlvad_array[ind]
+            Qlvad_array[ind],
         )
     else:
         return (
@@ -135,7 +137,7 @@ def extract_Q(filename, BCL, ncycle, SimDet):
             None,
             None,
             None,
-            Qlvad_array[ind]
+            Qlvad_array[ind],
         )
 
 
@@ -161,12 +163,11 @@ def extract_P(filename, BCL, ncycle, SimDet):
         Psa_array.append(float(row[3]))
         PLA_array.append(float(row[4]))
 
-        if(isBiV):
+        if isBiV:
             Ppv_array.append(float(row[5]))
             PRV_array.append(float(row[6]))
             Ppa_array.append(float(row[7]))
             PRA_array.append(float(row[8]))
-
 
     tpt_array = np.array(tpt_array)
     Psv_array = np.array(Psv_array)
@@ -182,7 +183,7 @@ def extract_P(filename, BCL, ncycle, SimDet):
         np.logical_and(tpt_array >= ncycle * BCL, tpt_array <= (ncycle + 1) * BCL)
     )
 
-    if(isBiV):
+    if isBiV:
         return (
             tpt_array[ind],
             Psv_array[ind],
@@ -190,9 +191,9 @@ def extract_P(filename, BCL, ncycle, SimDet):
             Psa_array[ind],
             PLA_array[ind],
             Ppv_array[ind],
-            PRV_array[ind],    
+            PRV_array[ind],
             Ppa_array[ind],
-            PRA_array[ind]
+            PRA_array[ind],
         )
     else:
         return (
@@ -202,9 +203,9 @@ def extract_P(filename, BCL, ncycle, SimDet):
             Psa_array[ind],
             PLA_array[ind],
             None,
-            None,    
             None,
-            None
+            None,
+            None,
         )
 
 
@@ -512,23 +513,33 @@ def readtpt(filename):
     return np.array(tpt_array)
 
 
-def extractvtk(directory, fieldvariable, elemtype, deg, outdirectory, name, ind=None, group="ME", iswrite=True):
+def extractvtk(
+    directory,
+    fieldvariable,
+    elemtype,
+    deg,
+    outdirectory,
+    name,
+    ind=None,
+    group="ME",
+    iswrite=True,
+):
 
     mesh = df.Mesh()
     hdf = df.HDF5File(mesh.mpi_comm(), directory + "/" + "Data.h5", "r")
-    hdf.read(mesh, group+"/mesh", False)
+    hdf.read(mesh, group + "/mesh", False)
     ugrid = vtk_py.convertXMLMeshToUGrid(mesh)
     attr = hdf.attributes(fieldvariable)
     nsteps = attr["count"]
     var_array = []
 
     if ind is None:
-        ind = np.arange(0,nsteps)
+        ind = np.arange(0, nsteps)
 
     var_space = df.VectorFunctionSpace(mesh, elemtype, deg)
     var = df.Function(var_space)
 
-    if(iswrite):
+    if iswrite:
         if not os.path.exists(outdirectory):
             os.mkdir(outdirectory)
 
@@ -540,7 +551,7 @@ def extractvtk(directory, fieldvariable, elemtype, deg, outdirectory, name, ind=
         hdf.read(var, dataset)
         var.rename("var", "var")
         var_array.append(var.copy(deepcopy=True))
-        if(iswrite):
+        if iswrite:
             fstream << var
 
         cnt += 1

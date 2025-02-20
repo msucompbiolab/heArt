@@ -104,6 +104,7 @@ class MEmodel(object):
 
         self.LVCavitypres = Expression(("pres"), pres=0.0, degree=2)
         self.RVCavitypres = Expression(("pres"), pres=0.0, degree=2)
+        self.AortaCavitypres = Expression(("pres"), pres=0.0, degree=2)
 
         self.lumped_pres = 0.0
         self.lumped_vol = 0.0
@@ -572,13 +573,16 @@ class MEmodel(object):
                 bc_fix = None
 
         elif self.isFCH:
-            pulm_wall = self.SimDet["pulm_wall"]
-            bc_pulm_wall = DirichletBC(
-                W.sub(0),
-                Expression(("0.0", "0.0", "0.0"), degree=2),
-                facetboundaries,
-                pulm_wall,
-            )
+            if self.SimDet.get("pulm_wall"):
+                bc_pulm_wall = DirichletBC(
+                    W.sub(0),
+                    Expression(("0.0", "0.0", "0.0"), degree=2),
+                    facetboundaries,
+                    pulm_wall,
+                )
+            else:
+                bc_pulm_wall = None
+
             aorta_wall = self.SimDet["aorta_wall"]
             bc_aorta_wall = DirichletBC(
                 W.sub(0),
@@ -619,7 +623,8 @@ class MEmodel(object):
                         bcs.append(bc_fix)
 
             elif self.isFCH:
-                bcs = [bc_aorta_wall, bc_pulm_wall]
+                bcs = [bc_aorta_wall]  # , bc_pulm_wall]
+                # bcs = []
         else:
             if self.iswaorta:
                 bcs = [bc_aorta_ring]
@@ -640,12 +645,15 @@ class MEmodel(object):
     def Problem(self):
         GuccioneParams = self.SimDet["GiccioneParams"]
         aorta_params = GuccioneParams.get("Aorta params")
+
+        comm_me = self.mesh_me.mpi_comm()
+
         # isLV or isBiV
         topid = self.SimDet.get("topid")
 
         # iswaorta or isFCH
-        aortic_vplane = self.SimDet.get("aortic_vplane")
-        mitral_vplane = self.SimDet.get("mitral_vplane")
+        aortic_valvep = self.SimDet.get("aortic_valvep")
+        mitral_valvep = self.SimDet.get("mitral_valvep")
         aortaid = self.SimDet.get("aortaid")
         apxid = self.SimDet.get("apxid")
 
@@ -653,8 +661,8 @@ class MEmodel(object):
         septumid = self.SimDet.get("septumid")
         aorta_wall = self.SimDet.get("aorta_wall")
         pulm_wall = self.SimDet.get("pulm_wall")
-        first_rv_valve = self.SimDet.get("first_rv_valve")
-        second_rv_valve = self.SimDet.get("second_rv_valve")
+        pulmonary_valvep = self.SimDet.get("pulmonary_valvep")
+        tricuspid_valvep = self.SimDet.get("tricuspid_valvep")
 
         # iswaorta
         aorta_int_wall = self.SimDet.get("aorta_int_wall")
@@ -912,10 +920,10 @@ class MEmodel(object):
             "aortaid": aortaid,
             "LVPid": LVPid,
             "RVPid": RVPid,
-            "aortic_vplane": aortic_vplane,
-            "mitral_vplane": mitral_vplane,
-            "first_rv_valve": first_rv_valve,
-            "second_rv_valve": second_rv_valve,
+            "aortic_valvep": aortic_valvep,
+            "mitral_valvep": mitral_valvep,
+            "pulmonary_valvep": pulmonary_valvep,
+            "tricuspid_valvep": tricuspid_valvep,
             "septumid": septumid,
             "aorta_wall": aorta_wall,
             "pulm_wall": pulm_wall,
@@ -940,6 +948,7 @@ class MEmodel(object):
             "LVendo_area": LVendo_area_me,
             "lv_constrained_pres": self.LVCavitypres,
             "rv_constrained_pres": self.RVCavitypres,
+            "aorta_constrained_pres": self.AortaCavitypres,
         }
 
         uflforms = Forms(params)
@@ -1056,8 +1065,17 @@ class MEmodel(object):
                 "rubber_region" in list(self.SimDet.keys())
                 and self.SimDet["rubber_region"]
             ):
+                region_cnt = 0
                 for regionid in self.SimDet["rubber_region"]:
                     F1 += derivative(WpRub_me, w_me, wtest_me) * dx_me(int(regionid))
+                    if region_cnt == 0:
+                        rubvar_ = derivative(WpRub_me, w_me, wtest_me) * dx_me(
+                            int(regionid)
+                        )
+                    else:
+                        rubvar_ += derivative(WpRub_me, w_me, wtest_me) * dx_me(
+                            int(regionid)
+                        )
             if (
                 "aorta_region" in list(self.SimDet.keys())
                 and self.SimDet["aorta_region"]
@@ -1065,6 +1083,9 @@ class MEmodel(object):
                 for regionid in self.SimDet["aorta_region"]:
                     # F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(regionid))
                     F1 += derivative(WpAorta_me, w_me, wtest_me) * dx_me(int(regionid))
+                    aovar_ = derivative(WpAorta_me, w_me, wtest_me) * dx_me(
+                        int(regionid)
+                    )
             # for nonLVid_ in list(nonLVid):
             #    F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(nonLVid_))
 
@@ -1099,12 +1120,14 @@ class MEmodel(object):
 
             Ftotal += F2
 
-        else:
+        else:  # pctrl
             if self.isLV or self.iswaorta:
                 if "poro" in list(self.SimDet.keys()):
                     Fp = poro_F2
-                else:
+                else:  # no poroelasticity
                     Fp_me = uflforms.LVcavitypres()
+                    if self.SimDet.get("aorta_pres"):  # pressure in aorta
+                        Fp_me += uflforms.Aortacavitypres()
                     Fp = derivative(Fp_me, w_me, wtest_me)
             elif self.isBiV or self.isFCH:
                 Fp_lv_me = uflforms.LVcavitypres()
@@ -1126,23 +1149,84 @@ class MEmodel(object):
                 c_damping = [2.0e2, 2.0e1]  # default
 
             if self.isLV:
-                if "epiid_Kadj_coeff" in list(self.SimDet.keys()):
-                    epiid_Kadj_coeff = self.SimDet["epiid_Kadj_coeff"]
-                else:
-                    epiid_Kadj_coeff = [10.0, 10.0]
-            elif self.iswaorta:
-                epiid_Kadj_coeff = Constant(10.0)
-            elif self.isBiV:
-                epiid_Kadj_coeff = Constant(10.0)
-            elif self.isFCH:
-                epiid_Kadj_coeff = Constant(20.0)
+                epiid_Kadj_coeff = self.SimDet.get("epiid_Kadj_coeff", [10.0, 10.0])
+            else:
+                epiid_Kadj_coeff = self.SimDet.get("epiid_Kadj_coeff", 10.0)
 
             if self.iswaorta:
 
                 F3_epi = inner(
                     outer(n_me, n_me)
                     * (
-                        k_spring[0] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
+                        epiid_Kadj_coeff * k_spring[0] * u_me
+                        + c_damping[0] * (u_me - u_me_n)
+                    ),
+                    v_me,
+                ) * (ds_me(epiid) + ds_me(apxid)) + inner(
+                    (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
+                    * (
+                        epiid_Kadj_coeff * k_spring[1] * u_me
+                        + c_damping[1] * (u_me - u_me_n)
+                    ),
+                    v_me,
+                ) * (
+                    ds_me(epiid) + ds_me(apxid)
+                )
+
+                F3 = F3_epi
+
+                if self.SimDet.get("mv_aorta"):
+
+                    # kaorta_spring = self.SimDet["springaortaparam"]
+                    # caorta_damping = self.SimDet["dashpotaortaparam"]
+                    # aorta_ring = self.SimDet["aorta_ring"]
+
+                    F3_aorta_ring = inner(
+                        outer(n_me, n_me)
+                        * (
+                            epiid_Kadj_coeff * k_spring[0] * u_me
+                            + c_damping[0] * (u_me - u_me_n)
+                        ),
+                        v_me,
+                    ) * ds_me(aorta_ring) + inner(
+                        (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
+                        * (
+                            epiid_Kadj_coeff * k_spring[1] * u_me
+                            + c_damping[1] * (u_me - u_me_n)
+                        ),
+                        v_me,
+                    ) * (
+                        ds_me(aorta_ring)
+                    )
+
+                    F3 += F3_aorta_ring
+
+                if self.SimDet.get("spring_on_aorta"):
+                    F3_aorta_wall = inner(
+                        outer(n_me, n_me)
+                        * (
+                            epiid_Kadj_coeff * k_spring[0] * u_me
+                            + c_damping[0] * (u_me - u_e_n)
+                        ),
+                        v_me,
+                    ) * ds_me(aorta_ext_wall) + inner(
+                        (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
+                        * (
+                            epiid_Kadj_coeff * k_spring[1] * u_me
+                            + c_damping[1] * (u_me - u_me_n)
+                        ),
+                        v_me,
+                    ) * (
+                        ds_me(aorta_ext_wall)
+                    )
+
+                    F3 += F3_aorta_wall
+
+            elif self.isFCH:
+                F3_epi = inner(
+                    outer(n_me, n_me)
+                    * (
+                        k_spring[0] * epiid_Kadj_coeff * u_me
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
@@ -1156,101 +1240,26 @@ class MEmodel(object):
                 ) * (
                     ds_me(epiid) + ds_me(apxid)
                 )
-
                 F3 = F3_epi
 
-            elif self.isFCH:
-                F3_epi = inner(
-                    outer(n_me, n_me)
+                F3_aorta = inner(
+                    outer(N_me, N_me)
                     * (
-                        k_spring[0] * epiid_Kadj_coeff * self.Mesh.poissonF * u_me
+                        k_spring[0] * epiid_Kadj_coeff * u_me
                         + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
-                ) * (ds_me(epiid) + ds_me(aortaid)) + inner(
+                ) * ds_me(aortaid) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
                     * (
                         k_spring[1] * epiid_Kadj_coeff * u_me
                         + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,
-                ) * (
-                    ds_me(epiid) + ds_me(aortaid)
+                ) * ds_me(
+                    aortaid
                 )
-
-                F3 = F3_epi
-
-                # if self.isFCH:
-                #    pass
-                #    septum_Kadj_coeff = Constant(20.0)
-
-                #    F3_septum = inner(
-                #        outer(N_me, N_me)
-                #        * (
-                #            k_spring[0] * septum_Kadj_coeff * Laplace_u * u_me
-                #            + c_damping[0] * (u_me - u_me_n)
-                #        ),
-                #        v_me,
-                #    ) * ds_me(septumid) + inner(
-                #        (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                #        * (
-                #            k_spring[1] * septum_Kadj_coeff * Laplace_u * u_me
-                #            + c_damping[1] * (u_me - u_me_n)
-                #        ),
-                #        v_me,
-                #    ) * ds_me(
-                #        septumid
-                #    )
-
-                # F3 += F3_septum
-
-                if self.iswaorta:
-                    if (
-                        "mv_aorta" in list(self.SimDet.keys())
-                        and self.SimDet["mv_aorta"]
-                    ):
-
-                        ring_Kadj_coeff = Constant(5.0)
-
-                        # kaorta_spring = self.SimDet["springaortaparam"]
-                        # caorta_damping = self.SimDet["dashpotaortaparam"]
-                        aorta_ring = self.SimDet["aorta_ring"]
-
-                        F3_aorta_ring = inner(
-                            outer(n_me, n_me)
-                            * (
-                                ring_Kadj_coeff
-                                * k_spring[0]
-                                * self.Mesh.poissonF
-                                * u_me
-                                + c_damping[0] * (u_me - u_me_n)
-                            ),
-                            v_me,
-                        ) * ds_me(aorta_ring) + inner(
-                            (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
-                            * (
-                                ring_Kadj_coeff * k_spring[1] * u_me
-                                + c_damping[1] * (u_me - u_me_n)
-                            ),
-                            v_me,
-                        ) * (
-                            ds_me(aorta_ring)
-                        )
-
-                        F3 += F3_aorta_ring
-                    else:
-                        F3_aorta_wall = inner(
-                            outer(n_me, n_me)
-                            * (
-                                ring_Kadj_coeff
-                                * k_spring[0]
-                                * u_me
-                                + c_damping[0] * (u_me - u_e_n)
-                            ),
-                            v_me,
-                        ) * ds_me(aorta_ext_wall)
-
-                        # F3 += F3_aorta_wall
+                F3 += F3_aorta
 
             elif self.isLV:
 
@@ -1339,24 +1348,24 @@ class MEmodel(object):
                         * inner(inv(Fmat.T) * grad(p_me), inv(Fmat.T) * grad(q_me))
                         * dx_me
                     )
-                    - p_me * q_me / Kappa * dx_me
+                    #  - p_me * q_me / Kappa * dx_me
                 )
 
-            elif self.discretization_technique == 2:
-                Fs = (
-                    (1.0 / (CellVolume(mesh_me)) ** (1.0 / 3.0))
-                    * (p_me - p_me / CellVolume(mesh_me))
-                    * (q_me - q_me / CellVolume(mesh_me))
-                    * dx_me
-                )
-            elif self.discretization_technique == 0:
-                p_bar = project(p_me, self.QDG)
-                Fs = (
-                    (1.0 / (CellVolume(mesh_me)) ** (1.0 / 3.0))
-                    * (p_me - p_bar)
-                    * (q_me)
-                    * dx_me
-                )
+            # elif self.discretization_technique == 2:
+            #    Fs = (
+            #        (1.0 / (CellVolume(mesh_me)) ** (1.0 / 3.0))
+            #        * (p_me - p_me / CellVolume(mesh_me))
+            #        * (q_me - q_me / CellVolume(mesh_me))
+            #        * dx_me
+            #    )
+            # elif self.discretization_technique == 0:
+            #    p_bar = project(p_me, self.QDG)
+            #    Fs = (
+            #        (1.0 / (CellVolume(mesh_me)) ** (1.0 / 3.0))
+            #        * (p_me - p_bar)
+            #        * (q_me)
+            #        * dx_me
+            #    )
             else:
                 pass
 
@@ -1399,7 +1408,6 @@ class MEmodel(object):
             if self.isBiV:
                 self.RVP_cav = uflforms.RVcavitypressure()
                 self.RVV_cav = uflforms.RVcavityvol()
-
         return Ftotal, Jac, bcs_elas
 
     def Solver(self):
@@ -1420,7 +1428,6 @@ class MEmodel(object):
         if "Type" in list(self.SimDet.keys()):
             solverparams.update({"Type": self.SimDet["Type"]})
         solver_eals = NSolver(solverparams)
-
         return solver_eals
 
     def GetDisplacement(self):

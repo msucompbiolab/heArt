@@ -43,7 +43,7 @@ from ..mechanics.JRp import *
 
 
 def run_BiV_ClosedLoop(IODet, SimDet):
-    if "fiber_fspace_deg" in SimDet: 
+    if "fiber_fspace_deg" in SimDet:
         deg = SimDet["fiber_fspace_deg"]
     else:
         deg = 4
@@ -110,10 +110,14 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     Quadelem_ep._quad_scheme = "default"
     Quad_ep = FunctionSpace(mesh_ep, Quadelem_ep)
 
-
-    if "fiber_fspace" in list(SimDet.keys()) and "fiber_fspace_deg" in list(SimDet.keys()):
+    if "fiber_fspace" in list(SimDet.keys()) and "fiber_fspace_deg" in list(
+        SimDet.keys()
+    ):
         VQuadelem_ep = VectorElement(
-            SimDet["fiber_fspace"], mesh_ep.ufl_cell(), degree=SimDet["fiber_fspace_deg"], quad_scheme="default"
+            SimDet["fiber_fspace"],
+            mesh_ep.ufl_cell(),
+            degree=SimDet["fiber_fspace_deg"],
+            quad_scheme="default",
         )
         VQuadelem_ep._quad_scheme = "default"
     else:
@@ -121,9 +125,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             "Quadrature", mesh_ep.ufl_cell(), degree=deg_ep, quad_scheme="default"
         )
         VQuadelem_ep._quad_scheme = "default"
-
-
-
 
     fiberFS_ep = FunctionSpace(mesh_ep, VQuadelem_ep)
 
@@ -255,7 +256,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         solver_elas.solvenonlinear()
 
-        #if(it % 10 == 0):
+        # if(it % 10 == 0):
         #    tempfile << MEmodel_.GetDisplacement()
 
         export.writePV(MEmodel_, 0)
@@ -282,7 +283,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             + str(MEmodel_.GetRVP() * 0.0075)
             + "RV Vol = "
             + str(MEmodel_.GetRVV()),  # GetVolumeComputation()),
-            comm_me
+            comm_me,
         )
 
         if MEmodel_.LVCavitypres.pres * 0.0075 >= EDP:
@@ -447,13 +448,13 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                     f_PV.write(f"{state_obj.t}, {V_LV}, {P_LV}, {V_RV}, {P_RV} \n")
 
         ## Newton's solver
-        #tol = 1e-3  # Tolerance for convergence
-        #max_iter = 100  # Maximum number of iteration
+        # tol = 1e-3  # Tolerance for convergence
+        # max_iter = 100  # Maximum number of iteration
 
-        #def estpres(plv):
+        # def estpres(plv):
         #    return 1.005 * plv
 
-        #def Jf(plv):
+        # def Jf(plv):
         #    MEmodel_.LVCavitypres.pres = plv
         #    solver_elas.solvenonlinear()
         #    fe_v1 = MEmodel_.GetLVV()
@@ -464,7 +465,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         #    return (fe_v2 - fe_v1) / (estpres(plv) - plv)
 
-        #def Jf_biv(plv, prv, lvp, lvv):
+        # def Jf_biv(plv, prv, lvp, lvv):
         #    MEmodel_.LVCavitypres.pres = plv
         #    MEmodel_.RVCavitypres.pres = prv
         #    solver_elas.solvenonlinear()
@@ -490,7 +491,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         #    else:
         #        return (fe_v2 - fe_v1) / (estpres(prv) - prv)
 
-        #def run_plvr(plv, prv):
+        # def run_plvr(plv, prv):
         #    MEmodel_.LVCavitypres.pres = plv
         #    MEmodel_.RVCavitypres.pres = prv
         #    solver_elas.solvenonlinear()
@@ -499,7 +500,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         ## vlv, vrv = run_plvr(P_LV, P_RV)
 
-        #def JR_perturb(plv, prv, lvp, lvvc, rvvc):
+        # def JR_perturb(plv, prv, lvp, lvvc, rvvc):
         #    MEmodel_.LVCavitypres.pres = plv
         #    MEmodel_.RVCavitypres.pres = prv
         #    solver_elas.solvenonlinear()
@@ -534,13 +535,13 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         ## comm_me.Barrier()
 
-        #def Rp(plv, vlv):
+        # def Rp(plv, vlv):
         #    MEmodel_.LVCavitypres.pres = plv
         #    solver_elas.solvenonlinear()
         #    v_t = MEmodel_.GetLVV()
         #    return v_t - vlv
 
-        #def Rp_biv(plv, prv, lvvc, rvvc):
+        # def Rp_biv(plv, prv, lvvc, rvvc):
         #    MEmodel_.LVCavitypres.pres = plv
         #    MEmodel_.RVCavitypres.pres = prv
         #    solver_elas.solvenonlinear()
@@ -550,7 +551,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         #    return vlv - lvvc, vrv - rvvc
 
         ## Create the Newton solver
-        #for iter in range(max_iter):
+        # for iter in range(max_iter):
         #    # Compute the residual and Jacobian
         #    if isLV or iswaorta:
         #        J = Jf(P_LV)
@@ -646,7 +647,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         MEmodel_.lumped_pres = P_LV
         MEmodel_.lumped_vol = V_LV
 
-        #if(cnt % 10 == 0):
+        # if(cnt % 10 == 0):
         #    tempfile << MEmodel_.GetDisplacement() #LCL
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt

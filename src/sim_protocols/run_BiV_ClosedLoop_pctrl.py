@@ -84,6 +84,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     # meshfilename_ep = directory_ep + casename + "_refine.hdf"
     f = HDF5File(comm_common, meshfilename_ep, "r")
     f.read(mesh_ep, casename, False)
+    # self.mesh.scale(6.5e-2)
 
     File(outputfolder + folderName + "mesh_ep.pvd") << mesh_ep
 
@@ -94,7 +95,16 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     AHAid_ep = MeshFunction("size_t", mesh_ep, mesh_ep.topology().dim())
 
     if f.has_dataset(casename + "/" + "matid"):
-        f.read(matid_ep, casename + "/" + "matid")
+        if SimDet.get("function_matid"):
+            VQuadelem = FiniteElement(
+                "DG", mesh_ep.ufl_cell(), degree=0, quad_scheme="default"
+            )
+            matid_FS = FunctionSpace(mesh_ep, VQuadelem)
+            matid_func = dolfin.Function(matid_FS)
+            for cell in cells(mesh_ep):
+                matid_ep[cell.index()] = round(matid_func(cell.midpoint()))
+        else:
+            f.read(matid_ep, casename + "/" + "matid")
     else:
         matid_ep.set_all(0)
 
@@ -217,12 +227,16 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     V_LV_unload = MEmodel_.GetLVV()
     V_RV_unload = MEmodel_.GetRVV()
 
+    printout("V_LV_unload = " + str(V_LV_unload), comm_me)
+    printout("V_RV_unload = " + str(V_RV_unload), comm_me)
+
     nloadstep = SimDet["nLoadSteps"]
 
     # Unloading LV to get new reference geometry
     MEmodel_.LVCavityvol.vol = MEmodel_.GetLVV()
     MEmodel_.LVCavitypres.pres = 0.0
     MEmodel_.RVCavitypres.pres = 0.0
+    MEmodel_.AortaCavitypres.pres = 0.0
 
     # export.writePV(MEmodel_, 0);
     export.hdf.write(MEmodel_.mesh_me, "ME/mesh")
@@ -248,17 +262,20 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     preinc = default_params["preinc"]
 
     it = 0
-    tempfile = File(outputfolder + folderName + "displacement.pvd")
+    # tempfile = File(outputfolder + folderName + "displacement.pvd")
     while 1:
         printout("Loading", comm_me)
         MEmodel_.LVCavitypres.pres += (EDP / 0.0075) / nloadstep
+        if SimDet.get("aorta_pres"):
+            MEmodel_.AortaCavitypres.pres += (EDP * 10.0 / 0.0075) / nloadstep
+
         if isBiV or isFCH:
-            MEmodel_.RVCavitypres.pres += (EDP / 0.0075) / 2 / nloadstep
+            MEmodel_.RVCavitypres.pres += (EDP / 0.0075) / nloadstep
 
         solver_elas.solvenonlinear()
 
-        if it % 10 == 0:
-            tempfile << MEmodel_.GetDisplacement()
+        # if it % 10 == 0:
+        #    tempfile << MEmodel_.GetDisplacement()
 
         export.writePV(MEmodel_, 0)
         export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
@@ -291,6 +308,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             break
 
     printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
+
     # return
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
     # Declare communicator based on mpi4py
@@ -411,15 +429,21 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         print_message = (
             "t = "
             + str(state_obj.t)
-            + " V_LV = "
+            + " VLV = "
             + str(V_LV)
             + " Psa = "
             + str(CLmodel_.Psa)
-            + " P_LV = "
+            + " PLV = "
             + str(P_LV)
+            + " PLA = "
+            + str(CLmodel_.PLA)
         )
         if isBiV or isFCH:
-            print_message += " PLA = " + str(CLmodel_.GetPLoRA(params, 1))
+            print_message += "\n"
+            print_message += " VRV = " + str(V_RV)
+            print_message += " Ppa = " + str(CLmodel_.Ppa)
+            print_message += " PRV = " + str(P_RV)
+            print_message += " PRA = " + str(CLmodel_.PRA)
         printout(print_message, comm_me)
 
         with open(outputfolder + folderName + "output_PV.txt", "a") as f_PV:
@@ -427,98 +451,17 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                 if isLV or iswaorta:
                     f_PV.write(f"{state_obj.t}, {V_LV}, {P_LV} \n")
                 elif isBiV or isFCH:
-                    f_PV.write(f"{state_obj.t}, {V_LV}, {P_LV}, {V_RV}, {P_RV} \n")
+                    # f_PV.write(f"{state_obj.t}, {V_LV}, {P_LV}, {V_RV}, {P_RV} \n")
+                    f_PV.write(
+                        f"{state_obj.t}, {V_LV}, {P_LV}, {V_RV}, {P_RV}, \n {CLmodel_.V_sv}, {CLmodel_.V_sa}, {CLmodel_.V_ad}, \n {CLmodel_.V_LA}, {CLmodel_.V_pv}, {CLmodel_.V_pa}, {CLmodel_.V_RA}\n"
+                    )
 
         # Newton's solver
-        tol = 1e-3  # Tolerance for convergence
-        max_iter = 100  # Maximum number of iteration
-
-        def estpres(plv):
-            return 1.005 * plv
-
-        def Jf(plv):
-            MEmodel_.LVCavitypres.pres = plv
-            solver_elas.solvenonlinear()
-            fe_v1 = MEmodel_.GetLVV()
-
-            MEmodel_.LVCavitypres.pres = estpres(plv)
-            solver_elas.solvenonlinear()
-            fe_v2 = MEmodel_.GetLVV()
-
-            return (fe_v2 - fe_v1) / (estpres(plv) - plv)
-
-        def Jf_biv(plv, prv, lvp, lvv):
-            MEmodel_.LVCavitypres.pres = plv
-            MEmodel_.RVCavitypres.pres = prv
-            solver_elas.solvenonlinear()
-
-            if lvv:
-                fe_v1 = MEmodel_.GetLVV()
-            else:
-                fe_v1 = MEmodel_.GetRVV()
-
-            if lvp:
-                MEmodel_.LVCavitypres.pres = estpres(plv)
-            else:
-                MEmodel_.RVCavitypres.pres = estpres(prv)
-            solver_elas.solvenonlinear()
-
-            if lvv:
-                fe_v2 = MEmodel_.GetLVV()
-            else:
-                fe_v2 = MEmodel_.GetRVV()
-
-            if lvp:
-                return (fe_v2 - fe_v1) / (estpres(plv) - plv)
-            else:
-                return (fe_v2 - fe_v1) / (estpres(prv) - prv)
-
-        def run_plvr(plv, prv):
-            MEmodel_.LVCavitypres.pres = plv
-            MEmodel_.RVCavitypres.pres = prv
-            solver_elas.solvenonlinear()
-
-            return MEmodel_.GetLVV(), MEmodel_.GetRVV()
-
-        # vlv, vrv = run_plvr(P_LV, P_RV)
-
-        def JR_perturb(plv, prv, lvp, lvvc, rvvc):
-            MEmodel_.LVCavitypres.pres = plv
-            MEmodel_.RVCavitypres.pres = prv
-            solver_elas.solvenonlinear()
-
-            vlv_ = MEmodel_.GetLVV()
-            vrv_ = MEmodel_.GetRVV()
-
-            if lvp:
-                MEmodel_.LVCavitypres.pres = estpres(plv)
-            else:
-                MEmodel_.RVCavitypres.pres = estpres(prv)
-            solver_elas.solvenonlinear()
-
-            fe_v2l = MEmodel_.GetLVV()
-            fe_v2r = MEmodel_.GetRVV()
-
-            if lvp:
-                return (
-                    (fe_v2l - vlv_) / (estpres(plv) - plv),
-                    (fe_v2r - vrv_) / (estpres(plv) - plv),
-                    vlv_ - lvvc,
-                )
-            else:
-                return (
-                    (fe_v2l - vlv_) / (estpres(prv) - prv),
-                    (fe_v2r - vrv_) / (estpres(prv) - prv),
-                    vrv_ - rvvc,
-                )
-
-        # ax_l, by_l, cz_l = JR_perturb(P_LV, P_RV, 1, V_LV, V_RV)
-        # ax_r, by_r, cz_r = JR_perturb(P_LV, P_RV, 0, V_LV, V_RV)
-
-        # comm_me.Barrier()
 
         def Rp(plv, vlv):
             MEmodel_.LVCavitypres.pres = plv
+            if SimDet.get("aorta_pres"):
+                MEmodel_.AortaCavitypres.pres = CLmodel_.Psa  # * 5e-1
             solver_elas.solvenonlinear()
             v_t = MEmodel_.GetLVV()
             return v_t - vlv
@@ -530,101 +473,54 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             vlv = MEmodel_.GetLVV()
             vrv = MEmodel_.GetRVV()
 
-            return vlv - lvvc, vrv - rvvc
+            return [vlv - lvvc, vrv - rvvc]
 
         # Create the Newton solver
-        for iter in range(max_iter):
-            # Compute the residual and Jacobian
-            if isLV or iswaorta:
-                J = Jf(P_LV)
-                F = Rp(P_LV, V_LV)
 
-            elif isBiV or isFCH:
-                # J = np.array(
-                #   [
-                #       [Jf_biv(P_LV, P_RV, 1, 1), Jf_biv(P_LV, P_RV, 1, 0)],
-                #       [Jf_biv(P_LV, P_RV, 0, 1), Jf_biv(P_LV, P_RV, 0, 0)],
-                #   ]
-                # )
+        from scipy.optimize import (
+            newton,
+            fsolve,
+            root_scalar,
+            bisect,
+            root,
+            minimize,
+        )
 
-                # vlv, vrv = run_plvr(P_LV, P_RV)
-                ax_l, by_l, cz_l = JR_perturb(P_LV, P_RV, 1, V_LV, V_RV)
-                ax_r, by_r, cz_r = JR_perturb(P_LV, P_RV, 0, V_LV, V_RV)
+        def Rp_call(plv):
+            # scale = 1e6
+            return Rp(plv, V_LV)  # / scale
 
-                J = np.array(
-                    [
-                        [ax_l, by_l],
-                        [ax_r, by_r],
-                    ]
+        def Rp_biv_call(plrv):
+            plv, prv = plrv
+            return Rp_biv(plv, prv, V_LV, V_RV)
+
+        if isLV or iswaorta:
+            x0 = [P_LV]
+        elif isBiV or isFCH:
+            x0 = [P_LV, P_RV]
+
+        if isLV or iswaorta:
+            root1, info, ier, msg = fsolve(
+                Rp_call, x0, xtol=1e-4, factor=0.01, full_output=True
+            )
+
+        elif isBiV or isFCH:
+            root1, info, ier, msg = fsolve(
+                Rp_biv_call, x0, xtol=1e-4, factor=0.01, full_output=True
+            )
+
+        with open(outputfolder + folderName + "output_nfev.txt", "a") as nfev:
+            if MPI.rank(comm_me) == 0:
+                nfev.write(
+                    f"t = {state_obj.t}, iter = {info['nfev']}, fun = {info['fvec']}, message = {msg} \n"
                 )
 
-                # F = Rp_biv(P_LV, P_RV, V_LV, V_RV)
-                # F = np.array([[vfe] for vfe in Rp_biv(P_LV, P_RV, V_LV, V_RV)])
-                F = np.array([cz_l, cz_r])
+        P_LV = root1[0]
+        if isBiV or isFCH:
+            P_RV = root1[1]
 
-            # with open(
-            #    outputfolder + folderName + "output_JRp_serial.txt", "a"
-            # ) as f_JRp:
-            #    if MPI.rank(comm_me) == 0:
-            #        f_JRp.write(
-            #            # f"t = {state_obj.t}, iter = {iter}, Rp = {F}, J = {J} \n"
-            #            f"t = {state_obj.t}, iter = {iter}, J = {J}, F = {F} \n"
-            #        )
-
-            # Solve for the update
-            if isLV or iswaorta:
-                if abs(J) < 1e-10:
-                    printout("Jac is too small: " + str(du), comm_me)
-                    # if MPI.rank(comm_me) == 0:
-                    # f_JRp.write(f"break due to small Jac: du = {du}.")
-                    # continue
-                    break
-            elif isBiV or isFCH:
-                if np.linalg.norm(J) < 1e-10:
-                    printout("Jac is too small: " + str(du), comm_me)
-                    break
-
-            if isLV or iswaorta:
-                du = -F / J
-            elif isBiV or isFCH:
-                du = np.dot(np.linalg.inv(J), F)
-
-            # Update the solution
-            # if abs(du) > 230:
-            #     du /= 2
-
-            if isLV or iswaorta:
-                while abs(du) > 220:
-                    du /= 2
-            elif isBiV or isFCH:
-                while np.linalg.norm(du) > 220:
-                    du /= 2
-
-            if isLV or iswaorta:
-                P_LV += du
-            elif isBiV or isFCH:
-                P_LV -= float(du[0])
-                P_RV -= float(du[1])
-
-            # Check for convergence
-            if isLV or iswaorta:
-                if abs(F) < tol and abs(du) < tol:
-                    break
-            elif isBiV or isFCH:
-                if np.linalg.norm(F) < tol and np.linalg.norm(du) < tol:
-                    break
-
-            with open(outputfolder + folderName + "output_JRp.txt", "a") as f_JRp:
-                if MPI.rank(comm_me) == 0:
-                    f_JRp.write(f"t = {state_obj.t}, iter = {iter}, du = {du} \n")
-
-            # if cnt % SimDet["writeStep"] == 0.0:
-            #    export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
-            #    # export.hdf.write(c_n, "ME/u_diff", writecnt)
-            #    writecnt += 1
-
-        if cnt % 10 == 0:
-            tempfile << MEmodel_.GetDisplacement()  # LCL
+        # if cnt % 10 == 0:
+        #    tempfile << MEmodel_.GetDisplacement()  # LCL
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)

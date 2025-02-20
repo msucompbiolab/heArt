@@ -4,11 +4,12 @@ import numpy as np
 from mpi4py import MPI as pyMPI
 
 import warnings
-from ffc.quadrature.deprecation \
-import QuadratureRepresentationDeprecationWarning
+from ffc.quadrature.deprecation import QuadratureRepresentationDeprecationWarning
+
 warnings.simplefilter("ignore", QuadratureRepresentationDeprecationWarning)
 
 from dolfin import *
+
 # from fenicstools import *
 
 import vtk_py3
@@ -58,8 +59,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     facetboundaries_ep = MeshFunction("size_t", mesh_ep, 2)
     f.read(facetboundaries_ep, casename + "/" + "facetboundaries")
 
-    matid_ep = MeshFunction('size_t', mesh_ep, 3, mesh_ep.domains()) 
-    AHAid_ep = MeshFunction('size_t', mesh_ep, 3, mesh_ep.domains()) 
+    matid_ep = MeshFunction("size_t", mesh_ep, 3, mesh_ep.domains())
+    AHAid_ep = MeshFunction("size_t", mesh_ep, 3, mesh_ep.domains())
     if f.has_dataset(casename + "/" + "matid"):
         f.read(matid_ep, casename + "/" + "matid")
     else:

@@ -75,15 +75,15 @@ class CLmodel(object):
         self.V_pa = SimDet["closedloopparam"]["V_pa"]
         self.V_RA = SimDet["closedloopparam"]["V_RA"]
 
-        #if "Q_sa" in list(SimDet["closedloopparam"].keys()):
+        # if "Q_sa" in list(SimDet["closedloopparam"].keys()):
         #    self.parameters["Qsa"] = SimDet["closedloopparam"]["Q_sa"]
-        #if "Q_ad" in list(SimDet["closedloopparam"].keys()):
+        # if "Q_ad" in list(SimDet["closedloopparam"].keys()):
         #    self.parameters["Qad"] = SimDet["closedloopparam"]["Q_ad"]
-        #if "Q_sv" in list(SimDet["closedloopparam"].keys()):
+        # if "Q_sv" in list(SimDet["closedloopparam"].keys()):
         #    self.parameters["Qsv"] = SimDet["closedloopparam"]["Q_sv"]
-        #if "Q_av" in list(SimDet["closedloopparam"].keys()):
+        # if "Q_av" in list(SimDet["closedloopparam"].keys()):
         #    self.parameters["Qav"] = SimDet["closedloopparam"]["Q_av"]
-        #if "Q_mv" in list(SimDet["closedloopparam"].keys()):
+        # if "Q_mv" in list(SimDet["closedloopparam"].keys()):
         #    self.parameters["Qmv"] = SimDet["closedloopparam"]["Q_mv"]
 
         # Parameters for LVAD #############################################
@@ -92,7 +92,7 @@ class CLmodel(object):
             self.LVADrpm = self.SimDet["closedloopparam"]["Q_lvad_rpm"]
         if "Q_lvad_characteristic" in list(SimDet["closedloopparam"].keys()):
             self.QLVADFn = self.SimDet["closedloopparam"]["Q_lvad_characteristic"]
-    
+
         self.Qlvad = 0
 
         # for LA
@@ -134,17 +134,19 @@ class CLmodel(object):
         self.PRV = self.parameters["P_RV"]
 
         # update Q
+        ## For LV
         if self.PLV <= self.Psa:
-            #self.Qav = 0.0
+            # self.Qav = 0.0
             self.Qav = 1.0 / self.Rav_rg * (self.PLV - self.Psa)
         else:
             self.Qav = 1.0 / self.Rav * (self.PLV - self.Psa)
 
         if self.PLV >= self.PLA:
-            self.Qmv = 0.0
+            self.Qmv = 0.0  # Mitral valve
         else:
             self.Qmv = 1.0 / self.Rmv * (self.PLA - self.PLV)
 
+        ## For RV
         if self.PRV <= self.Ppa:
             self.Qpvv = 0.0
         else:
@@ -163,17 +165,25 @@ class CLmodel(object):
 
         if "Q_lvad_characteristic" in list(self.SimDet["closedloopparam"].keys()):
             H = (self.Psa - self.PLV) * 0.0075  # Pump head in mmHg
-            self.Qlvad = self.QLVADFn.Flowrate(H, self.LVADrpm) / 60  # Flow rate of LVAD in mL/ms
+            self.Qlvad = (
+                self.QLVADFn.Flowrate(H, self.LVADrpm) / 60
+            )  # Flow rate of LVAD in mL/ms
 
-        self.V_LV = self.V_LV + self.parameters["delTat"] * (self.Qmv - self.Qav - self.Qlvad)
-        self.V_sa = self.V_sa + self.parameters["delTat"] * (self.Qav - self.Qsa + self.Qlvad)
+        self.V_LV = self.V_LV + self.parameters["delTat"] * (
+            self.Qmv - self.Qav
+        )  # - self.Qlvad)
+        self.V_sa = self.V_sa + self.parameters["delTat"] * (
+            self.Qav - self.Qsa
+        )  # + self.Qlvad)
         self.V_ad = self.V_ad + self.parameters["delTat"] * (self.Qsa - self.Qad)
         self.V_sv = self.V_sv + self.parameters["delTat"] * (self.Qad - self.Qsv)
         self.V_RA = self.V_RA + self.parameters["delTat"] * (self.Qsv - self.Qtv)
         self.V_RV = self.V_RV + self.parameters["delTat"] * (self.Qtv - self.Qpvv)
         self.V_pa = self.V_pa + self.parameters["delTat"] * (self.Qpvv - self.Qpa)
         self.V_pv = self.V_pv + self.parameters["delTat"] * (self.Qpa - self.Qpv)
-        self.V_LA = self.V_LA + self.parameters["delTat"] * (self.Qpv - self.Qmv) #LCL fixed bug
+        self.V_LA = self.V_LA + self.parameters["delTat"] * (
+            self.Qpv - self.Qmv
+        )  # LCL fixed bug
 
         return self.V_LV, self.V_RV
 

@@ -487,13 +487,13 @@ class fch_mesh(object):
 
         f = HDF5File(MPI.comm_world, meshfilename, "r")
         f.read(self.mesh, casename, False)
-        self.mesh.scale(1.0e-1)
+        self.mesh.scale(6.5e-2)
 
         self.facetboundaries = MeshFunction(
             "size_t", self.mesh, self.mesh.topology().dim() - 1
         )
-        # f.read(self.facetboundaries, casename + "/" + "facetboundaries")
-        f.read(self.facetboundaries, casename + "/" + "facetboundaries2")
+        f.read(self.facetboundaries, casename + "/" + "facetboundaries")
+        # f.read(self.facetboundaries, casename + "/" + "facetboundaries2")
 
         self.edgeboundaries = MeshFunction("size_t", self.mesh, 1)
         # f.read(self.edgeboundaries, casename + "/" + "edgeboundaries")
@@ -544,7 +544,16 @@ class fch_mesh(object):
         self.matid = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
 
         if f.has_dataset(casename + "/" + "matid"):
-            f.read(self.matid, casename + "/" + "matid")
+            if SimDet.get("function_matid"):
+                VQuadelem = FiniteElement(
+                    "DG", self.mesh.ufl_cell(), degree=0, quad_scheme="default"
+                )
+                matid_FS = FunctionSpace(self.mesh, VQuadelem)
+                matid_func = dolfin.Function(matid_FS)
+                for cell in cells(self.mesh):
+                    self.matid[cell.index()] = round(matid_func(cell.midpoint()))
+            else:
+                f.read(self.matid, casename + "/" + "matid")
         elif f.has_dataset(casename + "/" + "materialregion"):
             f.read(self.matid, casename + "/" + "materialregion")
         else:
@@ -1915,7 +1924,7 @@ class exportfiles(object):
             LVP = MEmodel.LVCavitypres.pres * 0.0075
             # LVV = MEmodel.LV_closedsurf()
             LVV = MEmodel.GetLVV()
-            if isBiV:
+            if isBiV or isFCH:
                 RVP = MEmodel.RVCavitypres.pres * 0.0075
                 RVV = MEmodel.GetRVV()
             if MEmodel.islumped:
@@ -1937,7 +1946,7 @@ class exportfiles(object):
             elif iswaorta:
                 print(t, LVP, LVV, file=fdataPV, flush=True)
             elif isFCH:
-                print(t, LVP, LVV, file=fdataPV, flush=True)
+                print(t, LVP, LVV, RVP, RVV, file=fdataPV, flush=True)
             elif isBiV:
                 print(t, LVP, LVV, RVP, RVV, file=fdataPV, flush=True)
 

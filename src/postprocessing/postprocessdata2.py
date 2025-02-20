@@ -5,7 +5,8 @@ from ..utils.oops_objects_MRC2 import State_Variables
 from ..utils.oops_objects_MRC2 import lv_mesh as lv_mechanics_mesh
 from ..mechanics.MEmodel3 import MEmodel
 import matplotlib
-matplotlib.use('Agg')
+
+matplotlib.use("Agg")
 from matplotlib import pylab as plt
 from mpi4py import MPI as pyMPI
 
@@ -19,7 +20,9 @@ def postprocessdata(IODet, SimDet, cycle=None):
 
     for ncycle in range(cycle - 1, cycle):
         filename = directory + casename + "/" + "BiV_PV.txt"
-        homo_tptt, homo_LVP, homo_LVV, homo_RVP, homo_RVV, homo_Qmv = extract_PV(filename, BCL, ncycle, SimDet) 
+        homo_tptt, homo_LVP, homo_LVV, homo_RVP, homo_RVV, homo_Qmv = extract_PV(
+            filename, BCL, ncycle, SimDet
+        )
 
         filename = directory + casename + "/" + "BiV_Q.txt"
         (
@@ -223,6 +226,7 @@ def compute_activation(IODet, SimDet, cycle=None):
     File_act = df.File(os.path.join(act_outdirectory, "act.pvd"))
     File_act << time_act
 
+
 def normalize_directionalbasis(Mesh_obj, deg):
 
     eC0 = Mesh_obj.eC0
@@ -233,65 +237,95 @@ def normalize_directionalbasis(Mesh_obj, deg):
     eL0_normalized = eL0 / df.sqrt(df.inner(eL0, eL0))
     eR0_normalized = eR0 / df.sqrt(df.inner(eR0, eR0))
 
-    eC0_normalized = df.project(eC0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0),
-                     form_compiler_parameters={
-                                     "representation": "uflacs",
-                                     "quadrature_degree": deg,
-                                 }
-                     ).vector().get_local()
+    eC0_normalized = (
+        df.project(
+            eC0_normalized,
+            df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0),
+            form_compiler_parameters={
+                "representation": "uflacs",
+                "quadrature_degree": deg,
+            },
+        )
+        .vector()
+        .get_local()
+    )
     isnan_eC0_normalized = np.argwhere(np.isnan(eC0_normalized)).flatten()
 
-    eL0_normalized = df.project(eL0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0),
-                     form_compiler_parameters={
-                                     "representation": "uflacs",
-                                     "quadrature_degree": deg,
-                                 }
-                     ).vector().get_local()
+    eL0_normalized = (
+        df.project(
+            eL0_normalized,
+            df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0),
+            form_compiler_parameters={
+                "representation": "uflacs",
+                "quadrature_degree": deg,
+            },
+        )
+        .vector()
+        .get_local()
+    )
     isnan_eL0_normalized = np.argwhere(np.isnan(eL0_normalized)).flatten()
 
-    eR0_normalized = df.project(eR0_normalized, df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0),
-                     form_compiler_parameters={
-                                     "representation": "uflacs",
-                                     "quadrature_degree": deg,
-                                 }
-
-                     ).vector().get_local()
+    eR0_normalized = (
+        df.project(
+            eR0_normalized,
+            df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0),
+            form_compiler_parameters={
+                "representation": "uflacs",
+                "quadrature_degree": deg,
+            },
+        )
+        .vector()
+        .get_local()
+    )
     isnan_eR0_normalized = np.argwhere(np.isnan(eR0_normalized)).flatten()
 
-    mesh_coordinates = df.FunctionSpace(Mesh_obj.mesh, "DG",0).tabulate_dof_coordinates()
+    mesh_coordinates = df.FunctionSpace(
+        Mesh_obj.mesh, "DG", 0
+    ).tabulate_dof_coordinates()
 
     np.set_printoptions(threshold=sys.maxsize)
-    if(isnan_eC0_normalized.size != 0):
+    if isnan_eC0_normalized.size != 0:
         for p in isnan_eC0_normalized:
-            list_of_nan_ids = [p//3*3 + i for i in range(0,3)]
-            distances_to_nan_pt = [np.linalg.norm(mesh_coordinates[i] - mesh_coordinates[p//3]) \
-                    for i in range(0, len(mesh_coordinates))]
-            distances_to_nan_pt [p//3] = 1000
-            closest_pt_id = np.argmin(distances_to_nan_pt, axis = 0)
-            eC0_normalized[p//3*3: p//3*3+3] = eC0_normalized[3*closest_pt_id: 3*closest_pt_id+3]
+            list_of_nan_ids = [p // 3 * 3 + i for i in range(0, 3)]
+            distances_to_nan_pt = [
+                np.linalg.norm(mesh_coordinates[i] - mesh_coordinates[p // 3])
+                for i in range(0, len(mesh_coordinates))
+            ]
+            distances_to_nan_pt[p // 3] = 1000
+            closest_pt_id = np.argmin(distances_to_nan_pt, axis=0)
+            eC0_normalized[p // 3 * 3 : p // 3 * 3 + 3] = eC0_normalized[
+                3 * closest_pt_id : 3 * closest_pt_id + 3
+            ]
 
-    if(isnan_eL0_normalized.size != 0):
+    if isnan_eL0_normalized.size != 0:
         for p in isnan_eL0_normalized:
-            list_of_nan_ids = [p//3*3 + i for i in range(0,3)]
-            distances_to_nan_pt = [np.linalg.norm(mesh_coordinates[i] - mesh_coordinates[p//3]) \
-                    for i in range(0, len(mesh_coordinates))]
-            distances_to_nan_pt [p//3] = 1000
-            closest_pt_id = np.argmin(distances_to_nan_pt, axis = 0)
-            eL0_normalized[p//3*3: p//3*3+3] = eL0_normalized[3*closest_pt_id: 3*closest_pt_id+3]
- 
-    if(isnan_eR0_normalized.size != 0):
+            list_of_nan_ids = [p // 3 * 3 + i for i in range(0, 3)]
+            distances_to_nan_pt = [
+                np.linalg.norm(mesh_coordinates[i] - mesh_coordinates[p // 3])
+                for i in range(0, len(mesh_coordinates))
+            ]
+            distances_to_nan_pt[p // 3] = 1000
+            closest_pt_id = np.argmin(distances_to_nan_pt, axis=0)
+            eL0_normalized[p // 3 * 3 : p // 3 * 3 + 3] = eL0_normalized[
+                3 * closest_pt_id : 3 * closest_pt_id + 3
+            ]
+
+    if isnan_eR0_normalized.size != 0:
         for p in isnan_eR0_normalized:
-            list_of_nan_ids = [p//3*3 + i for i in range(0,3)]
-            distances_to_nan_pt = [np.linalg.norm(mesh_coordinates[i] - mesh_coordinates[p//3]) \
-                    for i in range(0, len(mesh_coordinates))]
-            distances_to_nan_pt [p//3] = 1000
-            closest_pt_id = np.argmin(distances_to_nan_pt, axis = 0)
-            eR0_normalized[p//3*3: p//3*3+3] = eR0_normalized[3*closest_pt_id: 3*closest_pt_id+3]
+            list_of_nan_ids = [p // 3 * 3 + i for i in range(0, 3)]
+            distances_to_nan_pt = [
+                np.linalg.norm(mesh_coordinates[i] - mesh_coordinates[p // 3])
+                for i in range(0, len(mesh_coordinates))
+            ]
+            distances_to_nan_pt[p // 3] = 1000
+            closest_pt_id = np.argmin(distances_to_nan_pt, axis=0)
+            eR0_normalized[p // 3 * 3 : p // 3 * 3 + 3] = eR0_normalized[
+                3 * closest_pt_id : 3 * closest_pt_id + 3
+            ]
 
-
-    eC0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0))
-    eL0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0))
-    eR0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG",0))
+    eC0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0))
+    eL0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0))
+    eR0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0))
 
     eC0_normalized_.vector()[:] = eC0_normalized
     eL0_normalized_.vector()[:] = eL0_normalized
@@ -325,7 +359,9 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
     eR0 = Mesh_obj.eR0
 
     deg = SimDet["GiccioneParams"]["deg"]
-    eC0_normalized, eL0_normalized, eR0_normalized = normalize_directionalbasis(Mesh_obj, deg)
+    eC0_normalized, eL0_normalized, eR0_normalized = normalize_directionalbasis(
+        Mesh_obj, deg
+    )
 
     if SimDet["Mechanics Discretization"] is "P1P1":
         var_deg = 1
@@ -644,11 +680,12 @@ def plothemodynamics(IODet, SimDet, cycle=None):
     plt.figure()
     for ncycle in range(cycle):
         filename = directory + casename + "/" + "BiV_PV.txt"
-        homo_tptt, homo_LVP, homo_LVV, homo_RVP, homo_RVV, homo_Qmv = extract_PV(filename, BCL, ncycle, SimDet)
-        plt.plot(homo_LVV, homo_LVP , label=f"LV Cycle = {ncycle}")
-        if "isBiV" in list(SimDet.keys()):
-            if SimDet["isBiV"]:
-                plt.plot(homo_RVV, homo_RVP , label=f"RV Cycle = {ncycle}")
+        homo_tptt, homo_LVP, homo_LVV, homo_RVP, homo_RVV, homo_Qmv = extract_PV(
+            filename, BCL, ncycle, SimDet
+        )
+        plt.plot(homo_LVV, homo_LVP, label=f"LV Cycle = {ncycle}")
+        if SimDet.get("isBiV") or SimDet.get("isFCH"):
+            plt.plot(homo_RVV, homo_RVP, label=f"RV Cycle = {ncycle}")
 
     hemodynamics_outdirectory = os.path.join(
         IODet["outputfolder"], IODet["caseID"], "hemodynamics"
@@ -659,6 +696,7 @@ def plothemodynamics(IODet, SimDet, cycle=None):
     # plt.plot(homo_LVV, homo_LVP)
     plt.savefig(os.path.join(hemodynamics_outdirectory, "PV.png"))
     plt.clf()
+
 
 def plotpressure(IODet, SimDet, cycle=None, compartment="All"):
 
@@ -676,46 +714,93 @@ def plotpressure(IODet, SimDet, cycle=None, compartment="All"):
             filename, BCL, ncycle, SimDet
         )
 
-        if(ncycle == cycle - 1):
+        if ncycle == cycle - 1:
             meanPsv = time_average(tpt, Psv)
-            print("Mean Psv = ", meanPsv * 0.0075, "mmHg; Peak Psv = ", max(Psv) * 0.0075, "mmHg")
+            print(
+                "Mean Psv = ",
+                meanPsv * 0.0075,
+                "mmHg; Peak Psv = ",
+                max(Psv) * 0.0075,
+                "mmHg",
+            )
             meanPLV = time_average(tpt, PLV)
-            print("Mean PLV = ", meanPLV * 0.0075, "mmHg; Peak PLV = ", max(PLV) * 0.0075, "mmHg")
+            print(
+                "Mean PLV = ",
+                meanPLV * 0.0075,
+                "mmHg; Peak PLV = ",
+                max(PLV) * 0.0075,
+                "mmHg",
+            )
             meanPsa = time_average(tpt, Psa)
-            print("Mean Psa = ", meanPsa * 0.0075, "mmHg; Peak Psa = ", max(Psa) * 0.0075, "mmHg")
+            print(
+                "Mean Psa = ",
+                meanPsa * 0.0075,
+                "mmHg; Peak Psa = ",
+                max(Psa) * 0.0075,
+                "mmHg",
+            )
             meanPLA = time_average(tpt, PLA)
-            print("Mean PLA = ", meanPLA * 0.0075, "mmHg; Peak PLA = ", max(PLA) * 0.0075, "mmHg")
+            print(
+                "Mean PLA = ",
+                meanPLA * 0.0075,
+                "mmHg; Peak PLA = ",
+                max(PLA) * 0.0075,
+                "mmHg",
+            )
 
-        if(compartment == "All" or "sv" in compartment):
-            plt.plot(tpt, Psv*0.0075 , label=f"Psv Cycle = {ncycle}")
-        if(compartment == "All" or "lv" in compartment):
-            plt.plot(tpt, PLV*0.0075 , label=f"PLV Cycle = {ncycle}")
-        if(compartment == "All" or "sa" in compartment):
-            plt.plot(tpt, Psa*0.0075 , label=f"Psa Cycle = {ncycle}")
-        if(compartment == "All" or "la" in compartment):
-            plt.plot(tpt, PLA*0.0075 , label=f"PLA Cycle = {ncycle}")
+        if compartment == "All" or "sv" in compartment:
+            plt.plot(tpt, Psv * 0.0075, label=f"Psv Cycle = {ncycle}")
+        if compartment == "All" or "lv" in compartment:
+            plt.plot(tpt, PLV * 0.0075, label=f"PLV Cycle = {ncycle}")
+        if compartment == "All" or "sa" in compartment:
+            plt.plot(tpt, Psa * 0.0075, label=f"Psa Cycle = {ncycle}")
+        if compartment == "All" or "la" in compartment:
+            plt.plot(tpt, PLA * 0.0075, label=f"PLA Cycle = {ncycle}")
 
         if "isBiV" in list(SimDet.keys()):
             if SimDet["isBiV"]:
-                if(compartment == "All" or "pv" in compartment):
-                    plt.plot(tpt, Ppv*0.0075 , label=f"Ppv Cycle = {ncycle}")
-                if(compartment == "All" or "rv" in compartment):
-                    plt.plot(tpt, PRV*0.0075 , label=f"PRV Cycle = {ncycle}")
-                if(compartment == "All" or "pa" in compartment):
-                    plt.plot(tpt, Ppa*0.0075 , label=f"Ppa Cycle = {ncycle}")
-                if(compartment == "All" or "ra" in compartment):
-                    plt.plot(tpt, PRA*0.0075 , label=f"PRA Cycle = {ncycle}")
+                if compartment == "All" or "pv" in compartment:
+                    plt.plot(tpt, Ppv * 0.0075, label=f"Ppv Cycle = {ncycle}")
+                if compartment == "All" or "rv" in compartment:
+                    plt.plot(tpt, PRV * 0.0075, label=f"PRV Cycle = {ncycle}")
+                if compartment == "All" or "pa" in compartment:
+                    plt.plot(tpt, Ppa * 0.0075, label=f"Ppa Cycle = {ncycle}")
+                if compartment == "All" or "ra" in compartment:
+                    plt.plot(tpt, PRA * 0.0075, label=f"PRA Cycle = {ncycle}")
 
-                if(ncycle == cycle - 1):
+                if ncycle == cycle - 1:
                     meanPpv = time_average(tpt, Ppv)
-                    print("Mean Ppv = ", meanPpv * 0.0075, "mmHg; Peak Ppv = ", max(Ppv) * 0.0075, "mmHg")
+                    print(
+                        "Mean Ppv = ",
+                        meanPpv * 0.0075,
+                        "mmHg; Peak Ppv = ",
+                        max(Ppv) * 0.0075,
+                        "mmHg",
+                    )
                     meanPRV = time_average(tpt, PRV)
-                    print("Mean PRV = ", meanPRV * 0.0075, "mmHg; Peak PRV = ", max(PRV) * 0.0075, "mmHg")
+                    print(
+                        "Mean PRV = ",
+                        meanPRV * 0.0075,
+                        "mmHg; Peak PRV = ",
+                        max(PRV) * 0.0075,
+                        "mmHg",
+                    )
                     meanPpa = time_average(tpt, Ppa)
-                    print("Mean Ppa = ", meanPpa * 0.0075, "mmHg; Peak Ppa = ", max(Ppa) * 0.0075, "mmHg")
+                    print(
+                        "Mean Ppa = ",
+                        meanPpa * 0.0075,
+                        "mmHg; Peak Ppa = ",
+                        max(Ppa) * 0.0075,
+                        "mmHg",
+                    )
                     meanPRA = time_average(tpt, PRA)
-                    print("Mean PRA = ", meanPRA * 0.0075, "mmHg; Peak PRA = ", max(PRA) * 0.0075, "mmHg")
-
+                    print(
+                        "Mean PRA = ",
+                        meanPRA * 0.0075,
+                        "mmHg; Peak PRA = ",
+                        max(PRA) * 0.0075,
+                        "mmHg",
+                    )
 
     hemodynamics_outdirectory = os.path.join(
         IODet["outputfolder"], IODet["caseID"], "hemodynamics"
@@ -728,6 +813,7 @@ def plotpressure(IODet, SimDet, cycle=None, compartment="All"):
     plt.xlabel("Time (s)")
     plt.savefig(os.path.join(hemodynamics_outdirectory, "Pressure.png"))
     plt.clf()
+
 
 def plotflow(IODet, SimDet, cycle=None, compartment="All"):
 
@@ -745,49 +831,103 @@ def plotflow(IODet, SimDet, cycle=None, compartment="All"):
             filename, BCL, ncycle, SimDet
         )
 
-        if(ncycle == cycle - 1):
+        if ncycle == cycle - 1:
             meanQav = time_average(tpt, Qav)
-            print("Mean Qav = ", meanQav * 60, "L/min; Peak Qav = ", max(Qav) * 60, "L/min")
+            print(
+                "Mean Qav = ",
+                meanQav * 60,
+                "L/min; Peak Qav = ",
+                max(Qav) * 60,
+                "L/min",
+            )
             meanQmv = time_average(tpt, Qmv)
-            print("Mean Qmv = ", meanQmv * 60, "L/min; Peak Qmv = ", max(Qmv) * 60, "L/min")
+            print(
+                "Mean Qmv = ",
+                meanQmv * 60,
+                "L/min; Peak Qmv = ",
+                max(Qmv) * 60,
+                "L/min",
+            )
             meanQsa = time_average(tpt, Qsa)
-            print("Mean Qsa = ", meanQsa * 60, "L/min; Peak Qsa = ", max(Qsa) * 60, "L/min")
+            print(
+                "Mean Qsa = ",
+                meanQsa * 60,
+                "L/min; Peak Qsa = ",
+                max(Qsa) * 60,
+                "L/min",
+            )
             meanQsv = time_average(tpt, Qsv)
-            print("Mean Qsv = ", meanQsv * 60, "L/min; Peak Qsv = ", max(Qsv) * 60, "L/min")
+            print(
+                "Mean Qsv = ",
+                meanQsv * 60,
+                "L/min; Peak Qsv = ",
+                max(Qsv) * 60,
+                "L/min",
+            )
             meanQlvad = time_average(tpt, Qlvad)
-            print("Mean Qlvad = ", meanQlvad * 60, "L/min; Peak Qlvad = ", max(Qlvad) * 60, "L/min")
+            print(
+                "Mean Qlvad = ",
+                meanQlvad * 60,
+                "L/min; Peak Qlvad = ",
+                max(Qlvad) * 60,
+                "L/min",
+            )
 
-        if(compartment == "All" or "av" in compartment):
-            plt.plot(tpt, Qav * 60 , label=f"Qav Cycle = {ncycle}")
-        if(compartment == "All" or "mv" in compartment):
+        if compartment == "All" or "av" in compartment:
+            plt.plot(tpt, Qav * 60, label=f"Qav Cycle = {ncycle}")
+        if compartment == "All" or "mv" in compartment:
             plt.plot(tpt, Qmv * 60, label=f"Qmv Cycle = {ncycle}")
-        if(compartment == "All" or "sa" in compartment):
+        if compartment == "All" or "sa" in compartment:
             plt.plot(tpt, Qsa * 60, label=f"Qsa Cycle = {ncycle}")
-        if(compartment == "All" or "sv" in compartment):
+        if compartment == "All" or "sv" in compartment:
             plt.plot(tpt, Qsv * 60, label=f"Qsv Cycle = {ncycle}")
-        if(compartment == "All" or "lvad" in compartment):
+        if compartment == "All" or "lvad" in compartment:
             plt.plot(tpt, Qlvad * 60, label=f"Qlvad Cycle = {ncycle}")
 
         if "isBiV" in list(SimDet.keys()):
             if SimDet["isBiV"]:
-                if(compartment == "All" or "ppv" in compartment):
+                if compartment == "All" or "ppv" in compartment:
                     plt.plot(tpt, Qpvv * 60, label=f"Qpvv Cycle = {ncycle}")
-                if(compartment == "All" or "tv" in compartment):
+                if compartment == "All" or "tv" in compartment:
                     plt.plot(tpt, Qtv * 60, label=f"Qtv Cycle = {ncycle}")
-                if(compartment == "All" or "pa" in compartment):
+                if compartment == "All" or "pa" in compartment:
                     plt.plot(tpt, Qpa * 60, label=f"Qpa Cycle = {ncycle}")
-                if(compartment == "All" or "pv" in compartment):
+                if compartment == "All" or "pv" in compartment:
                     plt.plot(tpt, Qpv * 60, label=f"Qpv Cycle = {ncycle}")
 
-                if(ncycle == cycle - 1):
+                if ncycle == cycle - 1:
                     meanQpvv = time_average(tpt, Qpvv)
-                    print("Mean Qpvv = ", meanQpvv * 60, "L/min; Peak Qpvv = ", max(Qpvv) * 60, "L/min")
+                    print(
+                        "Mean Qpvv = ",
+                        meanQpvv * 60,
+                        "L/min; Peak Qpvv = ",
+                        max(Qpvv) * 60,
+                        "L/min",
+                    )
                     meanQtv = time_average(tpt, Qtv)
-                    print("Mean Qtv = ", meanQtv * 60, "L/min; Peak Qtv = ", max(Qtv) * 60, "L/min")
+                    print(
+                        "Mean Qtv = ",
+                        meanQtv * 60,
+                        "L/min; Peak Qtv = ",
+                        max(Qtv) * 60,
+                        "L/min",
+                    )
                     meanQpa = time_average(tpt, Qpa)
-                    print("Mean Qpa = ", meanQpa * 60, "L/min; Peak Qpa = ", max(Qpa) * 60, "L/min")
+                    print(
+                        "Mean Qpa = ",
+                        meanQpa * 60,
+                        "L/min; Peak Qpa = ",
+                        max(Qpa) * 60,
+                        "L/min",
+                    )
                     meanQpv = time_average(tpt, Qpv)
-                    print("Mean Qpv = ", meanQpv * 60, "L/min; Peak Qpv = ", max(Qpv) * 60, "L/min")
+                    print(
+                        "Mean Qpv = ",
+                        meanQpv * 60,
+                        "L/min; Peak Qpv = ",
+                        max(Qpv) * 60,
+                        "L/min",
+                    )
 
     hemodynamics_outdirectory = os.path.join(
         IODet["outputfolder"], IODet["caseID"], "hemodynamics"
@@ -802,8 +942,8 @@ def plotflow(IODet, SimDet, cycle=None, compartment="All"):
     plt.savefig(os.path.join(hemodynamics_outdirectory, "Flow.png"))
     plt.clf()
 
-def time_average(time_array, data_array):
 
+def time_average(time_array, data_array):
     """Calculates the time-weighted average of a data array.
 
     Args:
@@ -828,5 +968,3 @@ def time_average(time_array, data_array):
     total_time = time_array[-1] - time_array[0]
 
     return weighted_sum / total_time
-
-    

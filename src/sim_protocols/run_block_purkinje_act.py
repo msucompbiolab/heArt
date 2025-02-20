@@ -32,21 +32,21 @@ def run_block_purkinje_act(IODet, SimDet):
     File_PJ = File(outputfolder + folderName + "PJ.pvd")
 
     pj_t_nodes = np.array(SimDet["tnode"])
-    tstart_arr = [-10]*len(pj_t_nodes)
+    tstart_arr = [-10] * len(pj_t_nodes)
     probes = Probes(pj_t_nodes.flatten(), EPmodel_pj.w_ep.function_space().sub(0))
     comms = EPmodel_pj.mesh.mpi_comm()
 
-    while(1):
+    while 1:
 
-           # Activate PK
-        if(state_obj_pj.tstep > 10 and state_obj_pj.tstep < 20):
+        # Activate PK
+        if state_obj_pj.tstep > 10 and state_obj_pj.tstep < 20:
             EPmodel_pj.fstim_array[0].iStim = 1.0
         else:
             EPmodel_pj.fstim_array[0].iStim = 0.0
 
-        if(state_obj_pj.tstep > 400):
-            break;
-        
+        if state_obj_pj.tstep > 400:
+            break
+
         state_obj_pj.tstep = state_obj_pj.tstep + state_obj_pj.dt.dt
         cnt = cnt + 1
 
@@ -62,45 +62,44 @@ def run_block_purkinje_act(IODet, SimDet):
         probes_val = probes.array()
 
         # broadcast from proc 0 to other processes
-        rank = MPI.rank(comms)#.Get_rank()
+        rank = MPI.rank(comms)  # .Get_rank()
 
         probes_val_bcast = probes_val  ## probe will only send to rank =0
-        if(not rank == 0):
-            if(cnt == 1):
+        if not rank == 0:
+            if cnt == 1:
                 probes_val_bcast = np.empty(len(pj_t_nodes))
             else:
                 probes_val_bcast = np.empty((len(pj_t_nodes), cnt))
 
         comms.Bcast(probes_val_bcast, root=0)
-        #print(rank, probes_val_bcast, flush=True)
- 
+        # print(rank, probes_val_bcast, flush=True)
+
         try:
             probesize = np.shape(probes.array())[1]
         except IndexError:
             probesize = 0
 
-        #current_ta.vector()[:] = t
-        #update_activationTime(phi_pj, current_ta, t_init, isActive, pj_mesh.mpi_comm())
+        # current_ta.vector()[:] = t
+        # update_activationTime(phi_pj, current_ta, t_init, isActive, pj_mesh.mpi_comm())
 
         for p in range(0, len(pj_t_nodes)):
 
             try:
-                phi_pj_val = probes_val_bcast[p][probesize-1]
+                phi_pj_val = probes_val_bcast[p][probesize - 1]
             except IndexError:
                 phi_pj_val = probes_val_bcast[p]
 
-            #if(phi_pj(pj_t_nodes[p][0],pj_t_nodes[p][1],pj_t_nodes[p][2]) > 0.9 and tstart_arr[p] < 10.0):
-            if(phi_pj_val > 0.9 and tstart_arr[p] < 1.0):
-                if(tstart_arr[p] < 0):
+            # if(phi_pj(pj_t_nodes[p][0],pj_t_nodes[p][1],pj_t_nodes[p][2]) > 0.9 and tstart_arr[p] < 10.0):
+            if phi_pj_val > 0.9 and tstart_arr[p] < 1.0:
+                if tstart_arr[p] < 0:
                     tstart_arr[p] = 0
                     EPmodel_ep.fstim_array[p].iStim = 1.0
-                    #print("Activate T node", p)
+                    # print("Activate T node", p)
                 else:
                     tstart_arr[p] += state_obj_pj.dt.dt
             else:
                 EPmodel_ep.fstim_array[p].iStim = 0.0
-                #print("Deactivate T node", p)
- 
+                # print("Deactivate T node", p)
 
         if cnt % SimDet["writeStep"] == 0.0:
             File_EP << EPmodel_ep.getphivar()
@@ -124,7 +123,6 @@ def createPJmodel(IODet, SimDet):
     f.read(mesh_pj, casename, False)
     File(outputfolder + folderName + "mesh_pj.pvd") << mesh_pj
 
-
     AHAid_pj = MeshFunction(
         "size_t", mesh_pj, 1, mesh_pj.domains()
     )  # CellFunction("size_t", meshEP.mesh)
@@ -135,12 +133,10 @@ def createPJmodel(IODet, SimDet):
     )  # CellFunction("size_t", meshEP.mesh)
     matid_pj.set_all(0)
 
-
     # Define state variables
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
     state_obj = State_Variables(comm_pj, SimDet)
     state_obj.dt.dt = delTat
- 
 
     # Define EP model and solver
     EPparams_pj = {
@@ -154,7 +150,6 @@ def createPJmodel(IODet, SimDet):
         "Ischemia": SimDet["Ischemia"],
         "pacing_timing": SimDet["pacing_timing"],
         "ploc": SimDet["ploc"],
-
     }
 
     # Define EP model and solver
@@ -162,7 +157,6 @@ def createPJmodel(IODet, SimDet):
 
     return EPmodel_, state_obj
 
- 
 
 def createEPmodel(IODet, SimDet):
 
@@ -206,7 +200,6 @@ def createEPmodel(IODet, SimDet):
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
     state_obj = State_Variables(comm_ep, SimDet)
     state_obj.dt.dt = delTat
- 
 
     # Define EP model and solver
     EPparams = {
@@ -224,7 +217,6 @@ def createEPmodel(IODet, SimDet):
         "matid": matid_ep,
         "Ischemia": SimDet["Ischemia"],
         "pacing_timing": SimDet["pacing_timing"],
-
     }
 
     # Define EP model and solver
@@ -312,7 +304,7 @@ def createEPmodel(IODet, SimDet):
 #    return
 #
 #
-#class createmesh(object):
+# class createmesh(object):
 #    def __init__(self, IODet, SimDet, nelem):
 #        self.IODet = IODet
 #        self.SimDet = SimDet
@@ -391,7 +383,7 @@ def createEPmodel(IODet, SimDet):
 #        self.comm = mesh.mpi_comm()
 #
 #
-#class mechanics(object):
+# class mechanics(object):
 #    def __init__(self, IODet, SimDet, MEparams):
 #        passive_mat_input = {}
 #        active_mat_input = {}

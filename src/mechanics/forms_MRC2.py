@@ -136,6 +136,7 @@ class Forms(object):
         if isincomp:
             p = self.parameters["pressure_variable"]
             Wvolumetric = -1.0 * p * (J - 1.0)
+            # Wvolumetric = p / 2.0 * (J - 1.0)
             PK1volumetric = dolfin.diff(Wvolumetric, F)
         else:
             Kappa = self.parameters["Kappa"]
@@ -199,8 +200,8 @@ class Forms(object):
             * inner(det(F) * dot(inv(F).T, N), X + u)
             * (
                 ds(self.parameters["LVendoid"])
-                + ds(self.parameters["aortic_vplane"])
-                + ds(self.parameters["mitral_vplane"])
+                + ds(self.parameters["aortic_valvep"])
+                + ds(self.parameters["mitral_valvep"])
             )
         )
 
@@ -217,15 +218,26 @@ class Forms(object):
         )
 
         F = self.Fmat()
-        vol_form = (
-            -Constant(1.0 / 3.0)
-            * inner(det(F) * dot(inv(F).T, N), X + u)
-            * (
-                ds(self.parameters["LVendoid"])
-                + ds(self.parameters["aortic_vplane"])
-                + ds(self.parameters["mitral_vplane"])
+
+        if self.parameters.get("aortic_valvep") and self.parameters.get(
+            "mitral_valvep"
+        ):
+
+            vol_form = (
+                -Constant(1.0 / 3.0)
+                * inner(det(F) * dot(inv(F).T, N), X + u)
+                * (
+                    ds(self.parameters["LVendoid"])
+                    + ds(self.parameters["aortic_valvep"])
+                    + ds(self.parameters["mitral_valvep"])
+                )
             )
-        )
+        else:
+            vol_form = (
+                -Constant(1.0 / 3.0)
+                * inner(det(F) * dot(inv(F).T, N), X + u)
+                * (ds(self.parameters["LVendoid"]))
+            )
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
 
@@ -240,15 +252,24 @@ class Forms(object):
         )
 
         F = self.Fmat()
-        vol_form = (
-            -Constant(1.0 / 3.0)
-            * inner(det(F) * dot(inv(F).T, N), X + u)
-            * (
-                ds(self.parameters["RVendoid"])
-                + ds(self.parameters["first_rv_valve"])
-                + ds(self.parameters["second_rv_valve"])
+        if self.parameters.get("pulmonary_valvep") and self.parameters.get(
+            "tricuspid_valvep"
+        ):
+            vol_form = (
+                -Constant(1.0 / 3.0)
+                * inner(det(F) * dot(inv(F).T, N), X + u)
+                * (
+                    ds(self.parameters["RVendoid"])
+                    + ds(self.parameters["pulmonary_valvep"])
+                    + ds(self.parameters["tricuspid_valvep"])
+                )
             )
-        )
+        else:
+            vol_form = (
+                -Constant(1.0 / 3.0)
+                * inner(det(F) * dot(inv(F).T, N), X + u)
+                * (ds(self.parameters["RVendoid"]))
+            )
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
 
@@ -390,6 +411,28 @@ class Forms(object):
                 cnt += 1
         else:
             surface_ = ds(self.parameters["LVPid"])
+
+        pres = (
+            pe * inner(J * inv(F.T) * N, u) * surface_
+        )  # ds(self.parameters["LVendoid"])
+
+        # pres = 1 * dsendo
+        return pres
+
+    def Aortacavitypres(self):
+        pe = self.parameters["aorta_constrained_pres"]
+        N = self.parameters["facet_normal"]
+        mesh = self.parameters["mesh"]
+        ds = dolfin.ds(
+            subdomain_data=self.parameters["facetboundaries"],
+            metadata={"quadrature_degree": 4},
+        )
+
+        J = self.J()
+        u = self.parameters["displacement_variable"]
+        F = self.Fmat()
+
+        surface_ = ds(self.parameters["aortaid"])
 
         pres = (
             pe * inner(J * inv(F.T) * N, u) * surface_

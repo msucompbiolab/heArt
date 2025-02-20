@@ -126,7 +126,7 @@ class NSolver(object):
             opts.setValue("pc_fieldsplit_detect_saddle_point", True)
             opts.setValue("fieldsplit_0_ksp_type", "preonly")  # preonly # gmres # cg
             # opts.setValue("fieldsplit_0_ksp_type", "richardson")
-            opts.setValue("fieldsplit_0_pc_type", "lu") # hypre
+            opts.setValue("fieldsplit_0_pc_type", "lu")  # hypre
             # opts.setValue("fieldsplit_0_pc_hypre_type", "boomeramg")
 
             opts.setValue("fieldsplit_1_ksp_type", "preonly")
