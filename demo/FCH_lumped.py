@@ -1,0 +1,210 @@
+import sys, pdb
+from dolfin import *
+
+sys.path.append("/mnt/Research")
+sys.path.append("/mnt/Output")
+
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
+    run_BiV_ClosedLoop as run_BiV_ClosedLoop,
+)
+
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    postprocessdata as postprocessdata,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import dumpvtk as dumpvtk
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    compute_strain as compute_strain,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    plothemodynamics as plothemodynamics,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacement as extractdisplacement,
+)
+from heArt_py3.src.postprocessing.postprocessdata2 import (
+    extractdisplacementloading as extractdisplacementloading,
+)
+
+#  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
+# ellipsoidal_baselinegeo
+IODetails = {
+    # "casename": "fch_clregion",
+    "casename": "fch_ming",
+    "directory_me": "../FCHMesh/vh/",
+    "directory_ep": "../FCHMesh/vh/",
+    "outputfolder": "/mnt/Output/outputs_realfch/",
+    "folderName": "",
+    "caseID": "real_lumped2",
+    "isLV": False,
+    "isFCH": True,
+}
+
+contRactility = 700e3
+
+GuccioneParams = {
+    "ParamsSpecified": True,
+    "Passive model": {"Name": "Guccione"},
+    "Passive params": {
+        "Cparam": Constant(130.0),
+        "bff": Constant(29.0),
+        "bfx": Constant(13.3),
+        "bxx": Constant(26.6),
+        "mu_iso": Constant(5e2),
+        "b_iso": Constant(26.0),
+    },
+    "Active model": {"Name": "Time-varying"},
+    "Active params": {
+        "tau": 25,
+        "t_trans": 300,
+        "B": 4.75,
+        "t0": 275,
+        "l0": 1.58,
+        "Tmax": Constant(contRactility),
+        "Ca0": 4.35,
+        "Ca0max": 4.35,
+        "lr": 1.85,
+    },
+    "HomogenousActivation": True,
+    "deg": 4,
+    "Kappa": 1e5,
+    "incompressible": True,
+}
+
+
+Circparam = {
+    "Ees_lv": 200, # *
+    "V0_lv": 15,
+    "A_lv": 50,
+    "B_lv": 0.035,
+    "Tmax_lv": 300,
+    "tau_lv": 40,
+    "tdelay_lv": 0,
+    "Ees_rv": 110,
+    "V0_rv": 25,
+    "A_rv": 40,
+    "B_rv": 0.03,
+    "Tmax_rv": 280,
+    "tau_rv": 45,
+    "tdelay_rv": 20,
+    "Ees_la": 80, # 60 la end-sys elastance
+    "A_la": 40.0, # 2.67 scaling factor
+    "B_la": 0.03, # 0.019 exponent
+    "V0_la": 18, # 10 vol axis intercept
+    "Tmax_la": 120, # 120 time to end-sys
+    "tau_la": 75, # 25 relaxation
+    "tdelay_la": 160, # it's not in the paper, figure out why
+    "Csa": 0.0045, # 0.0032 -- proximal aorta compliance
+    "Cad": 0.0330, # 0.033 -- distal aorta compliance
+    "Csv": 0.3, # 0.28 -- venous compliance
+    "Vsa0": 700, # 360 resting volume for proximal aorta (#sug increase to reduce Psa)
+    "Vsv0": 2400.0, #xpaper resting volume for venous (#sug increase to reduce preload) *
+    "Vad0": 40, # 40 resting volume for distal aorta
+    "Rav": 500.0, # 500 aortic valve resistance
+    "Rsv": 100.0, # 100 venous resistance #sug ? increase (--> 200)
+    "Rsa": 21000, # 18000 proximal aorta resistance (#sug increase to increase afterload)
+    "Rad": 40000, #xpaper distal aorta resistance
+    "Rmv": 200.0, # mitral valve resistance 
+    # Pulmonary
+    "Ees_ra": 60.0,
+    "A_ra": 70.0,
+    "B_ra": 0.03,
+    "V0_ra": 18.0,
+    "Tmax_ra": 120,
+    "tau_ra": 25,
+    "tdelay_ra": 100,
+    "Cpa": 0.0145,
+    "Cpv": 0.9,
+    "Vpa0": 400,
+    "Vpv0": 800,
+    "Rpv": 500.0,
+    "Rtv": 400.0,
+    "Rpa": 10000.0,
+    "Rpvv": 400,
+    # Volumes
+    "V_sv": 2500.0,
+    "V_LV": 120.0,
+    "V_sa": 745.0,
+    "V_ad": 324.0,
+    "V_LA": 70.0,
+    "V_pv": 3250.0,
+    "V_RV": 98.0,
+    "V_pa": 401.0,
+    "V_RA": 53.0,
+    # no iteration
+    "stop_iter": 4,
+    # LVAD
+    #'Q_lvad_rpm' : 28,
+    #'Q_lvad_scale' : 0.0
+}
+
+
+SimDetails = {
+    "diaplacementInfo_ref": False,
+    "HeartBeatLength": 800.0,
+    "dt": 0.5,
+    "writeStep": 40.0,
+    "GiccioneParams": GuccioneParams,
+    "nLoadSteps": 64,
+    "DTI_EP": False,
+    "DTI_ME": False,
+    "d_iso": 1.5 * 0.01,
+    "d_ani_factor": 4.0,
+    #    "probepts": [
+    #        [3.54982, 4.85747, -1.56241],
+    #        [3.54982, 4.85747, -1.56241],
+    #        [3.54982, 4.85747, -1.56241],
+    #        [3.54982, 4.85747, -1.56241],
+    #        [4.10888, 5.28499, -1.56241],
+    #        [4.77476, 5.69628, -1.56241],
+    #        [10.1261, 9.83341, -1.56241],
+    #        [10.3596, 10.0373, -1.56241],
+    #        [10.5715, 10.2127, -1.56241],
+    #    ],
+    "ploc": [[1.4, 1.4, -3.0, 2.0, 1]],  # , [-1.4, -1.4, -3.0, 2.0, 2]],
+    "pacing_timing": [[4.0, 20.0]],  # , [20.0, 20.0]],
+    "Isclosed": True,
+    "closedloopparam": Circparam,
+    "Ischemia": False,
+    "Mechanics Discretization": "P1P1",
+    "Technique Discretization": 1,
+    "isLV": False,
+    "aorta_wall": 7,  # aorta truncated surface (ring plus)
+    # "pulm_wall": 12,  # pulmonary ring (not marked in current vtp)
+    "LVendoid": 1,
+    "RVendoid": 6,
+    "LAendoid": 2,
+    "RAendoid": 3,
+    "epiid": 9,
+    "apxid": 11,
+    "aortaid": 8, # aorta external wall
+    # "septumid": -1,
+    # "mitral_valvep": 16, (not marked in current vtp)
+    # "aortic_valvep": 17, (not marked in current vtp)
+    # "pulmonary_valvep": 13,
+    # "tricuspid_valvep": 14,
+    "abs_tol": 1e-8,
+    "rel_tol": 1e-9,
+    "isunloading": False,
+    "isunloadingonly": False,
+    "ispctrl": True,
+    "isFCH": True,
+    "springbc": 1,
+    "springparam": [7.0e3, 7.0e3],  # Kepi_n / Kepi_t
+    "dashpotparam": [7.0e2, 7.0e1],  # Cepi_n / Cepi_t
+    "active_region": [1, 2, 3, 4],
+    "Type": 0,
+    "function_matid": False,
+    "fch_fe": False,
+    "fch_lumped": True,
+}
+
+# Run Simulation
+run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+# Postprocessing
+# postprocessdata(IODet=IODetails, SimDet=SimDetails)
+# dumpvtk(IODet=IODetails, SimDet=SimDetails)
+# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
+# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=10)
+# extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
+# extractdisplacement(IODet=IODetails, SimDet=SimDetails)
+#  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

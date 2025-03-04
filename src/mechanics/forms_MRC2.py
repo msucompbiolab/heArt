@@ -273,6 +273,46 @@ class Forms(object):
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
 
+    def LAcavityvol_fch(self):  # cavity volume for la in fch mesh
+        u = self.parameters["displacement_variable"]
+        N = self.parameters["facet_normal"]
+        mesh = self.parameters["mesh"]
+        X = SpatialCoordinate(mesh)
+        ds = dolfin.ds(
+            subdomain_data=self.parameters["facetboundaries"],
+            metadata={"quadrature_degree": 4},
+        )
+
+        F = self.Fmat()
+
+        vol_form = (
+            -Constant(1.0 / 3.0)
+            * inner(det(F) * dot(inv(F).T, N), X + u)
+            * (ds(self.parameters["LAendoid"]))
+        )
+
+        return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
+
+    def RAcavityvol_fch(self):  # cavity volume for ra in fch mesh
+        u = self.parameters["displacement_variable"]
+        N = self.parameters["facet_normal"]
+        mesh = self.parameters["mesh"]
+        X = SpatialCoordinate(mesh)
+        ds = dolfin.ds(
+            subdomain_data=self.parameters["facetboundaries"],
+            metadata={"quadrature_degree": 4},
+        )
+
+        F = self.Fmat()
+
+        vol_form = (
+            -Constant(1.0 / 3.0)
+            * inner(det(F) * dot(inv(F).T, N), X + u)
+            * (ds(self.parameters["RAendoid"]))
+        )
+
+        return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
+
     def topspringbc(self):  # for v_base computation
         N = self.parameters["facet_normal"]
         ds = dolfin.ds(
@@ -416,6 +456,40 @@ class Forms(object):
             pe * inner(J * inv(F.T) * N, u) * surface_
         )  # ds(self.parameters["LVendoid"])
 
+        # pres = 1 * dsendo
+        return pres
+
+    def LAcavitypres(self):
+        pe = self.parameters["la_constrained_pres"]
+        N = self.parameters["facet_normal"]
+        mesh = self.parameters["mesh"]
+        ds = dolfin.ds(
+            subdomain_data=self.parameters["facetboundaries"],
+            metadata={"quadrature_degree": 4},
+        )
+
+        J = self.J()
+        u = self.parameters["displacement_variable"]
+        F = self.Fmat()
+
+        pres = pe * inner(J * inv(F.T) * N, u) * ds(self.parameters["LAendoid"])
+        # pres = 1 * dsendo
+        return pres
+
+    def RAcavitypres(self):
+        pe = self.parameters["ra_constrained_pres"]
+        N = self.parameters["facet_normal"]
+        mesh = self.parameters["mesh"]
+        ds = dolfin.ds(
+            subdomain_data=self.parameters["facetboundaries"],
+            metadata={"quadrature_degree": 4},
+        )
+
+        J = self.J()
+        u = self.parameters["displacement_variable"]
+        F = self.Fmat()
+
+        pres = pe * inner(J * inv(F.T) * N, u) * ds(self.parameters["RAendoid"])
         # pres = 1 * dsendo
         return pres
 

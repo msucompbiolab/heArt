@@ -3,34 +3,42 @@ import math
 
 # Closed Loop
 class CLmodel(object):
-    def et(self, la):
-        if self.parameters["t"] < self.SimDet["HeartBeatLength"] - self.tdelay_la:
-            t_la = self.parameters["t"] + self.tdelay_la
-        else:
-            t_la = (
-                self.parameters["t"] - self.SimDet["HeartBeatLength"] + self.tdelay_la
-            )  #
+    def et(self, va=1, lr=1):  # ventricle=1 / left=1
+        tdelay = (
+            (self.tdelay_lv if lr else self.tdelay_rv)
+            if va
+            else (self.tdelay_la if lr else self.tdelay_ra)
+        )
 
-        if la:
-            if t_la <= 1.5 * self.Tmax_la:
-                out = 0.5 * (
-                    math.sin((math.pi / self.Tmax_la) * t_la - math.pi / 2.0) + 1.0
-                )
-            else:
-                out = 0.5 * math.exp((-t_la + (1.5 * self.Tmax_la)) / self.tau_la)
+        tau = (
+            (self.tau_lv if lr else self.tau_rv)
+            if va
+            else (self.tau_la if lr else self.tau_ra)
+        )
+
+        Tmax = (
+            (self.Tmax_lv if lr else self.Tmax_rv)
+            if va
+            else (self.Tmax_la if lr else self.Tmax_ra)
+        )
+
+        # t_la needs a rename
+        t_la = (
+            self.parameters["t"] + tdelay
+            if self.parameters["t"] < self.SimDet["HeartBeatLength"] - tdelay
+            else self.parameters["t"] - self.SimDet["HeartBeatLength"] + tdelay
+        )
+
+        if t_la <= 1.5 * Tmax:
+            out = 0.5 * (math.sin((math.pi / Tmax) * t_la - math.pi / 2.0) + 1.0)
         else:
-            if t_la <= 1.5 * self.Tmax_ra:
-                out = 0.5 * (
-                    math.sin((math.pi / self.Tmax_ra) * t_la - math.pi / 2.0) + 1.0
-                )
-            else:
-                out = 0.5 * math.exp((-t_la + (1.5 * self.Tmax_ra)) / self.tau_ra)
+            out = 0.5 * math.exp((-t_la + (1.5 * Tmax)) / tau)
         return out
 
     def default_parameters(self):  # default values for Q
         return {"Qsa": 0.0, "Qad": 0.0, "Qsv": 0.0, "Qav": 0.0, "Qmv": 0.0}
 
-    def __init__(self, SimDet, V_LV, V_RV):
+    def __init__(self, SimDet, V_LV=None, V_RV=None, V_LA=None, V_RA=None):
         self.parameters = self.default_parameters()
         # self.parameters.update(params)
         self.SimDet = SimDet
@@ -64,7 +72,6 @@ class CLmodel(object):
         self.V_sa = SimDet["closedloopparam"]["V_sa"]
         self.V_ad = SimDet["closedloopparam"]["V_ad"]
         self.V_sv = SimDet["closedloopparam"]["V_sv"]
-        self.V_LA = SimDet["closedloopparam"]["V_LA"]
 
         self.Rpv = SimDet["closedloopparam"]["Rpv"]
         self.Rtv = SimDet["closedloopparam"]["Rtv"]
@@ -73,7 +80,6 @@ class CLmodel(object):
 
         self.V_pv = SimDet["closedloopparam"]["V_pv"]
         self.V_pa = SimDet["closedloopparam"]["V_pa"]
-        self.V_RA = SimDet["closedloopparam"]["V_RA"]
 
         # if "Q_sa" in list(SimDet["closedloopparam"].keys()):
         #    self.parameters["Qsa"] = SimDet["closedloopparam"]["Q_sa"]
@@ -95,6 +101,24 @@ class CLmodel(object):
 
         self.Qlvad = 0
 
+        # for LV
+        self.Ees_lv = SimDet["closedloopparam"].get("Ees_lv")
+        self.V0_lv = SimDet["closedloopparam"].get("V0_lv")
+        self.A_lv = SimDet["closedloopparam"].get("A_lv")
+        self.B_lv = SimDet["closedloopparam"].get("B_lv")
+        self.Tmax_lv = SimDet["closedloopparam"].get("Tmax_lv")
+        self.tau_lv = SimDet["closedloopparam"].get("tau_lv")
+        self.tdelay_lv = SimDet["closedloopparam"].get("tdelay_lv")
+
+        # for RV
+        self.Ees_rv = SimDet["closedloopparam"].get("Ees_rv")
+        self.V0_rv = SimDet["closedloopparam"].get("V0_rv")
+        self.A_rv = SimDet["closedloopparam"].get("A_rv")
+        self.B_rv = SimDet["closedloopparam"].get("B_rv")
+        self.Tmax_rv = SimDet["closedloopparam"].get("Tmax_rv")
+        self.tau_rv = SimDet["closedloopparam"].get("tau_rv")
+        self.tdelay_rv = SimDet["closedloopparam"].get("tdelay_rv")
+
         # for LA
         self.Ees_la = SimDet["closedloopparam"]["Ees_la"]
         self.A_la = SimDet["closedloopparam"]["A_la"]
@@ -113,15 +137,28 @@ class CLmodel(object):
         self.tau_ra = SimDet["closedloopparam"]["tau_ra"]
         self.tdelay_ra = SimDet["closedloopparam"]["tdelay_ra"]
 
-        # initialize V_LV
-        self.V_LV = V_LV
-        self.V_RV = V_RV
+        # initialize V
+        self.V_LV = V_LV or SimDet["closedloopparam"]["V_LV"]
+        self.V_RV = V_RV or SimDet["closedloopparam"]["V_RV"]
+        self.V_LA = V_LA or SimDet["closedloopparam"]["V_LA"]
+        self.V_RA = V_RA or SimDet["closedloopparam"]["V_RA"]
 
     def UpdateLVV(self, params):
         self.parameters.update(params)
 
-        self.PLA = self.GetPLoRA(params, 1)  # la = 1
-        self.PRA = self.GetPLoRA(params, 0)  # ra = 0
+        if self.SimDet.get("fch_fe"):
+            self.PLA, self.PRA = self.parameters["P_LA"], self.parameters["P_RA"]
+        elif self.SimDet.get("fch_lumped"):
+            self.PLV, self.PRV, self.PLA, self.PRA = (
+                self.GetPVALR(params, va=1, lr=1),
+                self.GetPVALR(params, va=1, lr=0),
+                self.GetPVALR(params, va=0, lr=1),
+                self.GetPVALR(params, va=0, lr=0),
+            )
+        else:
+            self.PLA, self.PRA = self.GetPVALR(params, va=0, lr=1), self.GetPVALR(
+                params, va=0, lr=0
+            )
 
         self.Psa = 1.0 / self.Csa * (self.V_sa - self.Vsa0)
         self.Pad = 1.0 / self.Cad * (self.V_ad - self.Vad0)
@@ -130,24 +167,25 @@ class CLmodel(object):
         self.Ppa = 1.0 / self.Cpa * (self.V_pa - self.Vpa0)
         self.Ppv = 1.0 / self.Cpv * (self.V_pv - self.Vpv0)
 
-        self.PLV = self.parameters["P_LV"]
-        self.PRV = self.parameters["P_RV"]
+        if not self.SimDet.get("fch_lumped"):
+            self.PLV = self.parameters["P_LV"]
+            self.PRV = self.parameters["P_RV"]
 
         # update Q
         ## For LV
-        if self.PLV <= self.Psa:
+        if self.PLV <= self.Psa:  # Aortic valve
             # self.Qav = 0.0
             self.Qav = 1.0 / self.Rav_rg * (self.PLV - self.Psa)
         else:
             self.Qav = 1.0 / self.Rav * (self.PLV - self.Psa)
 
-        if self.PLV >= self.PLA:
-            self.Qmv = 0.0  # Mitral valve
+        if self.PLV >= self.PLA:  # Mitral valve
+            self.Qmv = 0.0
         else:
             self.Qmv = 1.0 / self.Rmv * (self.PLA - self.PLV)
 
         ## For RV
-        if self.PRV <= self.Ppa:
+        if self.PRV <= self.Ppa:  # Pulmonary valve
             self.Qpvv = 0.0
         else:
             self.Qpvv = 1.0 / self.Rpvv * (self.PRV - self.Ppa)
@@ -185,24 +223,35 @@ class CLmodel(object):
             self.Qpv - self.Qmv
         )  # LCL fixed bug
 
-        return self.V_LV, self.V_RV
+        if self.SimDet.get("fch_fe") or self.SimDet.get("fch_lumped"):
+            return self.V_LV, self.V_RV, self.V_LA, self.V_RA
+        else:
+            return self.V_LV, self.V_RV
 
-    def GetPLoRA(self, params, la):
+    def GetPVALR(self, params, va=1, lr=1):  # ventricle=1 / left=1
         self.parameters.update(params)
-        # For PLA
-        if self.parameters["t"] < self.SimDet["HeartBeatLength"] - self.tdelay_la:
-            t_la = self.parameters["t"] + self.tdelay_la
-        else:
-            t_la = (
-                self.parameters["t"] - self.SimDet["HeartBeatLength"] + self.tdelay_la
-            )  #
-        if la:
-            out = self.et(la) * self.Ees_la * (self.V_LA - self.V0_la) + (
-                1.0 - self.et(la)
-            ) * self.A_la * (math.exp(self.B_la * (self.V_LA - self.V0_la)) - 1.0)
-        else:
-            out = self.et(la) * self.Ees_ra * (self.V_RA - self.V0_ra) + (
-                1.0 - self.et(la)
-            ) * self.A_ra * (math.exp(self.B_ra * (self.V_RA - self.V0_ra)) - 1.0)
+
+        # ventricle or atrium / left or right
+        E_es = (
+            (self.Ees_lv if lr else self.Ees_rv)
+            if va
+            else (self.Ees_la if lr else self.Ees_ra)
+        )
+        V0 = (
+            (self.V0_lv if lr else self.V0_rv)
+            if va
+            else (self.V0_la if lr else self.V0_ra)
+        )
+        V = (self.V_LV if lr else self.V_RV) if va else (self.V_LA if lr else self.V_RA)
+
+        A = (self.A_lv if lr else self.A_rv) if va else (self.A_la if lr else self.A_ra)
+        B = (self.B_lv if lr else self.B_rv) if va else (self.B_la if lr else self.B_ra)
+
+        # et_val = self.et(va=0 if not va else None, lr=0 if not lr else None)
+        et_val = self.et(va=0 if not va else 1, lr=0 if not lr else 1)
+
+        out = et_val * E_es * (V - V0) + (1.0 - et_val) * A * (
+            math.exp(B * (V - V0)) - 1.0
+        )
 
         return out

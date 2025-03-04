@@ -104,6 +104,8 @@ class MEmodel(object):
 
         self.LVCavitypres = Expression(("pres"), pres=0.0, degree=2)
         self.RVCavitypres = Expression(("pres"), pres=0.0, degree=2)
+        self.LACavitypres = Expression(("pres"), pres=0.0, degree=2)
+        self.RACavitypres = Expression(("pres"), pres=0.0, degree=2)
         self.AortaCavitypres = Expression(("pres"), pres=0.0, degree=2)
 
         self.lumped_pres = 0.0
@@ -671,6 +673,10 @@ class MEmodel(object):
 
         LVendoid = self.SimDet["LVendoid"]
         RVendoid = self.SimDet["RVendoid"]
+
+        LAendoid = self.SimDet.get("LAendoid")
+        RAendoid = self.SimDet.get("RAendoid")
+
         epiid = self.SimDet["epiid"]
 
         if not "LVPid" in list(self.SimDet.keys()):
@@ -915,6 +921,8 @@ class MEmodel(object):
             "rv_constrained_vol": self.RVCavityvol,
             "LVendoid": LVendoid,
             "RVendoid": RVendoid,
+            "LAendoid": LAendoid,
+            "RAendoid": RAendoid,
             "epiid": epiid,
             "topid": topid,
             "aortaid": aortaid,
@@ -948,6 +956,8 @@ class MEmodel(object):
             "LVendo_area": LVendo_area_me,
             "lv_constrained_pres": self.LVCavitypres,
             "rv_constrained_pres": self.RVCavitypres,
+            "la_constrained_pres": self.LACavitypres,
+            "ra_constrained_pres": self.RACavitypres,
             "aorta_constrained_pres": self.AortaCavitypres,
         }
 
@@ -1065,17 +1075,17 @@ class MEmodel(object):
                 "rubber_region" in list(self.SimDet.keys())
                 and self.SimDet["rubber_region"]
             ):
-                region_cnt = 0
+                # region_cnt = 0
                 for regionid in self.SimDet["rubber_region"]:
-                    F1 += derivative(WpRub_me, w_me, wtest_me) * dx_me(int(regionid))
-                    if region_cnt == 0:
-                        rubvar_ = derivative(WpRub_me, w_me, wtest_me) * dx_me(
-                            int(regionid)
-                        )
-                    else:
-                        rubvar_ += derivative(WpRub_me, w_me, wtest_me) * dx_me(
-                            int(regionid)
-                        )
+                    F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(regionid))
+                    #if region_cnt == 0:
+                    #    rubvar_ = derivative(WpRub_me, w_me, wtest_me) * dx_me(
+                    #        int(regionid)
+                    #    )
+                    #else:
+                    #    rubvar_ += derivative(WpRub_me, w_me, wtest_me) * dx_me(
+                    #        int(regionid)
+                    #    )
             if (
                 "aorta_region" in list(self.SimDet.keys())
                 and self.SimDet["aorta_region"]
@@ -1083,26 +1093,41 @@ class MEmodel(object):
                 for regionid in self.SimDet["aorta_region"]:
                     # F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(regionid))
                     F1 += derivative(WpAorta_me, w_me, wtest_me) * dx_me(int(regionid))
-                    aovar_ = derivative(WpAorta_me, w_me, wtest_me) * dx_me(
-                        int(regionid)
-                    )
+                    #aovar_ = derivative(WpAorta_me, w_me, wtest_me) * dx_me(
+                    #    int(regionid)
+                    #)
             # for nonLVid_ in list(nonLVid):
             #    F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(nonLVid_))
 
         elif "poro" in list(self.SimDet.keys()):
             F1 = poro_F1
         else:
-            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+            if self.SimDet.get("fch_fe"):
+                F1 = derivative(WpRub_me, w_me, wtest_me) * dx_me
+            else:
+                F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
 
-        if "active_region" in list(self.SimDet.keys()) and self.SimDet["active_region"]:
+        if "active_region" in list(self.SimDet.keys()):
             print("Active region = ", self.SimDet["active_region"])
             region_cnt = 0
             for regionid in self.SimDet["active_region"]:
                 if region_cnt == 0:
-                    F4 = inner(Fmat * Sactive, grad(v_me)) * (dx_me(int(regionid)))
+                    # F4 = inner(Fmat * Sactive, grad(v_me)) * (dx_me(int(regionid)))
+                    factor = {3: 0.2, 4: 0.02}.get(regionid, 1.0)  # hdf5
+                    F4 = (
+                        factor
+                        * inner(Fmat * Sactive, grad(v_me))
+                        * dx_me(int(regionid))
+                    )
                     print("Assigning active stress to ", regionid)
                 else:
-                    F4 += inner(Fmat * Sactive, grad(v_me)) * (dx_me(int(regionid)))
+                    # F4 += inner(Fmat * Sactive, grad(v_me)) * (dx_me(int(regionid)))
+                    factor = {3: 0.2, 4: 0.02}.get(regionid, 1.0) # hdf5
+                    F4 += (
+                        factor
+                        * inner(Fmat * Sactive, grad(v_me))
+                        * dx_me(int(regionid))
+                    )
                     print("Assigning active stress to ", regionid)
 
                 region_cnt += 1
@@ -1135,6 +1160,13 @@ class MEmodel(object):
                 Fp = derivative(Fp_lv_me, w_me, wtest_me) + derivative(
                     Fp_rv_me, w_me, wtest_me
                 )
+                if self.SimDet.get("fch_fe"):
+                    Fp_la_me = uflforms.LAcavitypres()
+                    Fp_ra_me = uflforms.RAcavitypres()
+                    Fp += derivative(Fp_la_me, w_me, wtest_me) + derivative(
+                        Fp_ra_me, w_me, wtest_me
+                    )
+
             Ftotal += Fp
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
@@ -1151,7 +1183,7 @@ class MEmodel(object):
             if self.isLV:
                 epiid_Kadj_coeff = self.SimDet.get("epiid_Kadj_coeff", [10.0, 10.0])
             else:
-                epiid_Kadj_coeff = self.SimDet.get("epiid_Kadj_coeff", 10.0)
+                epiid_Kadj_coeff = self.SimDet.get("epiid_Kadj_coeff", 1.0)
 
             if self.iswaorta:
 
@@ -1618,6 +1650,22 @@ class MEmodel(object):
                 return self.uflforms.RVcavityvol_fch()
             else:
                 return
+
+    def GetLAP(self):
+        if self.SimDet.get("fch_fe"):
+            return self.LACavitypres.pres
+
+    def GetLAV(self):
+        if self.SimDet.get("fch_fe"):
+            return self.uflforms.LAcavityvol_fch()
+
+    def GetRAP(self):
+        if self.SimDet.get("fch_fe"):
+            return self.RACavitypres.pres
+
+    def GetRAV(self):
+        if self.SimDet.get("fch_fe"):
+            return self.uflforms.RAcavityvol_fch()
 
     def GetSActive(self):
         Sactive = self.activeforms.PK2StressTensor()
