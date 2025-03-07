@@ -2,9 +2,10 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
+sys.path.append("/mnt/Research/heArt_py3_original")
 sys.path.append("/mnt/Output")
 
-from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl_test import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
 
@@ -33,9 +34,10 @@ IODetails = {
     "casename": "ellipsoidal_baselinegeo",
     "directory_me": "../LVMesh/vh/",
     "directory_ep": "../LVMesh/vh/",
-    "outputfolder": "/mnt/Output/outputs_LVelectromechanics/",
+    #"outputfolder": "/mnt/Output/outputs_LVelectromechanics/",
+    "outputfolder": "/mnt/Research/heArt_py3_original/heArt_py3/demo/Output/outputs_LVelectromechanics/",
     "folderName": "",
-    "caseID": "LVelectromechanics_ncircp_P2P1",
+    "caseID": "LVelectromechanics_ncircp_P1P1",
     "isLV": True,
 }
 
@@ -69,31 +71,31 @@ GuccioneParams = {
 }
 
 Circparam = {
-    "Ees_la": 120,
-    "A_la": 60.0,
-    "B_la": 0.03,
+    "Ees_la": 10,
+    "A_la": 2.67,
+    "B_la": 0.019,
     "V0_la": 10,
-    "Tmax_la": 150,
-    "tau_la": 30,
-    "tdelay_la": 225,
-    "Csa": 0.0035,
-    "Cad": 0.04,
-    "Csv": 0.5,
-    "Vsa0": 320,
-    "Vsv0": 3370.0,
+    "Tmax_la": 120,
+    "tau_la": 25,
+    "tdelay_la": 160,
+    "Csa": 0.0032,
+    "Cad": 0.033,
+    "Csv": 0.28,
+    "Vsa0": 360,
     "Vad0": 40,
-    "Rav": 5000.0,
+    "Vsv0": 3370.0,
+    "Rav": 3000,#5000.0,#2000,#500,
     "Rsv": 100.0,
     "Rsa": 18000,
-    "Rad": 25000,
-    "Rmv": 250.0,
-    # volumes
-    "V_sv": 3600,
-    "V_LV": 105,
-    "V_sa": 1750,
-    "V_ad": 37,
-    "V_LA": 35,
+    "Rad": 106000,
+    "Rmv": 3000,#5000.0,#2000.0,#200.0,
+    "V_sv": 3709.681538561804,
+    "V_sa": 386.4525256055264,
+    "V_ad": 309.22012729232915,
+    "V_LA": 157.01981722400419,
+    "V_LV": 101.62599131634467,
     "stop_iter": 4,
+    "issoftplus": False,
 }
 
 SimDetails = {
@@ -124,8 +126,8 @@ SimDetails = {
     "Isclosed": True,
     "closedloopparam": Circparam,
     "Ischemia": False,
-    "springbc": 0,
-    "Mechanics Discretization": "P2P1",
+    "springbc": True,#0,
+    "Mechanics Discretization": "P1P1",#"P2P1",
     # "Technique Discretization": 1,
     "isLV": True,
     "topid": 4,

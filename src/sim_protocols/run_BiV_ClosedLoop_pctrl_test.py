@@ -25,6 +25,7 @@ from ..utils.oops_objects_MRC2 import update_mesh
 from ..utils.oops_objects_MRC2 import exportfiles
 
 from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
+from ..utils.oops_objects_MRC2 import json_serialize
 
 from ..ep.EPmodel_basic_test import EPmodel
 
@@ -82,8 +83,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         isPJ = False
 
     delTat = SimDet["dt"]
-    ploc_tol = SimDet["ploc_tol"]
-    intensity = SimDet["current_intensity"]
+    #ploc_tol = SimDet["ploc_tol"]
+    if not ishomo:
+        intensity = SimDet["current_intensity"]
 
     if isPJ:
         pj_intensity = SimDet["PJ_current_intensity"]
@@ -159,7 +161,17 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     # export.writePV(MEmodel_, 0);
     export.hdf.write(MEmodel_.mesh_me, "ME/mesh")
     export.hdf.write(EPmodel_ep.mesh, "EP/mesh")
-    export.hdf.write(EPmodel_pj.mesh, "PJ/mesh")
+    if isPJ:
+        export.hdf.write(EPmodel_pj.mesh, "PJ/mesh")
+
+    # Dump input file
+    with open(outputfolder + folderName + "SimDet.log", "w") as f:
+        json.dump(SimDet, f, indent=4, cls=json_serialize)
+    # Dump input file
+    with open(outputfolder + folderName + "IODet.log", "w") as f:
+        json.dump(IODet, f, indent=4, cls=json_serialize)
+
+
 
     default_params = {
         "EDP": 12.0,
@@ -185,8 +197,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     it = 0
     tempfile = File(outputfolder + folderName + "displacement.pvd")
     tempfileLoading = File(outputfolder + folderName + "displacement_loading.pvd")
-    tempfileEP = File(outputfolder + folderName + "EP.pvd")
-    tempfilePJ = File(outputfolder + folderName + "PJ.pvd")
+    #tempfileEP = File(outputfolder + folderName + "EP.pvd")
+
+    #if isPJ:
+    #    tempfilePJ = File(outputfolder + folderName + "PJ.pvd")
     while 1:
         printout("Loading", comm_me)
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
@@ -572,8 +586,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         if cnt % 10 == 0:
            tempfile << MEmodel_.GetDisplacement()  # LCL
-           tempfileEP << EPmodel_ep.getphivar()
-           tempfilePJ << EPmodel_pj.getphivar()
+           #tempfileEP << EPmodel_ep.getphivar()
+           #if isPJ:
+           #    tempfilePJ << EPmodel_pj.getphivar()
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)
@@ -586,33 +601,37 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         # if state_obj.t >= 400.0:
         #     state_obj.dt.dt = 2.0 * delTat
 
-        # Reset phi and r in EP at end of diastole
-        if state_obj.t < state_obj.dt.dt:
-            EPmodel_ep.reset()
-            EPmodel_pj.reset()
-            tstart_arr = [-10]*len(pj_t_nodes)
+        if isPJ:
+           # Reset phi and r in EP at end of diastole
+           if state_obj.t < state_obj.dt.dt:
+               tstart_arr = [-10]*len(pj_t_nodes)
+               EPmodel_ep.reset()
+               if isPJ:
+                   EPmodel_pj.reset()
 
-        if not SimDet.get("lv_lumped") and not ishomo:
-            printout("Solving FHN EP", comm_me)
-            solver_FHN_ep.solvenonlinear()
+           if not SimDet.get("lv_lumped") and not ishomo:
+               printout("Solving FHN EP", comm_me)
+               solver_FHN_ep.solvenonlinear()
 
-            if isPJ:
-                # Activate PJ fiber network
-                if(state_obj.t > SimDet["pacing_timing"][0][0] and \
-                   state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
-                    EPmodel_pj.fstim_array[0].iStim = pj_intensity
-                    print("pacing", EPmodel_pj.fstim_array)
-                else:
-                    EPmodel_pj.fstim_array[0].iStim = 0.0
-                    print("not pacing")
+               if isPJ:
+                   # Activate PJ fiber network
+                   if(state_obj.t > SimDet["pacing_timing"][0][0] and \
+                      state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
+                       EPmodel_pj.fstim_array[0].iStim = pj_intensity
+                       print("pacing", EPmodel_pj.fstim_array)
+                   else:
+                       EPmodel_pj.fstim_array[0].iStim = 0.0
+                       print("not pacing")
 
-                printout("Solving FHN PJ", comm_me)
-                solver_FHN_pj.solvenonlinear()
+                   printout("Solving FHN PJ", comm_me)
+                   solver_FHN_pj.solvenonlinear()
 
         if isrestart == 0:
             MEmodel_.UpdateVar()  # For damping
             EPmodel_ep.UpdateVar()
-            EPmodel_pj.UpdateVar()
+           
+            if isPJ:
+               EPmodel_pj.UpdateVar()
 
         # Interpolate phi to mechanics mesh
         potential_ref = EPmodel_ep.interpolate_potential_ep2me_phi(
@@ -789,8 +808,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             export.hdf.write(EPmodel_ep.getrvar(), "EP/r", writecnt)
             export.hdf.write(potential_ref, "EP/potential_ref", writecnt)
 
-            export.hdf.write(EPmodel_pj.getphivar(), "PJ/phi", writecnt)
-            export.hdf.write(EPmodel_pj.getrvar(), "PJ/r", writecnt)
+            if isPJ:
+                export.hdf.write(EPmodel_pj.getphivar(), "PJ/phi", writecnt)
+                export.hdf.write(EPmodel_pj.getrvar(), "PJ/r", writecnt)
 
             writecnt += 1
 
@@ -835,7 +855,6 @@ def createEPmodel(IODet, SimDet):
         iswaorta = SimDet["iswaorta"]
     else:
         iswaorta = False  # Default
-
 
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
     # Read EP data from HDF5 Files
@@ -928,6 +947,21 @@ def createEPmodel(IODet, SimDet):
     state_obj.dt.dt = delTat
     #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 
+    if "d_iso" in list(SimDet.keys()):
+        d_iso = SimDet["d_iso"]
+    else:
+        d_iso = 0.02
+
+    if "d_ani_factor" in list(SimDet.keys()):
+        d_ani_factor = SimDet["d_ani_factor"]
+    else:
+        d_ani_factor = 0.02
+
+    if "ani_factor" in list(SimDet.keys()):
+        ani_factor = SimDet["ani_factor"]
+    else:
+        ani_factor = 1000.0
+
     EPparams = {
         "EPmesh": mesh_ep,
         "deg": 4,
@@ -937,9 +971,9 @@ def createEPmodel(IODet, SimDet):
         "s0": s0_ep,
         "n0": n0_ep,
         "state_obj": state_obj,
-        "d_iso": SimDet["d_iso"],
-        "d_ani": SimDet["d_ani_factor"],
-        "ani_factor": SimDet["ani_factor"],
+        "d_iso": d_iso,
+        "d_ani": d_ani_factor,
+        "ani_factor": ani_factor,
         "ploc": SimDet["ploc"],
         "AHAid": AHAid_ep,
         "matid": matid_ep,

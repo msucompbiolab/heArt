@@ -268,7 +268,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     preinc = default_params["preinc"]
 
     it = 0
-    # tempfile = File(outputfolder + folderName + "displacement.pvd")
+    tempfile = File(outputfolder + folderName + "displacement.pvd")
     while 1:
         printout("Loading", comm_me)
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
@@ -288,8 +288,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
             solver_elas.solvenonlinear()
 
-        # if it % 10 == 0:
-        #    tempfile << MEmodel_.GetDisplacement()
+        if it % 1 == 0:
+           tempfile << MEmodel_.GetDisplacement()
 
         export.writePV(MEmodel_, 0)
         export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
@@ -579,7 +579,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         from scipy.optimize import (
             newton,
             fsolve,
-            root_scalar,
+            #root_scalar,
             bisect,
             root,
             minimize,
@@ -646,8 +646,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             else:
                 P_RV = root1[1]
 
-        # if cnt % 10 == 0:
-        #    tempfile << MEmodel_.GetDisplacement()  # LCL
+        if cnt % 1 == 0:
+           tempfile << MEmodel_.GetDisplacement()  # LCL
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)

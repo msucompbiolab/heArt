@@ -6,6 +6,7 @@ import os as os
 
 import pdb
 import dolfin as dolfin
+import json
 
 # from oops_ConstantDefinitions import Constant_definitions
 # from oops_printout import printout
@@ -1757,10 +1758,23 @@ class PV_Ventricles(object):
                 self.comm,
             )
 
-
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 
+# Create a JSON Encoder class
+class json_serialize(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if(isinstance(obj, type(Constant(1.0)))):
+             return float(obj)
+        return json.JSONEncoder.default(self, obj)
 
+
+#  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 class exportfiles(object):
     def __init__(self, mpi_comm_me, mpi_comm_ep, IODet, SimDet):
         if "isLV" in list(SimDet.keys()):

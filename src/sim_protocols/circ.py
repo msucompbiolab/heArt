@@ -1,5 +1,13 @@
 import math
 
+def softplus(x, y, alpha):
+
+    if alpha*(x - y) < 20:
+         return 1.0/alpha*math.log(1 + math.exp(alpha*(x - y)));
+    else:
+         return (x - y);
+
+
 
 # Closed Loop
 class CLmodel(object):
@@ -114,6 +122,13 @@ class CLmodel(object):
         else:
             self.Qmv = 1.0 / self.Rmv * (self.PLA - self.PLV)
 
+        # Use softplus to update Q 
+        if "issoftplus" in list(self.SimDet["closedloopparam"].keys()):
+            alpha_av = 5e-3
+            self.Qav = 1.0/self. Rav*softplus(self.PLV, self.Psa, alpha_av)
+            alpha_mv = 1e-3
+            self.Qmv = 1.0/self. Rmv*softplus(self.PLA, self.PLV, alpha_mv)
+        
         self.Qsa = 1.0 / self.Rsa * (self.Psa - self.Pad)
         self.Qad = 1.0 / self.Rad * (self.Pad - self.Psv)
         self.Qsv = 1.0 / self.Rsv * (self.Psv - self.PLA)
