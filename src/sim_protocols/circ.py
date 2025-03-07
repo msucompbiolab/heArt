@@ -124,10 +124,11 @@ class CLmodel(object):
 
         # Use softplus to update Q 
         if "issoftplus" in list(self.SimDet["closedloopparam"].keys()):
-            alpha_av = 5e-3
-            self.Qav = 1.0/self. Rav*softplus(self.PLV, self.Psa, alpha_av)
-            alpha_mv = 1e-3
-            self.Qmv = 1.0/self. Rmv*softplus(self.PLA, self.PLV, alpha_mv)
+            if self.SimDet["closedloopparam"]["issoftplus"] :
+                alpha_av = 5e-3
+                self.Qav = 1.0/self. Rav*softplus(self.PLV, self.Psa, alpha_av)
+                alpha_mv = 1e-3
+                self.Qmv = 1.0/self. Rmv*softplus(self.PLA, self.PLV, alpha_mv)
         
         self.Qsa = 1.0 / self.Rsa * (self.Psa - self.Pad)
         self.Qad = 1.0 / self.Rad * (self.Pad - self.Psv)
