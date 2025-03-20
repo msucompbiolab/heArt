@@ -569,7 +569,7 @@ def extractdisplacementloading(IODet, SimDet, cycle=None):
     return u_arr
 
 
-def dumpvtk(IODet, SimDet, cycle=None):
+def dumpvtk(IODet, SimDet, cycle=None, ME_var = [], EP_var = [], PJ_var = []):
 
     hdf = df.HDF5File(
         df.MPI.comm_world,
@@ -577,22 +577,26 @@ def dumpvtk(IODet, SimDet, cycle=None):
         "r",
     )
 
-    list_of_ME_var = [
-        ["u", "CG", 1],
-        ["potential_ref", "CG", 1],
-        ["Ecc", "DG", 0],
-        ["Ell", "DG", 0],
-        ["Err", "DG", 0],
-        ["Eff", "DG", 0],
-        ["fstress", "DG", 1],
-        ["imp", "DG", 1],
-        ["imp2", "DG", 1],
-        ["imp_constraint", "DG", 1],
-    ]
+    list_of_ME_var = ME_var
+    list_of_EP_var = EP_var
+    list_of_PJ_var = PJ_var
 
-    list_of_EP_var = [["phi", "CG", 1], ["r", "DG", 0], ["potential_ref", "CG", 1]]
+    #list_of_ME_var = [
+    #    ["u", "CG", 1],
+    #    ["potential_ref", "CG", 1],
+    #    ["Ecc", "DG", 0],
+    #    ["Ell", "DG", 0],
+    #    ["Err", "DG", 0],
+    #    ["Eff", "DG", 0],
+    #    ["fstress", "DG", 0],
+    #    ["imp", "DG", 1],
+    #    ["imp2", "DG", 1],
+    #    ["imp_constraint", "DG", 1],
+    #]
 
-    list_of_PJ_var = [["phi", "CG", 1], ["r", "DG", 0], ["potential_ref", "CG", 1]]
+    #list_of_EP_var = [["phi", "CG", 1], ["r", "DG", 0], ["potential_ref", "CG", 1]]
+
+    #list_of_PJ_var = [["phi", "CG", 1], ["r", "DG", 0], ["potential_ref", "CG", 1]]
 
     if hdf.has_dataset("ME"):
         for ME_var in list_of_ME_var:

@@ -195,9 +195,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     preinc = default_params["preinc"]
 
     it = 0
-    tempfile = File(outputfolder + folderName + "displacement.pvd")
-    tempfileLoading = File(outputfolder + folderName + "displacement_loading.pvd")
+    #tempfile = File(outputfolder + folderName + "displacement.pvd")
+    ##tempfileLoading = File(outputfolder + folderName + "displacement_loading.pvd")
     #tempfileEP = File(outputfolder + folderName + "EP.pvd")
+    #tempfileSactive = File(outputfolder + folderName + "Sactive.pvd")
 
     #if isPJ:
     #    tempfilePJ = File(outputfolder + folderName + "PJ.pvd")
@@ -220,8 +221,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
             solver_elas.solvenonlinear()
 
-        if it % 10 == 0:
-           tempfileLoading << MEmodel_.GetDisplacement()
+        #if it % 10 == 0:
+        #   tempfileLoading << MEmodel_.GetDisplacement()
 
         export.writePV(MEmodel_, 0)
         export.hdf.write(MEmodel_.GetDisplacement(), "ME/u_loading", it)
@@ -333,7 +334,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     if "Rsh" in list(SimDet["closedloopparam"].keys()):
         Rsh = SimDet["closedloopparam"]["Rsh"]
 
-    potential_me = Function(FunctionSpace(MEmodel_.mesh_me, "CG", 1))
+    potential_me = Function(FunctionSpace(MEmodel_.mesh_me, "DG", 0))
     writecnt = 0
 
     P_LV = MEmodel_.GetLVP()  # LVCavitypres.pres
@@ -379,8 +380,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if state_obj.cycle > stop_iter:
             break
 
-        #if state_obj.t > 120:
-        #    break
+        if state_obj.t > 220:
+            break
 
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
             params = {
@@ -584,11 +585,12 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             else:
                 P_RV = root1[1]
 
-        if cnt % 10 == 0:
-           tempfile << MEmodel_.GetDisplacement()  # LCL
-           #tempfileEP << EPmodel_ep.getphivar()
-           #if isPJ:
-           #    tempfilePJ << EPmodel_pj.getphivar()
+        #if cnt % 2 == 0:
+        #   tempfile << MEmodel_.GetDisplacement()  # LCL
+        #   tempfileEP << EPmodel_ep.getphivar()
+        #   tempfileSactive << MEmodel_.GetSActive()
+        #   if isPJ:
+        #       tempfilePJ << EPmodel_pj.getphivar()
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)
@@ -635,7 +637,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         # Interpolate phi to mechanics mesh
         potential_ref = EPmodel_ep.interpolate_potential_ep2me_phi(
-            V_me=Function(FunctionSpace(MEmodel_.mesh_me, "CG", 1))
+            V_me=Function(FunctionSpace(MEmodel_.mesh_me, "DG", 0))
         )
         potential_ref.rename("v_ref", "v_ref")
 

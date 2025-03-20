@@ -1,4 +1,5 @@
 from dolfin import *
+import ufl as ufl
 import numpy as np
 import os as os
 from ..utils.nsolver import NSolver as NSolver
@@ -1668,18 +1669,19 @@ class MEmodel(object):
             return self.uflforms.RAcavityvol_fch()
 
     def GetSActive(self):
+        i, j = ufl.indices(2)
         Sactive = self.activeforms.PK2StressTensor()
         Sactive_ = project(self.f0_me[i] * Sactive[i, j] * self.f0_me[j], self.QDG)
         Sactive_.rename("Sact", "Sact")
 
         return Sactive_
 
-    def GetSActive(self):
-        Sactive = self.activeforms.PK2StressTensor()
-        Sactive_ = project(self.f0_me[i] * Sactive[i, j] * self.f0_me[j], self.QDG)
-        Sactive_.rename("Sact", "Sact")
+   # def GetSActive(self):
+   #     Sactive = self.activeforms.PK2StressTensor()
+   #     Sactive_ = project(self.f0_me[i] * Sactive[i, j] * self.f0_me[j], self.QDG)
+   #     Sactive_.rename("Sact", "Sact")
 
-        return Sactive_
+   #     return Sactive_
 
     def GetDeformedBasis(self, params):
         default_params = {

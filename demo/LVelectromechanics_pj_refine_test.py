@@ -5,6 +5,7 @@ from dolfin import *
 import numpy as np
 
 sys.setrecursionlimit(5000)  # Increase to a higher value
+sys.path.append("/mnt/Research/heArt")
 sys.path.append("/mnt/Research")
 sys.path.append("/mnt/Research/heArt_py3_original")
 sys.path.append("/mnt/Output")
@@ -29,12 +30,12 @@ IODetails = {
     "casename": "ellipsoidal_baselinegeo",
     "directory_me": "../LVMesh/vh/",
     "directory_ep": "../LVMesh/vh/",
-    "directory_pj": "../PJMesh/",
+    "directory_pj": "../PJmesh/",
     "casename_pj": "PJmarked",
-    "outputfolder": "/mnt/Research/heArt_py3_original/heArt_py3/demo/Output/outputs_LVelectromechanics_PJ/",
+    "outputfolder": "./Outputs/",
     "folderName": "/",
-    #"caseID": "LVelectromechanics-test",
-    "caseID": "LVelectromechanics-test-lbbb",
+    "caseID": "LVelectromechanics-PJ-test",
+    #"caseID": "LVelectromechanics-test-lbbb",
     "isLV": True,
 }
 
@@ -130,9 +131,9 @@ SimDetails = {
     "nLoadSteps": 15,
     "DTI_EP": False,
     "DTI_ME": False,
-    "d_pj": 5e-2,#5e1,
-    "d_iso": 0.02*5e-2,
-    "d_ani_factor": 0.4*5e-2,
+    "d_pj": 5e1,#5e-2,#5e1,
+    "d_iso": 0.02,#*5e-2,
+    "d_ani_factor": 0.4,#*5e-2,
     "ani_factor": 1000.0,
     "ploc_tol": 0.07,
     "Isclosed": True,
@@ -165,9 +166,9 @@ SimDetails = {
     "ploc_mode": False,
     "ploc": [[-0.574335, -1.8842, -0.168375]],
     "current_intensity": 10,#50,
-    "PJ_current_intensity": 1,#5,#15,
+    "PJ_current_intensity": 15,#5,#15,
     "pacing_timing": [[0.0, 10.0]],
-    "lbbb": True,
+    "lbbb": False,#True,
     "lbbb_delay": 1e-9,
     "lbbb_location" : 8,#[7,8], #node location in pj network
 }
@@ -180,6 +181,7 @@ run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 
 # Extract only Displacement
 #dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["u", "CG", 1]], EP_var=[], PJ_var=[])
+#dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["fstress", "DG", 0]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
 #compute_activation(IODet=IODetails, SimDet=SimDetails)
 #compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
 # plothemodynamics(IODet=IODetails, SimDet=SimDetails)

@@ -1,6 +1,7 @@
 import sys, pdb
 from dolfin import *
 
+sys.path.append("/mnt/Research/heArt")
 sys.path.append("/mnt/Research")
 sys.path.append("/mnt/Research/heArt_py3_original")
 sys.path.append("/mnt/Output")
@@ -8,8 +9,6 @@ sys.path.append("/mnt/Output")
 from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl_test import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
-
-
 from heArt_py3.src.postprocessing.postprocessdata2 import (
     postprocessdata as postprocessdata,
 )
@@ -35,7 +34,7 @@ IODetails = {
     "directory_me": "../LVMesh/vh/",
     "directory_ep": "../LVMesh/vh/",
     #"outputfolder": "/mnt/Output/outputs_LVelectromechanics/",
-    "outputfolder": "/mnt/Research/heArt_py3_original/heArt_py3/demo/Output/outputs_LVelectromechanics/",
+    "outputfolder": "./Outputs/",
     "folderName": "",
     "caseID": "LVelectromechanics_ncircp_P1P1",
     "isLV": True,
@@ -154,6 +153,7 @@ SimDetails = {
 run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # Postprocessing
+#dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["fstress", "DG", 0]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 # compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
