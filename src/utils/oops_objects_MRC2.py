@@ -304,7 +304,7 @@ class lv_mesh(object):
         meshfilename = directory + casename + ".hdf5"
         f = HDF5File(MPI.comm_world, meshfilename, "r")
         f.read(self.mesh, casename, False)
-        self.mesh.scale(1.1)
+        #self.mesh.scale(1.1)
 
         self.facetboundaries = MeshFunction(
             "size_t", self.mesh, self.mesh.topology().dim() - 1

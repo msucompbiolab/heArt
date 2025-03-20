@@ -604,13 +604,8 @@ def dumpvtk(IODet, SimDet, cycle=None, ME_var = [], EP_var = [], PJ_var = []):
             var = ME_var[0]
             var_space = ME_var[1]
             var_deg = ME_var[2]
-            print("Extracting ME", var)
 
-            # Dump displacement
-            if SimDet["Mechanics Discretization"] is "P1P1" and var == "u":
-                var_deg = 1
-            else:
-                var_deg = 2
+            print("Extracting ME", var, " ", var_space, " ", var_deg)
 
             try:
                 var_arr = extractvtk(

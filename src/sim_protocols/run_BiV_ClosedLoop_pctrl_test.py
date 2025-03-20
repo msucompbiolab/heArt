@@ -51,7 +51,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     parameters["form_compiler"]["representation"] = "uflacs"
     parameters["form_compiler"]["quadrature_degree"] = deg
 
-    casename = IODet["casename"]
+    casename_me = IODet["casename_me"]
+    casename_ep = IODet["casename_ep"]
     directory_me = IODet["directory_me"]
     outputfolder = IODet["outputfolder"]
     folderName = IODet["folderName"] + IODet["caseID"] + "/"
@@ -115,7 +116,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     mesh_me = Mesh()
     mesh_me_params = {
         "directory": directory_me,
-        "casename": casename,
+        "casename": casename_me,
         "fibre_quad_degree": 4,
         "outputfolder": outputfolder,
         "foldername": folderName,
@@ -199,6 +200,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     ##tempfileLoading = File(outputfolder + folderName + "displacement_loading.pvd")
     #tempfileEP = File(outputfolder + folderName + "EP.pvd")
     #tempfileSactive = File(outputfolder + folderName + "Sactive.pvd")
+    #tempfilePotential = File(outputfolder + folderName + "potential.pvd")
 
     #if isPJ:
     #    tempfilePJ = File(outputfolder + folderName + "PJ.pvd")
@@ -380,8 +382,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if state_obj.cycle > stop_iter:
             break
 
-        #if state_obj.t > 220:
-        #    break
+        if state_obj.t > 120:
+            break
 
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
             params = {
@@ -585,12 +587,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             else:
                 P_RV = root1[1]
 
-        #if cnt % 2 == 0:
-        #   tempfile << MEmodel_.GetDisplacement()  # LCL
-        #   tempfileEP << EPmodel_ep.getphivar()
-        #   tempfileSactive << MEmodel_.GetSActive()
-        #   if isPJ:
-        #       tempfilePJ << EPmodel_pj.getphivar()
 
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)
@@ -642,6 +638,15 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         potential_ref.rename("v_ref", "v_ref")
 
         potential_me.vector()[:] = potential_ref.vector().get_local()[:]
+
+        #if cnt % 2 == 0:
+           #tempfile << MEmodel_.GetDisplacement()  # LCL
+           #tempfileEP << EPmodel_ep.getphivar()
+           #tempfileSactive << MEmodel_.GetSActive()
+           #tempfilePotential << potential_ref
+        #   if isPJ:
+        #       tempfilePJ << EPmodel_pj.getphivar()
+
 
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
         if MPI.rank(comm_ep) == 0:
@@ -797,6 +802,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             export.writetpt(MEmodel_, state_obj.tstep)
             export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
             export.hdf.write(potential_ref, "ME/potential_ref", writecnt)
+            export.hdf.write(MEmodel_.GetSActive(), "ME/Sactive", writecnt)
             # export.hdf.write(E_circ_BiV_DG, "ME/Ecc", writecnt)
             # export.hdf.write(E_long_BiV_DG, "ME/Ell", writecnt)
             # export.hdf.write(E_radi_BiV_DG, "ME/Err", writecnt)
@@ -863,7 +869,7 @@ def createEPmodel(IODet, SimDet):
     mesh_ep = Mesh()
     comm_common = mesh_ep.mpi_comm()
 
-    meshfilename_ep = directory_ep + casename + "_refine.hdf5"
+    meshfilename_ep = directory_ep + casename + ".hdf5"
     # meshfilename_ep = directory_ep + casename + "_refine.hdf"
     f = HDF5File(comm_common, meshfilename_ep, "r")
     f.read(mesh_ep, casename, False)

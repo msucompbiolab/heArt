@@ -7,7 +7,7 @@ import numpy as np
 sys.setrecursionlimit(5000)  # Increase to a higher value
 sys.path.append("/mnt/Research/heArt")
 sys.path.append("/mnt/Research")
-sys.path.append("/mnt/Research/heArt_py3_original")
+#sys.path.append("/mnt/Research/heArt_py3_original")
 sys.path.append("/mnt/Output")
 
 import vtk_py3
@@ -27,19 +27,23 @@ from heArt_py3.src.postprocessing.postprocessdata2 import plotpressure as plotpr
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
-    "casename": "ellipsoidal_baselinegeo",
-    "directory_me": "../LVMesh/vh/",
-    "directory_ep": "../LVMesh/vh/",
+    "casename_me": "ellipsoidal_baselinegeo_coarse",
+    "casename_ep": "ellipsoidal_baselinegeo_medium2",
+    #"casename": "ellipsoidal_baselinegeo",
+    #"directory_me": "../../../heArt_py3_purkinje/LV_pj_lc/",
+    "directory_ep": "../LVMesh/lc/",
+    "directory_me": "../LVMesh/lc/",
+    #"directory_ep": "../LVMesh/vh/",
     "directory_pj": "../PJmesh/",
     "casename_pj": "PJmarked",
     "outputfolder": "./Outputs/",
     "folderName": "/",
-    "caseID": "LVelectromechanics-PJ-test",
+    "caseID": "LVelectromechanics-PJ-test-Tmax1800",
     #"caseID": "LVelectromechanics-test-lbbb",
     "isLV": True,
 }
 
-contRactility = 600e3
+contRactility = 1200e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -91,7 +95,7 @@ Circparam = {
     "V_ad": 309.22012729232915,
     "V_LA": 157.01981722400419,
     "V_LV": 101.62599131634467,
-    "stop_iter": 1,
+    "stop_iter": 3,
 }
 #Circparam = {    
 #    "Ees_la": 120,
@@ -126,7 +130,7 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 0.5,
-    "writeStep": 40.0,
+    "writeStep": 5.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
@@ -181,7 +185,7 @@ run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 
 # Extract only Displacement
 #dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["u", "CG", 1]], EP_var=[], PJ_var=[])
-#dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["fstress", "DG", 0]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
+#dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["fstress", "DG", 0], ["potential_ref", "DG", 0]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
 #compute_activation(IODet=IODetails, SimDet=SimDetails)
 #compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
 # plothemodynamics(IODet=IODetails, SimDet=SimDetails)
