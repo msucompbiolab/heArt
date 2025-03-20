@@ -380,8 +380,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if state_obj.cycle > stop_iter:
             break
 
-        if state_obj.t > 220:
-            break
+        #if state_obj.t > 220:
+        #    break
 
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
             params = {
