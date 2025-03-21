@@ -98,6 +98,7 @@ class BurkhoffTimevarying(object):
 
     def w1(self):
         t0 = self.parameters["material params"]["t0"]
+
         t_a = self.parameters["t_a"]  # current time
 
         if "t_trans" in list(self.parameters["material params"].keys()):
@@ -116,14 +117,18 @@ class BurkhoffTimevarying(object):
         t_init = self.t_init
         t_since_activation = t_a - t_init
 
-        xp4 = conditional(gt(t_since_activation, Constant(0.0)), 1.0, 0.0)
-        xp5 = conditional(lt(t_since_activation, Constant(9998.0)), 1.0, 0.0)
+        xp4 = conditional(
+            gt(t_since_activation, Constant(0.0)), 1.0, 0.0
+        )  # True during activation time
+        xp5 = conditional(lt(t_since_activation, Constant(9998.0)), 1.0, 0.0)  # True
 
         if "trans0" in list(self.parameters["material params"].keys()):
             trans0 = self.parameters["material params"]["trans0"]
             xp1 = conditional(lt(t_since_activation, trans0), 1.0, 0.0)  # HACK LCLEE
         else:
-            xp1 = conditional(lt(t_since_activation, t_trans), 1.0, 0.0)
+            xp1 = conditional(
+                lt(t_since_activation, t_trans), 1.0, 0.0
+            )  # True when time < t_trans
 
         w1 = xp5 * xp4 * xp1 * 0.5 * (1 - cos(pi * t_since_activation / t0))
 
@@ -141,9 +146,11 @@ class BurkhoffTimevarying(object):
         tr = self.parameters["material params"]["tau"]
 
         t_init = self.t_init  # time of activation
+
         t_since_activation = t_a - t_init
 
         xp2 = conditional(le(t_trans, t_since_activation), 1.0, 0.0)
+
         if "trans0" in list(self.parameters["material params"].keys()):
             A = 1.0
         else:
@@ -162,3 +169,90 @@ class BurkhoffTimevarying(object):
         Sact = (Tmax * Ct * Ca0**2.0) / (Ca0**2.0 + ECa**2.0)
 
         return Sact
+
+    def PK2Stress_atr(self):
+        Ca0 = self.parameters["material params"]["Ca0"]
+        Tmax = self.parameters["material params"]["Tmax"]
+
+        Ct = self.w1_atr() + self.w2_atr()
+        ECa = self.ECa()
+
+        Sact = (Tmax * Ct * Ca0**2.0) / (Ca0**2.0 + ECa**2.0)
+
+        return Sact
+
+    def w1_atr(self):
+        t0_atr = self.parameters["material params"]["t0_atr"]
+        tdelay_atr = self.parameters["material params"]["tdelay_atr"]
+
+        t_a = self.parameters["t_a"]  # current time
+
+        if "t_trans_atr" in list(self.parameters["material params"].keys()):
+            t_trans_atr = self.parameters["material params"]["t_trans_atr"]
+        else:
+            t_trans_atr = 1.5 * t0_atr
+
+        # isHomogenousActivation = self.parameters["HomogenousActivation"]
+
+        # if isHomogenousActivation: # activation at 10 ms
+        #    t_init = self.t_init
+        #    t_init.vector()[:] = 0.0*np.ones(len(t_init.vector().array()))
+        # else:
+        #    t_init = self.t_init # time of activation
+
+        t_init_atr = self.t_init + tdelay_atr
+        t_since_activation_atr = t_a - t_init_atr
+
+        xp4 = conditional(
+            gt(t_since_activation_atr, Constant(0.0)), 1.0, 0.0
+        )  # True when activated
+        xp5 = conditional(
+            lt(t_since_activation_atr, Constant(9998.0)), 1.0, 0.0
+        )  # always True (HACK)
+
+        if "trans0" in list(
+            self.parameters["material params"].keys()
+        ):  # not applicable
+            trans0 = self.parameters["material params"]["trans0"]
+            xp1 = conditional(
+                lt(t_since_activation_atr, trans0), 1.0, 0.0
+            )  # HACK LCLEE
+        else:
+            xp1 = conditional(
+                lt(t_since_activation_atr, t_trans_atr), 1.0, 0.0
+            )  # True when time since activation is less than t_trans
+
+        w1 = xp5 * xp4 * xp1 * 0.5 * (1 - cos(pi * t_since_activation_atr / t0_atr))
+
+        return w1
+
+    def w2_atr(self):
+        t0_atr = self.parameters["material params"]["t0_atr"]
+        tdelay_atr = self.parameters["material params"]["tdelay_atr"]
+
+        t_a = self.parameters["t_a"]
+
+        if "t_trans_atr" in list(self.parameters["material params"].keys()):
+            t_trans_atr = self.parameters["material params"]["t_trans_atr"]
+        else:
+            t_trans_atr = 1.5 * t0_atr
+
+        tr_atr = self.parameters["material params"].get("tau_atr")
+
+        t_init_atr = self.t_init + tdelay_atr  # time of activation
+
+        t_since_activation_atr = t_a - t_init_atr
+
+        xp2_atr = conditional(le(t_trans_atr, t_since_activation_atr), 1.0, 0.0)
+
+        if "trans0" in list(self.parameters["material params"].keys()):
+            A = 1.0
+        else:
+            A = 0.5 * (1 - cos(pi * t_trans_atr / t0_atr))
+
+        w2 = xp2_atr * A * exp(-1.0 * (t_since_activation_atr - t_trans_atr) / tr_atr)
+
+        return w2
+
+    def getCt(self):
+        return self.w1_atr() + self.w2_atr()

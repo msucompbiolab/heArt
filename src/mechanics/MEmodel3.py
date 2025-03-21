@@ -593,22 +593,8 @@ class MEmodel(object):
                 facetboundaries,
                 aorta_wall,
             )
-            # RA_RV = self.SimDet["RA_RV"]
-            # bc_RA_RV = DirichletBC(
-            #    W.sub(0),
-            #    Expression(("0.0", "0.0", "0.0"), degree=2),
-            #    facetboundaries,
-            #    RA_RV,
-            # )
 
         # endoring = pick_endoring_bc(method="cpp")(edgeboundaries, 1)
-
-        # bcedge = DirichletBC(
-        #    W.sub(0),
-        #    Expression(("0.0", "0.0", "0.0"), degree=0),
-        #    endoring,
-        #    method="pointwise",
-        # )
 
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             if self.iswaorta:
@@ -679,6 +665,7 @@ class MEmodel(object):
         RAendoid = self.SimDet.get("RAendoid")
 
         epiid = self.SimDet["epiid"]
+        atrialid = self.SimDet["atrialid"]
 
         if not "LVPid" in list(self.SimDet.keys()):
             LVPid = self.SimDet["LVendoid"]
@@ -925,6 +912,7 @@ class MEmodel(object):
             "LAendoid": LAendoid,
             "RAendoid": RAendoid,
             "epiid": epiid,
+            "atrialid": atrialid,
             "topid": topid,
             "aortaid": aortaid,
             "LVPid": LVPid,
@@ -1015,7 +1003,8 @@ class MEmodel(object):
             if self.isBiV:
                 RV_Wvol = uflforms.RVV0constrainedE()
 
-        Sactive = activeforms.PK2StressTensor()
+        # Sactive = activeforms.PK2StressTensor()
+
         # printout("Total active force = " + str(assemble(activeforms.PK1Stress()*dx_me)), comm_me)
 
         X_me = SpatialCoordinate(mesh_me)
@@ -1076,45 +1065,50 @@ class MEmodel(object):
                 "rubber_region" in list(self.SimDet.keys())
                 and self.SimDet["rubber_region"]
             ):
-                # region_cnt = 0
                 for regionid in self.SimDet["rubber_region"]:
                     F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(regionid))
-                    #if region_cnt == 0:
-                    #    rubvar_ = derivative(WpRub_me, w_me, wtest_me) * dx_me(
-                    #        int(regionid)
-                    #    )
-                    #else:
-                    #    rubvar_ += derivative(WpRub_me, w_me, wtest_me) * dx_me(
-                    #        int(regionid)
-                    #    )
             if (
                 "aorta_region" in list(self.SimDet.keys())
                 and self.SimDet["aorta_region"]
             ):
                 for regionid in self.SimDet["aorta_region"]:
-                    # F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(regionid))
                     F1 += derivative(WpAorta_me, w_me, wtest_me) * dx_me(int(regionid))
-                    #aovar_ = derivative(WpAorta_me, w_me, wtest_me) * dx_me(
-                    #    int(regionid)
-                    #)
             # for nonLVid_ in list(nonLVid):
             #    F1 += derivative(Wp_me, w_me, wtest_me) * dx_me(int(nonLVid_))
 
         elif "poro" in list(self.SimDet.keys()):
             F1 = poro_F1
-        else:
-            if self.SimDet.get("fch_fe"):
-                F1 = derivative(WpRub_me, w_me, wtest_me) * dx_me
-            else:
-                F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+        elif self.SimDet.get("fch_fe"):  # temp coz we'll have atrial fibers son
+            # F1 = derivative(WpRub_me, w_me, wtest_me) * dx_me
+            region_cnt = 0
+            for regionid in self.SimDet["active_region"]:
+                factor = 0.0 if regionid in (3, 4) else 1.0
+                if region_cnt == 0:
+                    if factor == 1:
+                        F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+                    else:
+                        F1 = derivative(WpRub_me, w_me, wtest_me) * dx_me
+                else:
+                    if factor == 1:
+                        F1 += derivative(Wp_me, w_me, wtest_me) * dx_me
+                    else:
+                        F1 += derivative(WpRub_me, w_me, wtest_me) * dx_me
+                region_cnt += 1
+
+        else:  # not iswaorta, not poro, not fch_fe
+            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
 
         if "active_region" in list(self.SimDet.keys()):
             print("Active region = ", self.SimDet["active_region"])
             region_cnt = 0
             for regionid in self.SimDet["active_region"]:
+                factor = {3: 0.2, 4: 0.1}.get(regionid, 1.0)  # hdf5-specific
+                if int(factor) == 1:
+                    Sactive = activeforms.PK2StressTensor()
+                else:
+                    Sactive = activeforms.PK2StressTensor_atr() # *
                 if region_cnt == 0:
                     # F4 = inner(Fmat * Sactive, grad(v_me)) * (dx_me(int(regionid)))
-                    factor = {3: 0.2, 4: 0.02}.get(regionid, 1.0)  # hdf5
                     F4 = (
                         factor
                         * inner(Fmat * Sactive, grad(v_me))
@@ -1123,7 +1117,6 @@ class MEmodel(object):
                     print("Assigning active stress to ", regionid)
                 else:
                     # F4 += inner(Fmat * Sactive, grad(v_me)) * (dx_me(int(regionid)))
-                    factor = {3: 0.2, 4: 0.02}.get(regionid, 1.0) # hdf5
                     F4 += (
                         factor
                         * inner(Fmat * Sactive, grad(v_me))
@@ -1185,6 +1178,7 @@ class MEmodel(object):
                 epiid_Kadj_coeff = self.SimDet.get("epiid_Kadj_coeff", [10.0, 10.0])
             else:
                 epiid_Kadj_coeff = self.SimDet.get("epiid_Kadj_coeff", 1.0)
+                atrialid_Kadj_coeff = self.SimDet.get("atrialid_Kadj_coeff", 1.0)
 
             if self.iswaorta:
 
@@ -1293,6 +1287,27 @@ class MEmodel(object):
                     aortaid
                 )
                 F3 += F3_aorta
+
+                if self.SimDet.get("fch_fe"):
+                    F3_atrial = inner(
+                        outer(N_me, N_me)
+                        * (
+                            k_spring[0] * atrialid_Kadj_coeff * u_me
+                            + c_damping[0] * (u_me - u_me_n)
+                        ),
+                        v_me,
+                    ) * ds_me(atrialid) + inner(
+                        (Identity(u_me.ufl_shape[0]) - outer(n_me, n_me))
+                        * (
+                            k_spring[1] * atrialid_Kadj_coeff * u_me
+                            + c_damping[1] * (u_me - u_me_n)
+                        ),
+                        v_me,
+                    ) * ds_me(
+                        atrialid
+                    )
+
+                    F3 += F3_atrial
 
             elif self.isLV:
 
@@ -1682,6 +1697,9 @@ class MEmodel(object):
    #     Sactive_.rename("Sact", "Sact")
 
    #     return Sactive_
+
+    def GetCt(self):
+        return self.activeforms.Get_t_a()
 
     def GetDeformedBasis(self, params):
         default_params = {
