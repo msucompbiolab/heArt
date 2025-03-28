@@ -665,7 +665,10 @@ class MEmodel(object):
         RAendoid = self.SimDet.get("RAendoid")
 
         epiid = self.SimDet["epiid"]
-        atrialid = self.SimDet["atrialid"]
+        if self.isFCH:
+            atrialid = self.SimDet["atrialid"]
+        else:
+            atrialid = None
 
         if not "LVPid" in list(self.SimDet.keys()):
             LVPid = self.SimDet["LVendoid"]
@@ -1127,6 +1130,7 @@ class MEmodel(object):
                 region_cnt += 1
 
         else:
+            Sactive = activeforms.PK2StressTensor()
             F4 = inner(Fmat * Sactive, grad(v_me)) * dx_me
 
         Ftotal = F1 + F4
