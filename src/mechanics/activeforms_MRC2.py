@@ -64,7 +64,7 @@ class activeForms(object):
         return isActive
 
     def Get_t_a(self):
-        return self.parameters["t_a"].ta
+        return self.parameters["t_a"].vector().get_local()
 
     def update_activationTime(self, potential_n, comm):
         """
@@ -100,7 +100,7 @@ class activeForms(object):
         isHomogenousActivation = self.parameters["HomogenousActivation"]
         # print "isHomogeneous = ", isHomogenousActivation
         if isHomogenousActivation:  # activation at 10 ms
-            t_init_array = 0.0 * np.ones(len(self.t_init.vector().get_local()))
+            t_init_array = 10.0 * np.ones(len(self.t_init.vector().get_local()))
         # -------------------------------------------------------------------
 
         self.t_init.vector()[:] = t_init_array
@@ -154,6 +154,21 @@ class activeForms(object):
         Pact_tensor = Sact * as_tensor(Mij, (i, j))
 
         return Pact_tensor
+
+    def PK2StressTensor_atr(self):
+        F = self.Fmat()
+        f0 = self.parameters["fiber"]
+        i, j = indices(2)
+        Mij = f0[i] * f0[j]
+
+        # Pact = self.PK1Stress()
+        Sact = self.activeforms.PK2Stress_atr()
+
+        Pact_tensor = Sact * as_tensor(Mij, (i, j))
+
+        return Pact_tensor
+    def getCt(self):
+        return self.activeforms.getCt()
 
     def fiberstress(self):
         PK2 = self.PK2StressTensor()
