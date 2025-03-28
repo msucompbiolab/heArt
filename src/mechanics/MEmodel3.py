@@ -1173,18 +1173,21 @@ class MEmodel(object):
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             if "springparam" in list(self.SimDet.keys()):
                 k_spring = self.SimDet["springparam"]
-                c_damping = self.SimDet["dashpotparam"]
                 if "springfacets" in list(self.SimDet.keys()):
                     spr_facetids = self.SimDet["springfacets"]
-
             else:
                 k_spring = [2.0e3, 2.0e3]  # default
+
+            if "dashpotparam" in list(self.SimDet.keys()):
+                c_damping = self.SimDet["dashpotparam"]
+            else:
                 c_damping = [2.0e2, 2.0e1]  # default
 
             if self.isLV:
                 epiid_Kadj_coeff = self.SimDet.get("epiid_Kadj_coeff", [10.0, 10.0])
             else:
                 epiid_Kadj_coeff = self.SimDet.get("epiid_Kadj_coeff", 1.0)
+
 
             if self.iswaorta:
 

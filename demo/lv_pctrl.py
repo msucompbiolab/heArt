@@ -1,10 +1,10 @@
 import sys, pdb
 from dolfin import *
 
-sys.path.append("/mnt/Research/heArt")
 sys.path.append("/mnt/Research")
-sys.path.append("/mnt/Research/heArt_py3_original")
+#sys.path.append("/mnt/Research/heArt_py3_original")
 sys.path.append("/mnt/Output")
+sys.path.append("/mnt/Research/heArt")
 
 from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl_test import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
@@ -30,7 +30,8 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    "casename": "ellipsoidal_baselinegeo",
+    "casename_me": "ellipsoidal_baselinegeo",
+    "casename_ep": "ellipsoidal_baselinegeo",
     "directory_me": "../LVMesh/vh/",
     "directory_ep": "../LVMesh/vh/",
     #"outputfolder": "/mnt/Output/outputs_LVelectromechanics/",
@@ -93,7 +94,7 @@ Circparam = {
     "V_ad": 309.22012729232915,
     "V_LA": 157.01981722400419,
     "V_LV": 101.62599131634467,
-    "stop_iter": 4,
+    "stop_iter": 1,
     "issoftplus": False,
 }
 
@@ -101,8 +102,8 @@ SimDetails = {
    # "poro": False,
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
-    "dt": 1.0,
-    "writeStep": 40.0,
+    "dt": 0.5,
+    "writeStep": 5.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 15,
     "DTI_EP": False,
@@ -153,6 +154,7 @@ SimDetails = {
 run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # Postprocessing
+#dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["u", "CG", 1]], EP_var=[], PJ_var=[])
 #dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["fstress", "DG", 0]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
