@@ -263,6 +263,11 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
 
+    # Assign displacement at end of loading (LCL)
+    MEmodel_.u_me_ED.assign(MEmodel_.GetDisplacement())
+    MEmodel_.isspringon = 1.0
+
+
     # import pdb; pdb.set_trace()
 
     # return

@@ -279,6 +279,9 @@ class MEmodel(object):
         self.dw_me = TrialFunction(self.W)
         self.wtest_me = TestFunction(self.W)
 
+        self.u_me_ED = Function(self.V_CG1) #LCL
+        self.isspringon = 0.25
+
         self.Ftotal, self.Jac, self.bcs = self.Problem()
 
     def default_parameters(self):
@@ -1320,25 +1323,27 @@ class MEmodel(object):
 
                 # Laplace_u = self.GetLaplace()
 
+                u_me_ED = self.u_me_ED
+                isspringon = self.isspringon
                 F3_epi = inner(
                     outer(N_me, N_me)
                     * (
-                        k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * u_me
-                        + c_damping[0] * (u_me - u_me_n)
+                        k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * (u_me - u_me_ED) 
+                        + c_damping[0] * (u_me - u_me_n - u_me_ED)
                     ),
                     v_me,
                 ) * (ds_me(epiid)) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
-                        k_spring[1] * epiid_Kadj_coeff[1] * u_me
-                        + c_damping[1] * (u_me - u_me_n)
+                        k_spring[1] * epiid_Kadj_coeff[1] * (u_me - u_me_ED)
+                        + c_damping[1] * (u_me - u_me_n - u_me_ED)
                     ),
                     v_me,
                 ) * (
                     ds_me(epiid)
                 )
 
-                F3 = F3_epi
+                F3 = isspringon*F3_epi
 
                 # spring at base
                 if (
