@@ -48,7 +48,7 @@ param_mid1 = FractalTreeParameters(
     end_nodes=end_nodes_base,
     last_branch=last_branch_base,
     branches_to_grow=branches_to_grow_base,
-    repulsitivity=0.3,
+    repulsitivity=1.0,
     )
 branches_m1, nodes_m1, lines_m1, end_nodes_m1, branches_to_grow_m1, last_branch_m1 = generate_fractal_tree(mesh, param_mid1)
 
@@ -65,7 +65,7 @@ param_mid2 = FractalTreeParameters(
     end_nodes=end_nodes_m1,
     last_branch=last_branch_m1,
     branches_to_grow=branches_to_grow_m1,
-    repulsitivity=0.3,
+    repulsitivity=1.0,
     )
 branches_m2, nodes_m2, lines_m2, end_nodes_m2, branches_to_grow_m2, last_branch_m2= generate_fractal_tree(mesh, param_mid2)
 
