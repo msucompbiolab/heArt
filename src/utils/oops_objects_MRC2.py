@@ -418,6 +418,7 @@ class lv_mesh(object):
             self.mesh, FiniteElement("Lagrange", self.mesh.ufl_cell(), 1)
         )
         self.poissonF = Function(self.poissonFS)
+        self.poissonF.vector()[:] = 1.0 # Set Default to be one
 
         if f.has_dataset(casename + "/" + "varyingspring"):
             f.read(self.poissonF, casename + "/" + "varyingspring")
@@ -1848,6 +1849,7 @@ class exportfiles(object):
             self.fdataPV = open(outputfolder + folderName + "BiV_PV.txt", "w", -1)
             self.fdataQ = open(outputfolder + folderName + "BiV_Q.txt", "w", -1)
             self.fdataP = open(outputfolder + folderName + "BiV_P.txt", "w", -1)
+            self.fdataV = open(outputfolder + folderName + "BiV_V.txt", "w", -1)
             self.fdatatpt = open(outputfolder + folderName + "tpt.txt", "w", -1)
 
             self.fdataIMP = open(outputfolder + folderName + "BiV_IMP.txt", "w", -1)
@@ -1989,6 +1991,19 @@ class exportfiles(object):
             # if(MPI.rank(MEmodel.mesh_me.mpi_comm()) == 0):
             print(
                 t, " ".join(map(lambda x: "%.5e" % x, Parray)), file=fdataP, flush=True
+            )
+
+        return
+
+    def writeV(self, MEmodel, Varray, t):
+        isLV = self.isLV
+        comm = self.comm_ep
+
+        if MPI.rank(comm) == 0:
+            fdataV = self.fdataV
+            # if(MPI.rank(MEmodel.mesh_me.mpi_comm()) == 0):
+            print(
+                t, " ".join(map(lambda x: "%.5e" % x, Varray)), file=fdataV, flush=True
             )
 
         return

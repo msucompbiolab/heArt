@@ -1,10 +1,10 @@
 import sys, pdb
 from dolfin import *
 
-sys.path.append("/mnt/Research/heArt")
 sys.path.append("/mnt/Research")
-sys.path.append("/mnt/Research/heArt_py3_original")
+#sys.path.append("/mnt/Research/heArt_py3_original")
 sys.path.append("/mnt/Output")
+sys.path.append("/mnt/Research/heArt")
 
 from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl_test import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
@@ -30,9 +30,14 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    "casename": "ellipsoidal_baselinegeo",
-    "directory_me": "../LVMesh/vh/",
-    "directory_ep": "../LVMesh/vh/",
+    #"casename_me": "ellipsoidal_baselinegeo",
+    #"casename_ep": "ellipsoidal_baselinegeo",
+    #"directory_me": "../LVMesh/vh/",
+    #"directory_ep": "../LVMesh/vh/",
+    "casename_me": "ellipsoidal_baselinegeo_coarse",
+    "casename_ep": "ellipsoidal_baselinegeo_coarse",
+    "directory_me": "../LVMesh/lc/",
+    "directory_ep": "../LVMesh/lc/",
     #"outputfolder": "/mnt/Output/outputs_LVelectromechanics/",
     "outputfolder": "./Outputs/",
     "folderName": "",
@@ -40,7 +45,7 @@ IODetails = {
     "isLV": True,
 }
 
-contRactility = 600e3
+contRactility = 400e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -68,7 +73,6 @@ GuccioneParams = {
     "Kappa": 1e6,
     "incompressible": True,
 }
-
 Circparam = {
     "Ees_la": 10,
     "A_la": 2.67,
@@ -77,34 +81,62 @@ Circparam = {
     "Tmax_la": 120,
     "tau_la": 25,
     "tdelay_la": 160,
-    "Csa": 0.0032,
-    "Cad": 0.033,
+    "Csa": 0.0052,#0.0042,#0.0032,
+    "Cad": 0.013,#0.033,
     "Csv": 0.28,
     "Vsa0": 360,
     "Vad0": 40,
     "Vsv0": 3370.0,
-    "Rav": 3000,#5000.0,#2000,#500,
+    "Rav": 2000,#500,
     "Rsv": 100.0,
-    "Rsa": 18000,
-    "Rad": 106000,
-    "Rmv": 3000,#5000.0,#2000.0,#200.0,
-    "V_sv": 3709.681538561804,
-    "V_sa": 386.4525256055264,
-    "V_ad": 309.22012729232915,
-    "V_LA": 157.01981722400419,
-    "V_LV": 101.62599131634467,
-    "stop_iter": 4,
+    "Rsa": 58000,#18000,
+    "Rad": 106000,#50300,#106000,
+    "Rmv": 2000.0,#200.0,
+    "V_sa": 4.09767e2,#3.96351e2,#3.91238e2,#3.05990/0.0075,#386.4525256055264,
+    "V_ad": 1.44290e2,#2.34590e2, #1.99282e2,#2.17041/0.0075,#309.22012729232915,
+    "V_sv": 3.80285e3,#3.75315e3,#3.78462e3,#27.8388/0.0075,#3709.681538561804,
+    "V_LA": 1.94894e2 ,#1.74052e2,#1.87231e2,#1.17362/0.0075,#157.01981722400419,
+    "V_LV": 8.39793e1,#8.31736e1,#8.63382e1,#0.623930/0.0075,#101.62599131634467,
+    "stop_iter": 3,
     "issoftplus": False,
 }
+#Circparam = {
+#    "Ees_la": 10,
+#    "A_la": 2.67,
+#    "B_la": 0.019,
+#    "V0_la": 10,
+#    "Tmax_la": 120,
+#    "tau_la": 25,
+#    "tdelay_la": 160,
+#    "Csa": 0.0032,
+#    "Cad": 0.033,
+#    "Csv": 0.28,
+#    "Vsa0": 360,
+#    "Vad0": 40,
+#    "Vsv0": 3370.0,
+#    "Rav": 3000,#5000.0,#2000,#500,
+#    "Rsv": 100.0,
+#    "Rsa": 18000,
+#    "Rad": 106000,
+#    "Rmv": 3000,#5000.0,#2000.0,#200.0,
+#    "V_sv": 3709.681538561804,
+#    "V_sa": 386.4525256055264,
+#    "V_ad": 309.22012729232915,
+#    "V_LA": 157.01981722400419,
+#    "V_LV": 101.62599131634467,
+#    "stop_iter": 1,
+#    "issoftplus": False,
+#}
 
 SimDetails = {
    # "poro": False,
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
-    "dt": 1.0,
-    "writeStep": 40.0,
+    "dt": 0.5,
+    "EDP": 1.24326e1,#1.10346e1,#11.7135,#9.56565,
+    "writeStep": 5.0,
     "GiccioneParams": GuccioneParams,
-    "nLoadSteps": 15,
+    "nLoadSteps": 25,
     "DTI_EP": False,
     "DTI_ME": False,
     "d_iso": 1.5 * 0.005,
@@ -138,10 +170,8 @@ SimDetails = {
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
-    "epiid_Kadj_coeff": [50, 10],
-    # "springparam": [2.0e3, 2.0e2],  # Kepi_n / Kepi_t
-    # "dashpotparam": [2.0e2, 2.0e1],  # Cepi_n / Cepi_t
-    # "spring_atbase": 0,
+    "epiid_Kadj_coeff": [40, 2], #[28,1],#[30,1],#[50,10],#[50, 10],
+    "dashpotparam": [10.0e2,2.0e1],
     "permeability": 1.0e-9,
     "p_a": 0.0,
     "p_v": 1300.0,
@@ -152,10 +182,15 @@ SimDetails = {
 # Run Simulation
 run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
-# Postprocessing
-#dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["fstress", "DG", 0]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
-# postprocessdata(IODet=IODetails, SimDet=SimDetails)
-# extractdisplacement(IODet=IODetails, SimDet=SimDetails)
-# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
-# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=5)
-# extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
+
+## Postprocessing
+#postprocessdata(IODet=IODetails, SimDet=SimDetails)
+#
+## Extract only Displacement
+#dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["u", "CG", 1]], EP_var=[], PJ_var=[])
+##dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["fstress", "DG", 0]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
+## postprocessdata(IODet=IODetails, SimDet=SimDetails)
+## extractdisplacement(IODet=IODetails, SimDet=SimDetails)
+#compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
+## plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=5)
+## extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)

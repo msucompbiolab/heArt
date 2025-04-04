@@ -127,6 +127,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     }
 
     MEmodel_ = MEmodel(mesh_me_params, SimDet)
+    File(outputfolder + folderName + "poissonF.pvd") << MEmodel_.Mesh.poissonF
+    #print(MEmodel_.Mesh.poissonF)
+    #stop
     solver_elas = MEmodel_.Solver()
     comm_me = MEmodel_.mesh_me.mpi_comm()
 
@@ -259,6 +262,12 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             break
 
     printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
+
+    # Assign displacement at end of loading (LCL)
+    MEmodel_.u_me_ED.assign(MEmodel_.GetDisplacement())
+    MEmodel_.isspringon = 1.0
+
+
     # import pdb; pdb.set_trace()
 
     # return
@@ -616,10 +625,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                    if(state_obj.t > SimDet["pacing_timing"][0][0] and \
                       state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
                        EPmodel_pj.fstim_array[0].iStim = pj_intensity
-                       print("pacing", EPmodel_pj.fstim_array)
+                       printout("pacing", comm_me)
                    else:
                        EPmodel_pj.fstim_array[0].iStim = 0.0
-                       print("not pacing")
+                       printout("not pacing", comm_me)
 
                    printout("Solving FHN PJ", comm_me)
                    solver_FHN_pj.solvenonlinear()
@@ -796,7 +805,12 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
             comm_me_.Bcast(a, root=0)
 
+        
         export.writePV(MEmodel_, state_obj.tstep)
+        if isLV:
+            export.writeQ(MEmodel_, [CLmodel_.Qsa, CLmodel_.Qad, CLmodel_.Qsv, CLmodel_.Qmv, CLmodel_.Qav], state_obj.tstep)
+            export.writeP(MEmodel_, np.array([CLmodel_.Psa, CLmodel_.Pad, CLmodel_.Psv, CLmodel_.PLA, CLmodel_.PLV])*0.0075, state_obj.tstep)
+            export.writeV(MEmodel_, np.array([CLmodel_.V_sa, CLmodel_.V_ad, CLmodel_.V_sv, CLmodel_.V_LA, CLmodel_.V_LV]), state_obj.tstep)
 
         if cnt % SimDet["writeStep"] == 0.0:
             export.writetpt(MEmodel_, state_obj.tstep)
