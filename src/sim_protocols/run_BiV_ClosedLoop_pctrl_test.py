@@ -271,7 +271,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     MEmodel_.u_me_ED.assign(MEmodel_.GetDisplacement())
     MEmodel_.isspringon = 1.0
 
-
+    printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
     # import pdb; pdb.set_trace()
 
     # return
@@ -629,10 +629,10 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                    if(state_obj.t > SimDet["pacing_timing"][0][0] and \
                       state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
                        EPmodel_pj.fstim_array[0].iStim = pj_intensity
-                       printout("pacing", comm_me)
+                       print("pacing", EPmodel_pj.fstim_array)
                    else:
                        EPmodel_pj.fstim_array[0].iStim = 0.0
-                       printout("not pacing", comm_me)
+                       print("not pacing")
 
                    printout("Solving FHN PJ", comm_me)
                    solver_FHN_pj.solvenonlinear()
@@ -809,12 +809,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
             comm_me_.Bcast(a, root=0)
 
-        
         export.writePV(MEmodel_, state_obj.tstep)
-        if isLV:
-            export.writeQ(MEmodel_, [CLmodel_.Qsa, CLmodel_.Qad, CLmodel_.Qsv, CLmodel_.Qmv, CLmodel_.Qav], state_obj.tstep)
-            export.writeP(MEmodel_, np.array([CLmodel_.Psa, CLmodel_.Pad, CLmodel_.Psv, CLmodel_.PLA, CLmodel_.PLV])*0.0075, state_obj.tstep)
-            export.writeV(MEmodel_, np.array([CLmodel_.V_sa, CLmodel_.V_ad, CLmodel_.V_sv, CLmodel_.V_LA, CLmodel_.V_LV]), state_obj.tstep)
 
         if isBiV:
             export.writeQ(MEmodel_, np.array([CLmodel_.Qsa, CLmodel_.Qad, CLmodel_.Qsv, CLmodel_.Qtv,

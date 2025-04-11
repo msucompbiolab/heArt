@@ -67,8 +67,7 @@ def extract_PV(filename, BCL, ncycle, SimDet):
 def extract_Q(filename, BCL, ncycle, SimDet):
 
     isBiV = False
-    if "isBiV" in list(SimDet.keys()):
-        isBiV = SimDet["isBiV"]
+    isBiV = SimDet["isBiV"]
 
     reader = csv.reader(open(filename), delimiter=" ")
 
@@ -145,10 +144,7 @@ def extract_Q(filename, BCL, ncycle, SimDet):
 def extract_P(filename, BCL, ncycle, SimDet):
 
     isBiV = False
-    if "isBiV" in list(SimDet.keys()):
-        isBiV = SimDet["isBiV"]
-
-
+    isBiV = SimDet["isBiV"]
 
     reader = csv.reader(open(filename), delimiter=" ")
     tpt_array = []

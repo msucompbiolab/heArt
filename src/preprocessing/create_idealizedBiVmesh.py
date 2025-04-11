@@ -1,13 +1,14 @@
-import sys
+import sys, pdb
 sys.path.append("/mnt/Research/")
 
 import vtk
-import vtk_py
+import vtk_py3 as vtk_py
 import os
 import dolfin
 from mpi4py import MPI as pyMPI
 import glob
 from vtk.util import numpy_support
+
 
 def GetSurfaces(directory, filebasename, fieldvariable, isparallel):
 
@@ -39,7 +40,7 @@ meshname = "biv_idealized3_generalized"
 directory = "./"
 
 # Use gmsh to generate biventricular mesh
-os.system(gmshcmd + " -3 " + directory +  meshname + ".geo" + " -o " + directory + meshname+".vtk") 
+# os.system(gmshcmd + " -3 " + directory +  meshname + ".geo" + " -o " + directory + meshname+".vtk") 
 ####################################################################
 
 
@@ -53,8 +54,8 @@ vtk_py.writeUGrid(ugridrot, directory + meshname+"_rot.vtk")
 # For some reason vtkPointLocator in extractFenicsBiVFacet will give error if precision is too high
 newpts = vtk.vtkPoints()
 for p in range(0, ugridrot.GetNumberOfPoints()):
-	pt = [ugridrot.GetPoints().GetPoint(p)[0], ugridrot.GetPoints().GetPoint(p)[1], ugridrot.GetPoints().GetPoint(p)[2]]
-        newpts.InsertNextPoint([round(pt[k],5) for k in range(0,3)])
+    pt = [ugridrot.GetPoints().GetPoint(p)[0], ugridrot.GetPoints().GetPoint(p)[1], ugridrot.GetPoints().GetPoint(p)[2]]
+    newpts.InsertNextPoint([round(pt[k],5) for k in range(0,3)])
 ugridrot.SetPoints(newpts)
 
 
@@ -73,8 +74,8 @@ lv_vol = dolfin.assemble(lv_vol_form, form_compiler_parameters={"representation"
 rv_vol = dolfin.assemble(rv_vol_form, form_compiler_parameters={"representation":"uflacs"})
 
 if(comm2.Get_rank() == 0):
-	print "LV cavity vol = ", lv_vol, " ml"
-	print "RV cavity vol = ", rv_vol, " ml" 
+	print("LV cavity vol = ", lv_vol, " ml")
+	print("RV cavity vol = ", rv_vol, " ml") 
 
 
 
@@ -86,6 +87,7 @@ vtk_py.addRegionsToBiV(ugrid, LVendo, RVendo, Epi)
 matid_vtk = numpy_support.vtk_to_numpy(ugrid.GetCellData().GetArray("region_id"))
 matid.array()[:] = matid_vtk
 dolfin.File(directory + "matid.pvd") << matid;
+
 
 # Set BiVFiber
 fiber_angle_param = {"mesh": fenics_mesh_ref,\

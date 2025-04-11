@@ -10,14 +10,12 @@ import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pylab as plt
 from mpi4py import MPI as pyMPI
-from vtk_py3 import vtk_py3
 
 
 def postprocessdata(IODet, SimDet, cycle=None):
     directory = IODet["outputfolder"] + "/"
     casename = IODet["caseID"]
     BCL = SimDet["HeartBeatLength"]
-    
     if cycle is None:
         cycle = SimDet["closedloopparam"]["stop_iter"]
 
@@ -29,21 +27,19 @@ def postprocessdata(IODet, SimDet, cycle=None):
 
         filename = directory + casename + "/" + "BiV_Q.txt"
         (
-            homo_tpt,
-            homo_Qav,
+            homo_tptt,
+            homo_Qao,
             homo_Qmv,
-            homo_Qsa,
-            homo_Qsv,
-            homo_Qpvv,
-            homo_Qtv,
-            homo_Qpa,
-            homo_Qpv,
-            homo_Qlvad,
-        ) = extract_Q(filename, BCL, ncycle, SimDet)
+            homo_Qper,
+            homo_Qla,
+            homo_Qlad,
+            homo_Qlcx,
+            Q_lvad,
+        ) = extract_Q(filename, BCL, ncycle)
 
         filename = directory + casename + "/" + "BiV_P.txt"
-        homo_tptt, homo_Pven, homo_LVPP, homo_Part, homo_PLA, homo_Ppv, homo_PRV, homo_Ppa, homo_PRA = extract_P(
-            filename, BCL, ncycle, SimDet
+        homo_tptt, homo_Pven, homo_LVPP, homo_Part, homo_PLA = extract_P(
+            filename, BCL, ncycle
         )
 
         filename = directory + casename + "/" + "BiV_IMP_InC.txt"
@@ -88,63 +84,63 @@ def postprocessdata(IODet, SimDet, cycle=None):
         ind = np.where((tpt_array > (ncycle) * BCL) * (tpt_array < (ncycle + 1) * BCL))
         tpt = tpt_array[ind]
 
-        ### Get Point cloud for probing
-        ## ptcloud, radialpos, vtkradialpos = getpointclouds(homo_directory, clipoffset=5e-1, npts=10000)
-        #ptcloud, radialpos, vtkradialpos = getpointclouds(
-        #    directory + casename + "/", clipoffset=1e-5, npts=10000
-        #)
+        ## Get Point cloud for probing
+        # ptcloud, radialpos, vtkradialpos = getpointclouds(homo_directory, clipoffset=5e-1, npts=10000)
+        ptcloud, radialpos, vtkradialpos = getpointclouds(
+            directory + casename + "/", clipoffset=1e-5, npts=10000
+        )
 
-        #vtk_py.writeXMLPData(vtkradialpos, casename + ".vtp")
+        vtk_py.writeXMLPData(vtkradialpos, casename + ".vtp")
 
-        ## Get transmural variation of IMP
-        #index = find_nearest(
-        #    tpt, homo_tptt[np.argmax(homo_LVPP)]
-        #)  # Find ID correspond to peak LV pressure
-        #imp = probeqty(homo_directory, "ME/imp_constraint", ptcloud, ind, index)
-        #imp = imp * 0.0075
+        # Get transmural variation of IMP
+        index = find_nearest(
+            tpt, homo_tptt[np.argmax(homo_LVPP)]
+        )  # Find ID correspond to peak LV pressure
+        imp = probeqty(homo_directory, "ME/imp_constraint", ptcloud, ind, index)
+        imp = imp * 0.0075
 
-        ### Get transmural variation of WD
-        #Sff = probetimeseries(homo_directory, "ME/fstress", ptcloud, ind, "DG", 0)
-        #Eff = probetimeseries(homo_directory, "ME/Eff", ptcloud, ind, "DG", 0)
-        #WD = np.array(
-        #    [
-        #        -1.0 * np.trapz(Sff[:, i] * 0.0075, Eff[:, i])
-        #        for i in range(0, len(Sff[1, :]))
-        #    ]
-        #)
+        ## Get transmural variation of WD
+        Sff = probetimeseries(homo_directory, "ME/fstress", ptcloud, ind, "DG", 0)
+        Eff = probetimeseries(homo_directory, "ME/Eff", ptcloud, ind, "DG", 0)
+        WD = np.array(
+            [
+                -1.0 * np.trapz(Sff[:, i] * 0.0075, Eff[:, i])
+                for i in range(0, len(Sff[1, :]))
+            ]
+        )
 
-        ## Convert to vtp flie
-        #for i in range(0, len(Sff[:, 1])):
-        #    pdata = vtk.vtkPolyData()
-        #    pdata.DeepCopy(vtkradialpos)
-        #    Sff_VTK_data = numpy_support.numpy_to_vtk(
-        #        num_array=0.0075 * Sff[i, :].ravel(),
-        #        deep=True,
-        #        array_type=vtk.VTK_FLOAT,
-        #    )
-        #    Sff_VTK_data.SetName("fstress_")
-        #    pdata.GetPointData().AddArray(Sff_VTK_data)
-        #    Eff_VTK_data = numpy_support.numpy_to_vtk(
-        #        num_array=Eff[i, :].ravel(), deep=True, array_type=vtk.VTK_FLOAT
-        #    )
-        #    Eff_VTK_data.SetName("Eff_")
-        #    pdata.GetPointData().AddArray(Eff_VTK_data)
-        #    WD_VTK_data = numpy_support.numpy_to_vtk(
-        #        num_array=WD.ravel(), deep=True, array_type=vtk.VTK_FLOAT
-        #    )
-        #    WD_VTK_data.SetName("WD_")
-        #    pdata.GetPointData().AddArray(WD_VTK_data)
-        #    # vtk_py.writeXMLPData(pdata, casename+"fstress"+str(i)+".vtp")
+        # Convert to vtp flie
+        for i in range(0, len(Sff[:, 1])):
+            pdata = vtk.vtkPolyData()
+            pdata.DeepCopy(vtkradialpos)
+            Sff_VTK_data = numpy_support.numpy_to_vtk(
+                num_array=0.0075 * Sff[i, :].ravel(),
+                deep=True,
+                array_type=vtk.VTK_FLOAT,
+            )
+            Sff_VTK_data.SetName("fstress_")
+            pdata.GetPointData().AddArray(Sff_VTK_data)
+            Eff_VTK_data = numpy_support.numpy_to_vtk(
+                num_array=Eff[i, :].ravel(), deep=True, array_type=vtk.VTK_FLOAT
+            )
+            Eff_VTK_data.SetName("Eff_")
+            pdata.GetPointData().AddArray(Eff_VTK_data)
+            WD_VTK_data = numpy_support.numpy_to_vtk(
+                num_array=WD.ravel(), deep=True, array_type=vtk.VTK_FLOAT
+            )
+            WD_VTK_data.SetName("WD_")
+            pdata.GetPointData().AddArray(WD_VTK_data)
+            # vtk_py.writeXMLPData(pdata, casename+"fstress"+str(i)+".vtp")
 
-        ### Get Ecc
-        #Ecc = probetimeseries(homo_directory, "ME/Ecc", ptcloud, ind, "DG", 0)
-        #peakEcc = np.max(np.abs(np.mean(Ecc, axis=1) * 100))
-        #print(("Peak Ecc = ", peakEcc))
+        ## Get Ecc
+        Ecc = probetimeseries(homo_directory, "ME/Ecc", ptcloud, ind, "DG", 0)
+        peakEcc = np.max(np.abs(np.mean(Ecc, axis=1) * 100))
+        print(("Peak Ecc = ", peakEcc))
 
-        ## Get Ell
-        #Ell = probetimeseries(homo_directory, "ME/Ell", ptcloud, ind, "DG", 0)
-        #peakEll = np.max(np.abs(np.mean(Ell, axis=1) * 100))
-        #print(("Peak Ell = ", peakEll))
+        # Get Ell
+        Ell = probetimeseries(homo_directory, "ME/Ell", ptcloud, ind, "DG", 0)
+        peakEll = np.max(np.abs(np.mean(Ell, axis=1) * 100))
+        print(("Peak Ell = ", peakEll))
 
         np.savez(
             directory + casename + "/" + casename + ".npz",
@@ -152,34 +148,34 @@ def postprocessdata(IODet, SimDet, cycle=None):
             homo_LVP=homo_LVP,
             homo_LVV=homo_LVV,
             homo_Qmv=homo_Qmv,
-            homo_Qav=homo_Qav,
-            homo_Qsa=homo_Qsa,
-            homo_Qsv=homo_Qsv,
-            #homo_Qlad=homo_Qlad,
+            homo_Qao=homo_Qao,
+            homo_Qper=homo_Qper,
+            homo_Qla=homo_Qla,
+            homo_Qlad=homo_Qlad,
             homo_Pven=0.0075 * homo_Pven,
             homo_LVPP=0.0075 * homo_LVPP,
             homo_Part=0.0075 * homo_Part,
             homo_PLA=0.0075 * homo_PLA,
             homo_tpt_IMP=0.0075 * homo_tpt_IMP,
-            #homo_IMP=homo_IMP,
-            #homo_tpt_Eff=homo_tpt_Eff,
-            #homo_Eff=homo_Eff,
-            #homo_tpt_Sff=homo_tpt_Sff,
-            #homo_Sff=homo_Sff,
+            homo_IMP=homo_IMP,
+            homo_tpt_Eff=homo_tpt_Eff,
+            homo_Eff=homo_Eff,
+            homo_tpt_Sff=homo_tpt_Sff,
+            homo_Sff=homo_Sff,
             ESP=ESP,
             ESV=ESV,
             EDP=EDP,
             EDV=EDV,
             SBP=SBP,
             DBP=DBP,  # Qtotal       = Qtotal,\
-            #imp=imp,
-            #radialpos=radialpos,
-            #Eff=Eff,
-            #Sff=Sff,
-            #WD=WD,
-            #Ecc=Ecc,
-            #Ell=Ell,
-            #BCL=BCL,
+            imp=imp,
+            radialpos=radialpos,
+            Eff=Eff,
+            Sff=Sff,
+            WD=WD,
+            Ecc=Ecc,
+            Ell=Ell,
+            BCL=BCL,
             tpt=tpt,
             ncycle=ncycle,
         )
@@ -188,51 +184,67 @@ def postprocessdata(IODet, SimDet, cycle=None):
 def compute_activation(IODet, SimDet, cycle=None):
 
     mesh = df.Mesh()
-    hdf = df.HDF5File(
-        mesh.mpi_comm(),
-        IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "Data.h5",
-        "r",
-    )
+    hdf = df.HDF5File(mesh.mpi_comm(), IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "Data.h5", "r",)
     hdf.read(mesh, "EP/mesh", False)
 
-    phi_arr = extractvtk(
-        IODet["outputfolder"] + "/" + IODet["caseID"],
-        "EP/phi",
-        "CG",
-        1,
-        IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "EP_" + "phi",
-        "phi",
-        group="EP",
-        iswrite=False,
-    )
+    phi_arr = extractvtk(IODet["outputfolder"] + "/" + IODet["caseID"], "EP/phi", "CG", 1, IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "EP_" + "phi", "phi", group="EP", iswrite=False,)
 
     V_thres = 0.9
     time_act = df.Function(df.FunctionSpace(mesh, "CG", 1))
     time_act_vec = -1 * np.ones(len(time_act.vector()[:]))
 
-    t = 0
+
     dt = SimDet["dt"]
+    t = dt    
+    write_t = SimDet["writeStep"]
+
     for phi in phi_arr:
         phi_vec = phi.sub(0).vector().get_local()[::3]
         for idx, (time_act_vec_, phi_vec_) in enumerate(zip(time_act_vec, phi_vec)):
             if phi_vec_ > V_thres and time_act_vec_ == -1:
                 time_act_vec[idx] = t
 
-        t += dt
+        t += dt * write_t
 
     time_act.vector()[:] = time_act_vec
     time_act.rename("Activation Time", "Activation Time")
 
-    act_outdirectory = os.path.join(
-        IODet["outputfolder"], IODet["caseID"], "activation"
-    )
+    act_outdirectory = os.path.join( IODet["outputfolder"], IODet["caseID"], "activation")
     if not os.path.exists(act_outdirectory):
         os.mkdir(act_outdirectory)
     File_act = df.File(os.path.join(act_outdirectory, "act.pvd"))
     File_act << time_act
 
+    # PJ activation
+    mesh_pj = df.Mesh()
+    hdf = df.HDF5File(mesh_pj.mpi_comm(),IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "Data.h5","r",)
+    hdf.read(mesh_pj, "PJ/mesh", False)
+    pj_phi_arr = extractvtk(IODet["outputfolder"] + "/" + IODet["caseID"], "PJ/phi", "CG", 1, IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "PJ_" + "phi", "phi", group="PJ", iswrite=False,)
 
-def normalize_directionalbasis(eC0, eL0, eR0, mesh, deg):
+    # pj_V_thres = 0.9
+    pj_time_act = df.Function(df.FunctionSpace(mesh_pj, "CG", 1))
+    pj_time_act_vec = -1 * np.ones(len(pj_time_act.vector()[:]))
+    t = dt
+    for pj_phi in pj_phi_arr:
+        pj_phi_vec = pj_phi.sub(0).vector().get_local()[::3]
+        for idx, (pj_time_act_vec_, pj_phi_vec_) in enumerate(zip(pj_time_act_vec, pj_phi_vec)):
+            if pj_phi_vec_ > V_thres and pj_time_act_vec_ == -1:
+                pj_time_act_vec[idx] = t
+
+        t += dt * write_t
+
+    pj_time_act.vector()[:] = pj_time_act_vec
+    pj_time_act.rename("PJ Activation Time", "PJ Activation Time")
+
+    File_act_pj = df.File(os.path.join(act_outdirectory, "pj_act.pvd"))
+    File_act_pj << pj_time_act
+
+
+def normalize_directionalbasis(Mesh_obj, deg):
+
+    eC0 = Mesh_obj.eC0
+    eL0 = Mesh_obj.eL0
+    eR0 = Mesh_obj.eR0
 
     eC0_normalized = eC0 / df.sqrt(df.inner(eC0, eC0))
     eL0_normalized = eL0 / df.sqrt(df.inner(eL0, eL0))
@@ -241,7 +253,7 @@ def normalize_directionalbasis(eC0, eL0, eR0, mesh, deg):
     eC0_normalized = (
         df.project(
             eC0_normalized,
-            df.VectorFunctionSpace(mesh, "DG", 0),
+            df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0),
             form_compiler_parameters={
                 "representation": "uflacs",
                 "quadrature_degree": deg,
@@ -255,7 +267,7 @@ def normalize_directionalbasis(eC0, eL0, eR0, mesh, deg):
     eL0_normalized = (
         df.project(
             eL0_normalized,
-            df.VectorFunctionSpace(mesh, "DG", 0),
+            df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0),
             form_compiler_parameters={
                 "representation": "uflacs",
                 "quadrature_degree": deg,
@@ -269,7 +281,7 @@ def normalize_directionalbasis(eC0, eL0, eR0, mesh, deg):
     eR0_normalized = (
         df.project(
             eR0_normalized,
-            df.VectorFunctionSpace(mesh, "DG", 0),
+            df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0),
             form_compiler_parameters={
                 "representation": "uflacs",
                 "quadrature_degree": deg,
@@ -281,7 +293,7 @@ def normalize_directionalbasis(eC0, eL0, eR0, mesh, deg):
     isnan_eR0_normalized = np.argwhere(np.isnan(eR0_normalized)).flatten()
 
     mesh_coordinates = df.FunctionSpace(
-        mesh, "DG", 0
+        Mesh_obj.mesh, "DG", 0
     ).tabulate_dof_coordinates()
 
     np.set_printoptions(threshold=sys.maxsize)
@@ -324,9 +336,9 @@ def normalize_directionalbasis(eC0, eL0, eR0, mesh, deg):
                 3 * closest_pt_id : 3 * closest_pt_id + 3
             ]
 
-    eC0_normalized_ = df.Function(df.VectorFunctionSpace(mesh, "DG", 0))
-    eL0_normalized_ = df.Function(df.VectorFunctionSpace(mesh, "DG", 0))
-    eR0_normalized_ = df.Function(df.VectorFunctionSpace(mesh, "DG", 0))
+    eC0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0))
+    eL0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0))
+    eR0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0))
 
     eC0_normalized_.vector()[:] = eC0_normalized
     eL0_normalized_.vector()[:] = eL0_normalized
@@ -431,16 +443,25 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
                 eC0, eL0, eR0 = vtk_py.SetBiVFiber_Quad_PyQ(fiber_angle_param)
 
     #df.File(IODet["outputfolder"] + IODet["caseID"] + IODet["folderName"] + "/matid.pvd") << Mesh_obj.matid
+=======
+    mesh_params = {
+        "directory": IODet["directory_me"],
+        "casename": IODet["casename"],
+        "outputfolder": IODet["outputfolder"],
+        "foldername": IODet["folderName"],
+        "isLV": IODet["isLV"],
+    }
+
+    Mesh_obj = lv_mechanics_mesh(mesh_params, SimDet)
+    eC0 = Mesh_obj.eC0
+    eL0 = Mesh_obj.eL0
+    eR0 = Mesh_obj.eR0
+>>>>>>> 7906a09e70884f053ec1a17a5c2f0e8c7618bcb4
 
     deg = SimDet["GiccioneParams"]["deg"]
     eC0_normalized, eL0_normalized, eR0_normalized = normalize_directionalbasis(
-        eC0, eL0, eR0, Mesh_obj.mesh, deg
-        )
-
-    eC0_normalized = eC0 / df.sqrt(df.inner(eC0, eC0))
-    eL0_normalized = eL0 / df.sqrt(df.inner(eL0, eL0))
-    eR0_normalized = eR0 / df.sqrt(df.inner(eR0, eR0))
-
+        Mesh_obj, deg
+    )
 
     if SimDet["Mechanics Discretization"] is "P1P1":
         var_deg = 1
@@ -466,6 +487,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
     Ecc_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Ecc")
     if not os.path.exists(Ecc_outdirectory):
         os.mkdir(Ecc_outdirectory)
+    df.File(os.path.join(Ecc_outdirectory, "Ecc_direction.pvd")) << eC0_normalized
     File_Ecc = df.File(os.path.join(Ecc_outdirectory, "Ecc.pvd"))
     Ecc_arr = []
     Ecc_arr_RV = []
@@ -473,6 +495,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
     Ell_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Ell")
     if not os.path.exists(Ell_outdirectory):
         os.mkdir(Ell_outdirectory)
+    df.File(os.path.join(Ell_outdirectory, "Ell_direction.pvd")) << eL0_normalized
     File_Ell = df.File(os.path.join(Ell_outdirectory, "Ell.pvd"))
     Ell_arr = []
     Ell_arr_RV = []
@@ -480,6 +503,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
     Err_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Err")
     if not os.path.exists(Err_outdirectory):
         os.mkdir(Err_outdirectory)
+    df.File(os.path.join(Err_outdirectory, "Err_direction.pvd")) << eR0_normalized
     File_Err = df.File(os.path.join(Err_outdirectory, "Err.pvd"))
     Err_arr = []
     Err_arr_RV = []
@@ -553,6 +577,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
         )
         Ecc_field.rename("Ecc", "Ecc")
         File_Ecc << Ecc_field
+        Ecc_arr.append(global_Ecc)
 
         Cll = df.inner(eL0_normalized, Cmat * eL0_normalized)
         Ell = 0.5 * (1 - 1 / Cll)
@@ -596,6 +621,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
         )
         Ell_field.rename("Ell", "Ell")
         File_Ell << Ell_field
+        Ell_arr.append(global_Ell)
 
         Crr = df.inner(eR0_normalized, Cmat * eR0_normalized)
         Err = 0.5 * (1 - 1 / Crr)
@@ -639,6 +665,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
         )
         Err_field.rename("Err", "Err")
         File_Err << Err_field
+        Err_arr.append(global_Err)
 
     print("Maximum Ecc :", min(Ecc_arr))
     print("Maximum Ell :", min(Ell_arr))
@@ -762,11 +789,7 @@ def extractdisplacementloading(IODet, SimDet, cycle=None):
 
 def dumpvtk(IODet, SimDet, cycle=None, ME_var = [], EP_var = [], PJ_var = []):
 
-    hdf = df.HDF5File(
-        df.MPI.comm_world,
-        IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "Data.h5",
-        "r",
-    )
+    hdf = df.HDF5File(df.MPI.comm_world, IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "Data.h5", "r",)
 
     list_of_ME_var = ME_var
     list_of_EP_var = EP_var
@@ -786,7 +809,6 @@ def dumpvtk(IODet, SimDet, cycle=None, ME_var = [], EP_var = [], PJ_var = []):
     #]
 
     #list_of_EP_var = [["phi", "CG", 1], ["r", "DG", 0], ["potential_ref", "CG", 1]]
-
     #list_of_PJ_var = [["phi", "CG", 1], ["r", "DG", 0], ["potential_ref", "CG", 1]]
 
     if hdf.has_dataset("ME"):
@@ -811,8 +833,8 @@ def dumpvtk(IODet, SimDet, cycle=None, ME_var = [], EP_var = [], PJ_var = []):
             except RuntimeError:
                 print("No attribute for ", var, " found")
 
-            #if var == "u":
-            #    u_arr = var_arr.copy()
+            if var == "u":
+                u_arr = var_arr.copy()
 
     if hdf.has_dataset("EP"):
         for EP_var in list_of_EP_var:
