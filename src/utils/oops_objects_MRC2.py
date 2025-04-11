@@ -1858,6 +1858,7 @@ class exportfiles(object):
             self.fdataPV = open(outputfolder + folderName + "BiV_PV.txt", "w", -1)
             self.fdataQ = open(outputfolder + folderName + "BiV_Q.txt", "w", -1)
             self.fdataP = open(outputfolder + folderName + "BiV_P.txt", "w", -1)
+            self.fdataV = open(outputfolder + folderName + "BiV_V.txt", "w", -1)
             self.fdatatpt = open(outputfolder + folderName + "tpt.txt", "w", -1)
 
             self.fdataIMP = open(outputfolder + folderName + "BiV_IMP.txt", "w", -1)
@@ -2002,6 +2003,20 @@ class exportfiles(object):
             )
 
         return
+
+    def writeV(self, MEmodel, Varray, t):
+        isLV = self.isLV
+        comm = self.comm_ep
+
+        if MPI.rank(comm) == 0:
+            fdataV = self.fdataV
+            # if(MPI.rank(MEmodel.mesh_me.mpi_comm()) == 0):
+            print(
+                t, " ".join(map(lambda x: "%.5e" % x, Varray)), file=fdataV, flush=True
+            )
+
+        return
+
 
     def writetpt(self, MEmodel, tpt):
         comm = self.comm_ep

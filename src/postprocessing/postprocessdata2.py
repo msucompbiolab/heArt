@@ -443,7 +443,6 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
                 eC0, eL0, eR0 = vtk_py.SetBiVFiber_Quad_PyQ(fiber_angle_param)
 
     #df.File(IODet["outputfolder"] + IODet["caseID"] + IODet["folderName"] + "/matid.pvd") << Mesh_obj.matid
-=======
     mesh_params = {
         "directory": IODet["directory_me"],
         "casename": IODet["casename"],
@@ -456,7 +455,6 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
     eC0 = Mesh_obj.eC0
     eL0 = Mesh_obj.eL0
     eR0 = Mesh_obj.eR0
->>>>>>> 7906a09e70884f053ec1a17a5c2f0e8c7618bcb4
 
     deg = SimDet["GiccioneParams"]["deg"]
     eC0_normalized, eL0_normalized, eR0_normalized = normalize_directionalbasis(

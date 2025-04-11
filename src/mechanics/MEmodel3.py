@@ -279,6 +279,9 @@ class MEmodel(object):
         self.dw_me = TrialFunction(self.W)
         self.wtest_me = TestFunction(self.W)
 
+        self.u_me_ED = Function(self.V_CG1) #LCL
+        self.isspringon = 0.25
+
         self.Ftotal, self.Jac, self.bcs = self.Problem()
 
     def default_parameters(self):
@@ -665,7 +668,10 @@ class MEmodel(object):
         RAendoid = self.SimDet.get("RAendoid")
 
         epiid = self.SimDet["epiid"]
-        atrialid = self.SimDet["atrialid"]
+        if self.isFCH:
+            atrialid = self.SimDet["atrialid"]
+        else:
+            atrialid = None
 
         if not "LVPid" in list(self.SimDet.keys()):
             LVPid = self.SimDet["LVendoid"]
@@ -1131,6 +1137,7 @@ class MEmodel(object):
                 region_cnt += 1
 
         else:
+            Sactive = activeforms.PK2StressTensor()
             F4 = inner(Fmat * Sactive, grad(v_me)) * dx_me
 
         Ftotal = F1 + F4
