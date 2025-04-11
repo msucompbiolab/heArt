@@ -3,6 +3,7 @@ from .postprocessdatalib2 import *
 from ..mechanics.forms_MRC2 import Forms
 from ..utils.oops_objects_MRC2 import State_Variables
 from ..utils.oops_objects_MRC2 import lv_mesh as lv_mechanics_mesh
+from ..utils.oops_objects_MRC2 import biventricle_mesh as biv_mechanics_mesh
 from ..mechanics.MEmodel3 import MEmodel
 import matplotlib
 
@@ -334,7 +335,7 @@ def normalize_directionalbasis(eC0, eL0, eR0, mesh, deg):
     return eC0_normalized_, eL0_normalized_, eR0_normalized_
 
 
-def compute_strain(IODet, SimDet, LVid=1, cycle=None):
+def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
 
     mesh = df.Mesh()
     hdf = df.HDF5File(
@@ -345,39 +346,91 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
 
     u_arr = extractdisplacement(IODet, SimDet, cycle=None)
 
-    mesh_params = {
-        "directory": IODet["directory_me"],
-        "casename": IODet["casename_me"],
-        "outputfolder": IODet["outputfolder"],
-        "foldername": IODet["folderName"],
-        "isLV": IODet["isLV"],
-    }
+    if "isLV" in list(SimDet.keys()):
+        isLV = SimDet["isLV"]
 
-    Mesh_obj = lv_mechanics_mesh(mesh_params, SimDet)
-    try:
-        eC0 = Mesh_obj.eC0
-        eL0 = Mesh_obj.eL0
-        eR0 = Mesh_obj.eR0
+        if(isLV):
 
-    except AttributeError:
 
-        fiber_angle_param = {
-            "mesh": Mesh_obj.mesh,
-            "facetboundaries": Mesh_obj.facetboundaries,
-            "LV_fiber_angle": [0.01, -0.01],
-            "LV_sheet_angle": [0.1, -0.1],
-            "minztol": Mesh_obj.mesh.hmax()/2.0, # Coarse mesh
-            "isrotatept": False,
-            "isreturn": True,
-            "outfilename": IODet["casename_me"],
-            "outdirectory": IODet["outputfolder"] + IODet["caseID"] + IODet["folderName"],
-            "baseid": SimDet["topid"],
-            "epiid": SimDet["epiid"],
-            "lvid": SimDet["LVendoid"],
-            "degree": SimDet["GiccioneParams"]["deg"]
-        }
+            mesh_params = {
+                "directory": IODet["directory_me"],
+                "casename": IODet["casename_me"],
+                "outputfolder": IODet["outputfolder"],
+                "foldername": IODet["folderName"],
+                "isLV": isLV,
+            }
 
-        eC0, eL0, eR0  = vtk_py3.addLVfiber_LDRB(fiber_angle_param)
+            Mesh_obj = lv_mechanics_mesh(mesh_params, SimDet)
+            try:
+                eC0 = Mesh_obj.eC0
+                eL0 = Mesh_obj.eL0
+                eR0 = Mesh_obj.eR0
+
+            except AttributeError:
+
+                fiber_angle_param = {
+                    "mesh": Mesh_obj.mesh,
+                    "facetboundaries": Mesh_obj.facetboundaries,
+                    "LV_fiber_angle": [0.01, -0.01],
+                    "LV_sheet_angle": [0.1, -0.1],
+                    "minztol": Mesh_obj.mesh.hmax()/2.0, # Coarse mesh
+                    "isrotatept": False,
+                    "isreturn": True,
+                    "outfilename": IODet["casename_me"],
+                    "outdirectory": IODet["outputfolder"] + IODet["caseID"] + IODet["folderName"],
+                    "baseid": SimDet["topid"],
+                    "epiid": SimDet["epiid"],
+                    "lvid": SimDet["LVendoid"],
+                    "degree": SimDet["GiccioneParams"]["deg"]
+                }
+
+                eC0, eL0, eR0  = vtk_py3.addLVfiber_LDRB(fiber_angle_param)
+
+    if "isBiV" in list(SimDet.keys()):
+        isBiV = SimDet["isBiV"]
+        if(isBiV):
+            mesh_params = {
+                "directory": IODet["directory_me"],
+                "casename": IODet["casename_me"],
+                "outputfolder": IODet["outputfolder"],
+                "foldername": IODet["folderName"],
+                "isBiV": isBiV,
+            }
+
+            Mesh_obj = biv_mechanics_mesh(mesh_params, SimDet)
+
+            try:
+                eC0 = Mesh_obj.eC0
+                eL0 = Mesh_obj.eL0
+                eR0 = Mesh_obj.eR0
+
+            except AttributeError:
+
+                # Set BiVFiber
+                fiber_angle_param = {"mesh": Mesh_obj.mesh,\
+                	 "facetboundaries": Mesh_obj.facetboundaries,\
+                	 "LV_fiber_angle": [0.01,-0.01], \
+                	 "LV_sheet_angle": [0.1, -0.1], \
+                	 "Septum_fiber_angle": [0.01, -0.01],\
+                	 "Septum_sheet_angle": [0.1, -0.1],\
+                	 "RV_fiber_angle": [0.01, -0.01],\
+                	 "RV_sheet_angle": [0.1, -0.1],\
+                	 "LV_matid": 0,\
+                	 "Septum_matid": 1,\
+                	 "RV_matid": 2,\
+                	 "matid":  Mesh_obj.matid,\
+                	 "isrotatept": False,\
+                	 "isreturn": True,\
+                     "outfilename": IODet["casename_me"],
+                     "outdirectory": IODet["outputfolder"] + IODet["caseID"] + IODet["folderName"],
+                	 "epiid": SimDet["epiid"],\
+                	 "rvid": SimDet["RVendoid"],\
+                	 "lvid": 2,\
+                	 "degree": 4}
+            
+                eC0, eL0, eR0 = vtk_py.SetBiVFiber_Quad_PyQ(fiber_angle_param)
+
+    #df.File(IODet["outputfolder"] + IODet["caseID"] + IODet["folderName"] + "/matid.pvd") << Mesh_obj.matid
 
     deg = SimDet["GiccioneParams"]["deg"]
     eC0_normalized, eL0_normalized, eR0_normalized = normalize_directionalbasis(
@@ -413,54 +466,44 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
     Ecc_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Ecc")
     if not os.path.exists(Ecc_outdirectory):
         os.mkdir(Ecc_outdirectory)
-    #eC0_normalized_project = df.project(
-    #        eC0_normalized,
-    #        df.VectorFunctionSpace(mesh, "DG", 0),
-    #        form_compiler_parameters={
-    #            "representation": "uflacs",
-    #            "quadrature_degree": deg,
-    #        },
-    #    )
-    #df.File(os.path.join(Ecc_outdirectory, "Ecc_direction.pvd")) << eC0_normalized_project
     File_Ecc = df.File(os.path.join(Ecc_outdirectory, "Ecc.pvd"))
     Ecc_arr = []
+    Ecc_arr_RV = []
 
     Ell_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Ell")
     if not os.path.exists(Ell_outdirectory):
         os.mkdir(Ell_outdirectory)
-    #eL0_normalized_project = df.project(
-    #        eL0_normalized,
-    #        df.VectorFunctionSpace(mesh, "DG", 0),
-    #        form_compiler_parameters={
-    #            "representation": "uflacs",
-    #            "quadrature_degree": deg,
-    #        },
-    #    )
-    #df.File(os.path.join(Ell_outdirectory, "Ell_direction.pvd")) << eL0_normalized_project
     File_Ell = df.File(os.path.join(Ell_outdirectory, "Ell.pvd"))
     Ell_arr = []
+    Ell_arr_RV = []
 
     Err_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Err")
     if not os.path.exists(Err_outdirectory):
         os.mkdir(Err_outdirectory)
-    #eR0_normalized_project = df.project(
-    #        eR0_normalized,
-    #        df.VectorFunctionSpace(mesh, "DG", 0),
-    #        form_compiler_parameters={
-    #            "representation": "uflacs",
-    #            "quadrature_degree": deg,
-    #        },
-    #    )
-    #df.File(os.path.join(Err_outdirectory, "Err_direction.pvd")) << eR0_normalized_project
     File_Err = df.File(os.path.join(Err_outdirectory, "Err.pvd"))
     Err_arr = []
+    Err_arr_RV = []
 
     for u_arr_ in u_arr:
 
-        wall_vol = df.assemble(
-            df.Constant(1.0) * Mesh_obj.dx(LVid),
+        if isinstance(LVid, str):
+            wall_vol = df.assemble(
+                df.Constant(1.0) * Mesh_obj.dx(LVid),
+                form_compiler_parameters={"representation": "uflacs"},
+            )
+        elif isinstance(LVid, list):
+            wall_vol = 0
+            for LVid_ in LVid:
+                wall_vol += df.assemble(
+                    df.Constant(1.0) * Mesh_obj.dx(LVid_),
+                    form_compiler_parameters={"representation": "uflacs"},
+                )
+
+        wall_vol_RV = df.assemble(
+            df.Constant(1.0) * Mesh_obj.dx(RVid),
             form_compiler_parameters={"representation": "uflacs"},
         )
+
         udisp.vector()[:] = u_arr_.vector().get_local()[:]
 
         Fmat = uflforms.Fmat()
@@ -469,13 +512,37 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
 
         Ccc = df.inner(eC0_normalized, Cmat * eC0_normalized)
         Ecc = 0.5 * (1 - 1 / Ccc)
-        global_Ecc = (
-            df.assemble(
-                Ecc * Mesh_obj.dx(LVid),
-                form_compiler_parameters={"representation": "uflacs"},
+
+        if isinstance(LVid, str):
+            global_Ecc = (
+                df.assemble(
+                    Ecc * Mesh_obj.dx(LVid),
+                    form_compiler_parameters={"representation": "uflacs"},
+                )
+                / wall_vol
             )
-            / wall_vol
-        )
+        elif isinstance(LVid, list):
+            global_Ecc = 0
+            for LVid_ in LVid:
+                global_Ecc += (
+                    df.assemble(
+                        Ecc * Mesh_obj.dx(LVid_),
+                        form_compiler_parameters={"representation": "uflacs"},
+                    )
+                )
+            global_Ecc = global_Ecc/wall_vol 
+
+        Ecc_arr.append(global_Ecc)
+        if isBiV:
+            global_Ecc_RV = (
+                df.assemble(
+                    Ecc * Mesh_obj.dx(RVid),
+                    form_compiler_parameters={"representation": "uflacs"},
+                )
+                / wall_vol
+            )
+            Ecc_arr_RV.append(global_Ecc_RV)
+
         Ecc_field = df.project(
             Ecc,
             df.FunctionSpace(Mesh_obj.mesh, "DG", 0),
@@ -486,18 +553,39 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
         )
         Ecc_field.rename("Ecc", "Ecc")
         File_Ecc << Ecc_field
-        Ecc_arr.append(global_Ecc)
-        #print("Ecc : ", global_Ecc)
 
         Cll = df.inner(eL0_normalized, Cmat * eL0_normalized)
         Ell = 0.5 * (1 - 1 / Cll)
-        global_Ell = (
-            df.assemble(
-                Ell * Mesh_obj.dx(LVid),
-                form_compiler_parameters={"representation": "uflacs"},
+        if isinstance(LVid, str):
+            global_Ell = (
+                df.assemble(
+                    Ell * Mesh_obj.dx(LVid),
+                    form_compiler_parameters={"representation": "uflacs"},
+                )
+                / wall_vol
             )
-            / wall_vol
-        )
+        elif isinstance(LVid, list):
+            global_Ell = 0
+            for LVid_ in LVid:
+                global_Ell += (
+                    df.assemble(
+                        Ell * Mesh_obj.dx(LVid_),
+                        form_compiler_parameters={"representation": "uflacs"},
+                    )
+                )
+            global_Ell = global_Ell/wall_vol 
+
+        Ell_arr.append(global_Ell)
+        if isBiV:
+            global_Ell_RV = (
+                df.assemble(
+                    Ell * Mesh_obj.dx(RVid),
+                    form_compiler_parameters={"representation": "uflacs"},
+                )
+                / wall_vol
+            )
+            Ell_arr_RV.append(global_Ell_RV)
+
         Ell_field = df.project(
             Ell,
             df.FunctionSpace(Mesh_obj.mesh, "DG", 0),
@@ -508,18 +596,39 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
         )
         Ell_field.rename("Ell", "Ell")
         File_Ell << Ell_field
-        Ell_arr.append(global_Ell)
-        #print("Ell : ", global_Ell)
 
         Crr = df.inner(eR0_normalized, Cmat * eR0_normalized)
         Err = 0.5 * (1 - 1 / Crr)
-        global_Err = (
-            df.assemble(
-                Err * Mesh_obj.dx(LVid),
-                form_compiler_parameters={"representation": "uflacs"},
+        if isinstance(LVid, str):
+            global_Err = (
+                df.assemble(
+                    Err * Mesh_obj.dx(LVid),
+                    form_compiler_parameters={"representation": "uflacs"},
+                )
+                / wall_vol
             )
-            / wall_vol
-        )
+        elif isinstance(LVid, list):
+            global_Err = 0
+            for LVid_ in LVid:
+                global_Err += (
+                    df.assemble(
+                        Err * Mesh_obj.dx(LVid_),
+                        form_compiler_parameters={"representation": "uflacs"},
+                    )
+                )
+            global_Err = global_Err/wall_vol 
+
+        Err_arr.append(global_Err)
+        if isBiV:
+            global_Err_RV = (
+                df.assemble(
+                    Err * Mesh_obj.dx(RVid),
+                    form_compiler_parameters={"representation": "uflacs"},
+                )
+                / wall_vol
+            )
+            Err_arr_RV.append(global_Err_RV)
+
         Err_field = df.project(
             Err,
             df.FunctionSpace(Mesh_obj.mesh, "DG", 0),
@@ -530,8 +639,6 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
         )
         Err_field.rename("Err", "Err")
         File_Err << Err_field
-        Err_arr.append(global_Err)
-        #print("Err : ", global_Err)
 
     print("Maximum Ecc :", min(Ecc_arr))
     print("Maximum Ell :", min(Ell_arr))
@@ -561,6 +668,36 @@ def compute_strain(IODet, SimDet, LVid=1, cycle=None):
     plt.ylabel("Strain", fontsize=14)
     plt.savefig(os.path.join(Err_outdirectory, "Err.png"))
     plt.clf()
+
+    if isBiV:
+        print("Maximum RV Ecc :", min(Ecc_arr_RV))
+        print("Maximum RV Ell :", min(Ell_arr_RV))
+        print("Maximum RV Err :", max(Err_arr_RV))
+
+        np.savez(os.path.join(Ecc_outdirectory, "Ecc_RV.npz"), Ecc_arr_RV)
+        np.savez(os.path.join(Ell_outdirectory, "Ell_RV.npz"), Ell_arr_RV)
+        np.savez(os.path.join(Err_outdirectory, "Err_RV.npz"), Err_arr_RV)
+
+        plt.figure()
+        plt.plot(np.arange(0, len(Ecc_arr_RV)), Ecc_arr_RV)
+        plt.xlabel("Time point", fontsize=14)
+        plt.ylabel("Strain", fontsize=14)
+        plt.savefig(os.path.join(Ecc_outdirectory, "Ecc_RV.png"))
+        plt.clf()
+
+        plt.figure()
+        plt.plot(np.arange(0, len(Ell_arr_RV)), Ell_arr_RV)
+        plt.xlabel("Time point", fontsize=14)
+        plt.ylabel("Strain", fontsize=14)
+        plt.savefig(os.path.join(Ell_outdirectory, "Ell_RV.png"))
+        plt.clf()
+
+        plt.figure()
+        plt.plot(np.arange(0, len(Err_arr_RV)), Err_arr_RV)
+        plt.xlabel("Time point", fontsize=14)
+        plt.ylabel("Strain", fontsize=14)
+        plt.savefig(os.path.join(Err_outdirectory, "Err_RV.png"))
+        plt.clf()
 
 
 def extractdisplacement(IODet, SimDet, cycle=None):

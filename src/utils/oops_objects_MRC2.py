@@ -227,7 +227,17 @@ class biventricle_mesh(object):
 
         self.EpiBCid_me = EpiBCid
 
+        self.poissonFS = FunctionSpace(
+            self.mesh, FiniteElement("Lagrange", self.mesh.ufl_cell(), 1)
+        )
+        self.poissonF = Function(self.poissonFS)
+        self.poissonF.vector()[:] = 1.0 # Set Default to be one
+
+        if f.has_dataset(casename + "/" + "varyingspring"):
+            f.read(self.poissonF, casename + "/" + "varyingspring")
         f.close()
+
+
 
         self.topid = self.parameters["topid"]
         self.LVendoid = self.parameters["LVendoid"]

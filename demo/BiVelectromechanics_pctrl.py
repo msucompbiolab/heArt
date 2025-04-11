@@ -3,14 +3,12 @@ from dolfin import *
 
 sys.path.append("/mnt/Research")
 sys.path.append("/mnt/Output")
+sys.path.append("/mnt/Research/heArt")
+sys.path.append("/mnt/Research/heArt_py3_original")
 
-from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
+from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl_test import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
 )
-
-# from heArt_py3.src.postprocessing.postprocessdataBiV2 import (
-#    postprocessdata as postprocessdata,
-# )
 
 from heArt_py3.src.postprocessing.postprocessdata2 import (
     postprocessdata as postprocessdata,
@@ -32,15 +30,16 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
-    "casename": "biv_idealized",
+    "casename_me": "biv_idealized",
+    "casename_ep": "biv_idealized",
     "directory_me": "../BiVMesh/",
     "directory_ep": "../BiVMesh/",
-    "outputfolder": "/mnt/Output/outputs_BiVelectromechanics/",
-    "folderName": "",
-    "caseID": "BiVelectromechanics_pctrl_p2p1",
+    "outputfolder": "./Output/outputs_BiVelectromechanics/",
+    "folderName": "/",
+    "caseID": "BiVelectromechanics_pctrl_p1p1",
 }
 
-contRactility = 100e3
+contRactility = 200e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -117,16 +116,16 @@ Circparam = {
     "Q_pv": 0.0646105314407,
     "Q_pvv": 0.0,
     # volumes
-    "V_sv": 2620.36391023,
-    "V_LV": 114.197219883,
-    "V_sa": 747.095750279,
-    "V_ad": 332.137059531,
-    "V_LA": 14.6706180758,
-    "V_pv": 1135.52295648,
-    "V_RV": 107.18412269,
-    "V_pa": 375.714158013,
-    "V_RA": 26.1123080465,
-    "stop_iter": 1,
+    "V_sa": 7.39872e+02, #7.42631e+02,#747.095750279,
+    "V_ad": 2.87456e+02, #3.04518e+02,#332.137059531,
+    "V_sv": 2.65740e+03, #2.64335e+03,#2620.36391023,
+    "V_pa": 3.75685e+02, #3.75742e+02,#375.714158013,
+    "V_pv": 1.14305e+03, #1.14776e+03,#1135.52295648,
+    "V_LA": 1.46367e+01, #1.46561e+01,#14.6706180758,
+    "V_LV": 9.51769e+01, #9.53730e+01,#114.197219883,
+    "V_RV": 8.32750e+01, #8.23440e+01,#107.18412269,
+    "V_RA": 2.68550e+01,  #2.62437e+01,#26.1123080465,
+    "stop_iter": 2,
     # LVAD
     #'Q_lvad_rpm' : 28,
     #'Q_lvad_scale' : 0.0
@@ -136,6 +135,8 @@ Circparam = {
 SimDetails = {
     "HeartBeatLength": 800.0,
     "dt": 1.0,
+    "EDP": 1.90088e+03*0.0075,#1.91646e+03*0.0075,
+    "RVEDPfactor": 8.48190e+02/1.90088e+03,#7.70257e+02/1.91646e+03,
     "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 10,
@@ -147,10 +148,15 @@ SimDetails = {
     "pacing_timing": [[4.0, 20.0]],
     "closedloopparam": Circparam,
     "Ischemia": False,
-    "Mechanics Discretization": "P2P1",
+    "springbc": True,#0,
+    "Mechanics Discretization": "P1P1",
     "isLV": False,
     "ispctrl": True,
     "isBiV": True,
+    "epiid_Kadj_coeff": [10, 3], 
+    "dashpotparam": [10.0e2,2.0e1],
+    "RVtopid": 6,
+    "LVtopid": 5,
     "topid": 4,
     "LVendoid": 2,
     "RVendoid": 3,
@@ -161,11 +167,11 @@ SimDetails = {
 
 
 # Run Simulation
-# run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
-# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
-plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=2)
+compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = [0,1], RVid = 2)
+plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=3)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

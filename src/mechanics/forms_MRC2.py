@@ -150,6 +150,12 @@ class Forms(object):
         N = self.parameters["facet_normal"]
         mesh = self.parameters["mesh"]
         X = SpatialCoordinate(mesh)
+
+        if "LVtopid" in list(self.parameters):
+            LVtopid = self.parameters["LVtopid"]
+        else:
+            LVtopid = self.parameters["topid"]
+
         ds = dolfin.ds(
             subdomain_data=self.parameters["facetboundaries"],
             metadata={"quadrature_degree": 4},
@@ -159,7 +165,7 @@ class Forms(object):
             "ds",
             domain=mesh,
             subdomain_data=self.parameters["facetboundaries"],
-            subdomain_id=self.parameters["topid"],
+            subdomain_id=LVtopid,
             metadata={"quadrature_degree": 4},
         )
 
@@ -171,9 +177,9 @@ class Forms(object):
         # )
 
         area = assemble(1.0 * ds_)
-        vol_x = assemble((X[0] + u[0]) * ds(self.parameters["topid"])) / area
-        vol_y = assemble((X[1] + u[1]) * ds(self.parameters["topid"])) / area
-        vol_z = assemble((X[2] + u[2]) * ds(self.parameters["topid"])) / area
+        vol_x = assemble((X[0] + u[0]) * ds(LVtopid)) / area
+        vol_y = assemble((X[1] + u[1]) * ds(LVtopid)) / area
+        vol_z = assemble((X[2] + u[2]) * ds(LVtopid)) / area
         b = Constant((vol_x, vol_y, vol_z))
 
         vol_form = (
@@ -402,6 +408,45 @@ class Forms(object):
             -Constant(1.0 / 3.0)
             * inner(det(F) * dot(inv(F).T, N), X + u)
             * surface_  # ds(self.parameters["RVendoid"])
+        )
+
+        return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})
+
+    def RVcavityvol_mvb(self):  # cavity volume for lv with moving base
+        u = self.parameters["displacement_variable"]
+        N = self.parameters["facet_normal"]
+        mesh = self.parameters["mesh"]
+        if "RVtopid" in list(self.parameters):
+            RVtopid = self.parameters["RVtopid"]
+        else:
+            RVtopid = self.parameters["topid"]
+
+        X = SpatialCoordinate(mesh)
+        ds = dolfin.ds(
+            subdomain_data=self.parameters["facetboundaries"],
+            metadata={"quadrature_degree": 4},
+        )
+
+        ds_ = Measure(
+            "ds",
+            domain=mesh,
+            subdomain_data=self.parameters["facetboundaries"],
+            subdomain_id=RVtopid,
+            metadata={"quadrature_degree": 4},
+        )
+
+        F = self.Fmat()
+
+        area = assemble(1.0 * ds_)
+        vol_x = assemble((X[0] + u[0]) * ds(RVtopid)) / area
+        vol_y = assemble((X[1] + u[1]) * ds(RVtopid)) / area
+        vol_z = assemble((X[2] + u[2]) * ds(RVtopid)) / area
+        b = Constant((vol_x, vol_y, vol_z))
+
+        vol_form = (
+            -Constant(1.0 / 3.0)
+            * inner(det(F) * dot(inv(F).T, N), X + u - b)
+            * ds(self.parameters["RVendoid"])
         )
 
         return assemble(vol_form, form_compiler_parameters={"representation": "uflacs"})

@@ -955,6 +955,10 @@ class MEmodel(object):
             "ra_constrained_pres": self.RACavitypres,
             "aorta_constrained_pres": self.AortaCavitypres,
         }
+        if "RVtopid" in list(self.SimDet.keys()):
+            params.update({"RVtopid": self.SimDet["RVtopid"]})
+        if "LVtopid" in list(self.SimDet.keys()):
+            params.update({"LVtopid": self.SimDet["LVtopid"]})
 
         uflforms = Forms(params)
         self.uflforms = uflforms
@@ -1356,20 +1360,42 @@ class MEmodel(object):
 
             elif self.isBiV:
 
-                F3_spr = 0
-                for k_s, c_d, spr_f in zip(k_spring, c_damping, spr_facetids):
-                    F3_spr += inner(
-                        outer(N_me, N_me) * (k_s[0] * u_me + c_d[0] * (u_me - u_me_n)),
-                        v_me,
-                    ) * (ds_me(spr_f)) + inner(
-                        (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
-                        * (k_s[1] * u_me + c_d[1] * (u_me - u_me_n)),
-                        v_me,
-                    ) * (
-                        ds_me(spr_f)
-                    )
+                u_me_ED = self.u_me_ED
+                isspringon = self.isspringon
+                F3_epi = inner(
+                    outer(N_me, N_me)
+                    * (
+                        k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * (u_me - u_me_ED) 
+                        + c_damping[0] * (u_me - u_me_n - u_me_ED)
+                    ),
+                    v_me,
+                ) * (ds_me(epiid)) + inner(
+                    (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                    * (
+                        k_spring[1] * epiid_Kadj_coeff[1] * (u_me - u_me_ED)
+                        + c_damping[1] * (u_me - u_me_n - u_me_ED)
+                    ),
+                    v_me,
+                ) * (
+                    ds_me(epiid)
+                )
 
-                F3 = F3_spr
+                F3 = isspringon*F3_epi
+
+                #F3_spr = 0
+                #for k_s, c_d, spr_f in zip(k_spring, c_damping, spr_facetids):
+                #    F3_spr += inner(
+                #        outer(N_me, N_me) * (k_s[0] * u_me + c_d[0] * (u_me - u_me_n)),
+                #        v_me,
+                #    ) * (ds_me(spr_f)) + inner(
+                #        (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
+                #        * (k_s[1] * u_me + c_d[1] * (u_me - u_me_n)),
+                #        v_me,
+                #    ) * (
+                #        ds_me(spr_f)
+                #    )
+
+                #F3 = F3_spr
 
             Ftotal += F3  # LCL
 
@@ -1656,7 +1682,10 @@ class MEmodel(object):
             else:
                 return self.uflforms.LVcavityvol()
         elif self.isBiV:
-            return self.uflforms.LVcavityvol()
+            if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
+                return self.uflforms.LVcavityvol_mvb()
+            else:
+                return self.uflforms.LVcavityvol()
 
     def GetTopSpring(self):
         return self.uflforms.topspringbc()
@@ -1670,7 +1699,7 @@ class MEmodel(object):
     def GetRVV(self):
         if self.isBiV:
             if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
-                return self.uflforms.RVcavityvol()  # *
+                return self.uflforms.RVcavityvol_mvb()  # *
             else:
                 return self.uflforms.RVcavityvol()
         elif self.isFCH:

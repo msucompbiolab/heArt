@@ -2,7 +2,6 @@ import sys, pdb
 from dolfin import *
 
 sys.path.append("/mnt/Research")
-sys.path.append("/mnt/Output")
 
 from heArt_py3.src.sim_protocols.run_BiV_ClosedLoop_pctrl import (
     run_BiV_ClosedLoop as run_BiV_ClosedLoop,
@@ -19,26 +18,25 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
     plothemodynamics as plothemodynamics,
 )
 from heArt_py3.src.postprocessing.postprocessdata2 import (
-    extractdisplacementloading as extractdisplacementloading,
+    extractdisplacement as extractdisplacement,
 )
 from heArt_py3.src.postprocessing.postprocessdata2 import (
-    extractdisplacement as extractdisplacement,
+    extractdisplacementloading as extractdisplacementloading,
 )
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    # "casename": "8159_baseline_ES_t11",
-    "casename": "8159_twofiber",
-    "directory_me": "../LV_waorta/vh/",
-    "directory_ep": "../LV_waorta/vh/",
-    "outputfolder": "/mnt/Output/outputs_LV_waorta/",
+    "casename": "LV_w_aorta5",
+    "directory_me": "../LV_waorta/",
+    "directory_ep": "../LV_waorta/",
+    "outputfolder": "./outputs_LV_waorta/",
     "folderName": "",
-    "caseID": "8159_baseline_Delfino",
+    "caseID": "LV_waorta",
     "isLV": False,
 }
 
-contRactility = 700e3
+contRactility = 800e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
@@ -48,35 +46,14 @@ GuccioneParams = {
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
-        "mu_iso": Constant(5e2),
-        "b_iso": Constant(23.2),
-        "aorta_comp_red": Constant(5.0),
-    },
-    "Aorta params": {
-        "Name": "Delfino",
-        # Neo-Hookean
-        "mu": Constant(63.80),
-        # Delfino
-        "D1": Constant(1.5e4),
-        "D2": Constant(5.05),
-        # HGO two-fiber # age: 71-78
-        "Cgr": Constant(51.68),
-        "gamma": Constant(29.24),
-        # "gamma": Constant(45.0),
-        "C1": [0.51, 0.51],
-        "C2": [27.99, 27.99],
-        # HGo four-fiber # age: 71-78
-        "Cgr_ff": Constant(12.67e3),
-        "gamma_ff": Constant(39.55),
-        "C1_ff": [6.87e3, 6.87e3, 25.63e3, 13.68e3],
-        "C2_ff": [14.86, 14.86, 1.19, 11.86],
+        "b_iso": Constant(10.0),
     },
     "Active model": {"Name": "Time-varying"},
     "Active params": {
         "tau": 25,
         "t_trans": 300,
         "B": 4.75,
-        "t0": 900,
+        "t0": 275,
         "l0": 1.58,
         "Tmax": Constant(contRactility),
         "Ca0": 4.35,
@@ -90,41 +67,39 @@ GuccioneParams = {
 }
 
 Circparam = {
-    "Ees_la": 120,
-    "A_la": 60.0,
-    "B_la": 0.03,
-    "V0_la": 10,
-    "Tmax_la": 150,
-    "tau_la": 30,
-    "tdelay_la": 225,
-    "Csa": 0.0035,
-    "Cad": 0.04,
-    "Csv": 0.5,
-    "Vsa0": 320,
-    "Vsv0": 3370.0,
-    "Vad0": 40,
-    "Rav": 5000.0,
-    "Rsv": 100.0,
-    "Rsa": 18000,
-    "Rad": 30000,  # prev: 25000
-    "Rmv": 250.0,
-    # volumes
-    "V_sv": 3600,
-    "V_LV": 105,
-    "V_sa": 1750,
-    "V_ad": 37,
-    "V_LA": 35,
+    "Ees_la": 10,  # End-systolic elastance (60) --> Pa/ml
+    "A_la": 2.67,  # Scaling factor for EDPVR --> ml
+    "B_la": 0.019,  # Exponent for EDPVR --> ml-1
+    "V0_la": 10,  # volume axis intercept --> ml
+    "Tmax_la": 120,  # time to end-systole --> ms
+    "tau_la": 25,  # time constant of relaxation --> ms
+    "tdelay_la": 160,  # XXX
+    "Csa": 0.0032,  # Proximal aorta compliance --> ml Pa
+    "Cad": 0.0330,  # Distal aorta compliance --> ml Pa
+    "Csv": 0.28,  # Venous compliance -> ml Pa
+    "Vsa0": 360,  # Resting volume for proximal aorta --> ml
+    "Vsv0": 2950.0,  # Resting venous volume (also (2950, 3100, 3370)) --> ml 2950 --> 3700 --> reduce preload
+    "Vad0": 40,  # Resting volume for distal aorta --> ml
+    "Rav": 750.0,  # (also 500 -- increase for less oscillation) (aortic valve resistance) --> Pa ms ml-1 (susp. 500 --> 1000)
+    "Rsv": 100.0,  # Venous resistance --> Pa ms ml-1 ok
+    "Rsa": 18000,  # Proximal aorta resistance --> Pa ms ml-1 ok
+    "Rad": 21200,  # Distal aorta resistance (also (10600, 12800, 21200, 31800)) --> Pa ms ml-1 ok
+    "Rmv": 200.0,  # Mitral valve resistance --> Pa ms ml-1 ok
+    "V_sv": 3700,
+    "V_sa": 740,
+    "V_ad": 100,
+    "V_LA": 12,
+    "V_LV": 112,
     "stop_iter": 1,
 }
 
-
 SimDetails = {
     "diaplacementInfo_ref": False,
-    "HeartBeatLength": 700.0,
-    "dt": 0.5,
+    "HeartBeatLength": 800.0,
+    "dt": 1.0,
     "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
-    "nLoadSteps": 15,
+    "nLoadSteps": 15,  # u_loading
     "DTI_EP": False,
     "DTI_ME": False,
     "d_iso": 1.5 * 0.005,
@@ -133,19 +108,18 @@ SimDetails = {
     "pacing_timing": [[4.0, 20.0]],  # , [20.0, 20.0]],
     "Isclosed": True,
     "closedloopparam": Circparam,
+    "Mechanics Discretization": "P1P1",
+    "Technique Discretization": 0,
     "Ischemia": False,
     "Mechanics Discretization": "P1P1",
-    "Technique Discretization": 1,
     "isLV": False,
-    "aorta_ext_wall": 3,
-    "aorta_int_wall": 2,
-    "aorta_ring": 1,
-    "LVendoid": 8,
+    "aorta_ext_wall": 6,
+    "aorta_int_wall": 5,
+    "aorta_ring": 4,
+    "LVendoid": 1,
     "RVendoid": 0,
-    "epiid": 5,
-    "apxid": 9,
-    "mitral_vplane": 7,
-    "aortic_vplane": 6,
+    "epiid": 3,
+    "aortic_vplane": 2,
     "abs_tol": 1e-8,
     "rel_tol": 1e-9,
     "isunloading": False,
@@ -154,13 +128,13 @@ SimDetails = {
     "iswaorta": True,
     "springbc": 1,
     "mv_aorta": 0,
-    "springparam": [2.0e3, 2.0e3],  # paper's values Kepi_n = 2e3 / Kepi_t = 2e2
-    "dashpotparam": [2.0e2, 2.0e1],  # paper's values Cepi_n = 2e2 / Cepi_t = 2e1
-    "springaortaparam": [5.0e1, 5.0e1],  # Kepi_n / Kepi_t
+    "springparam": [2.0e4, 5.0e2],  # Kepi_n / Kepi_t
+    "dashpotparam": [5.0e2, 5.0e1],  # Cepi_n / Cepi_t
+    "springaortaparam": [2.0e3, 5.0e1],  # Kepi_n / Kepi_t
     "dashpotaortaparam": [5.0e1, 5.0e0],  # Cepi_n / Cepi_t
-    "active_region": [0],
-    "rubber_region": [3, 4, 5],
-    "aorta_region": [2],
+    # "springparam": [5.0e4, 5.0e3],
+    # "dashpotparam": [5.0e3, 5.0e2],
+    "active_region": [1],
     "Type": 0,
 }
 
@@ -168,10 +142,9 @@ SimDetails = {
 run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
-# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
-# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=5)
+# compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 1)
+# plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=None)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
-# extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
