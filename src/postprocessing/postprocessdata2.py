@@ -183,48 +183,60 @@ def postprocessdata(IODet, SimDet, cycle=None):
 def compute_activation(IODet, SimDet, cycle=None):
 
     mesh = df.Mesh()
-    hdf = df.HDF5File(
-        mesh.mpi_comm(),
-        IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "Data.h5",
-        "r",
-    )
+    hdf = df.HDF5File(mesh.mpi_comm(), IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "Data.h5", "r",)
     hdf.read(mesh, "EP/mesh", False)
 
-    phi_arr = extractvtk(
-        IODet["outputfolder"] + "/" + IODet["caseID"],
-        "EP/phi",
-        "CG",
-        1,
-        IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "EP_" + "phi",
-        "phi",
-        group="EP",
-        iswrite=False,
-    )
+    phi_arr = extractvtk(IODet["outputfolder"] + "/" + IODet["caseID"], "EP/phi", "CG", 1, IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "EP_" + "phi", "phi", group="EP", iswrite=False,)
 
     V_thres = 0.9
     time_act = df.Function(df.FunctionSpace(mesh, "CG", 1))
     time_act_vec = -1 * np.ones(len(time_act.vector()[:]))
 
-    t = 0
+
     dt = SimDet["dt"]
+    t = dt    
+    write_t = SimDet["writeStep"]
+
     for phi in phi_arr:
         phi_vec = phi.sub(0).vector().get_local()[::3]
         for idx, (time_act_vec_, phi_vec_) in enumerate(zip(time_act_vec, phi_vec)):
             if phi_vec_ > V_thres and time_act_vec_ == -1:
                 time_act_vec[idx] = t
 
-        t += dt
+        t += dt * write_t
 
     time_act.vector()[:] = time_act_vec
     time_act.rename("Activation Time", "Activation Time")
 
-    act_outdirectory = os.path.join(
-        IODet["outputfolder"], IODet["caseID"], "activation"
-    )
+    act_outdirectory = os.path.join( IODet["outputfolder"], IODet["caseID"], "activation")
     if not os.path.exists(act_outdirectory):
         os.mkdir(act_outdirectory)
     File_act = df.File(os.path.join(act_outdirectory, "act.pvd"))
     File_act << time_act
+
+    # PJ activation
+    mesh_pj = df.Mesh()
+    hdf = df.HDF5File(mesh_pj.mpi_comm(),IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "Data.h5","r",)
+    hdf.read(mesh_pj, "PJ/mesh", False)
+    pj_phi_arr = extractvtk(IODet["outputfolder"] + "/" + IODet["caseID"], "PJ/phi", "CG", 1, IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "PJ_" + "phi", "phi", group="PJ", iswrite=False,)
+
+    # pj_V_thres = 0.9
+    pj_time_act = df.Function(df.FunctionSpace(mesh_pj, "CG", 1))
+    pj_time_act_vec = -1 * np.ones(len(pj_time_act.vector()[:]))
+    t = dt
+    for pj_phi in pj_phi_arr:
+        pj_phi_vec = pj_phi.sub(0).vector().get_local()[::3]
+        for idx, (pj_time_act_vec_, pj_phi_vec_) in enumerate(zip(pj_time_act_vec, pj_phi_vec)):
+            if pj_phi_vec_ > V_thres and pj_time_act_vec_ == -1:
+                pj_time_act_vec[idx] = t
+
+        t += dt * write_t
+
+    pj_time_act.vector()[:] = pj_time_act_vec
+    pj_time_act.rename("PJ Activation Time", "PJ Activation Time")
+
+    File_act_pj = df.File(os.path.join(act_outdirectory, "pj_act.pvd"))
+    File_act_pj << pj_time_act
 
 
 def normalize_directionalbasis(Mesh_obj, deg):
@@ -571,11 +583,7 @@ def extractdisplacementloading(IODet, SimDet, cycle=None):
 
 def dumpvtk(IODet, SimDet, cycle=None, ME_var = [], EP_var = [], PJ_var = []):
 
-    hdf = df.HDF5File(
-        df.MPI.comm_world,
-        IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "Data.h5",
-        "r",
-    )
+    hdf = df.HDF5File(df.MPI.comm_world, IODet["outputfolder"] + "/" + IODet["caseID"] + "/" + "Data.h5", "r",)
 
     list_of_ME_var = ME_var
     list_of_EP_var = EP_var
@@ -595,7 +603,6 @@ def dumpvtk(IODet, SimDet, cycle=None, ME_var = [], EP_var = [], PJ_var = []):
     #]
 
     #list_of_EP_var = [["phi", "CG", 1], ["r", "DG", 0], ["potential_ref", "CG", 1]]
-
     #list_of_PJ_var = [["phi", "CG", 1], ["r", "DG", 0], ["potential_ref", "CG", 1]]
 
     if hdf.has_dataset("ME"):
