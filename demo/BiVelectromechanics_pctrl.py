@@ -34,7 +34,7 @@ IODetails = {
     "casename_ep": "biv_idealized",
     "directory_me": "../BiVMesh/",
     "directory_ep": "../BiVMesh/",
-    "outputfolder": "./Output/outputs_BiVelectromechanics/",
+    "outputfolder": "/mnt/scratch/lclee/output_heArt_py3/outputs_BiVelectromechanics/",
     "folderName": "/",
     "caseID": "BiVelectromechanics_pctrl_p1p1",
 }
@@ -167,7 +167,7 @@ SimDetails = {
 
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
 compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = [0,1], RVid = 2)

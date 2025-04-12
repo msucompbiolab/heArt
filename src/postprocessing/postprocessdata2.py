@@ -240,11 +240,11 @@ def compute_activation(IODet, SimDet, cycle=None):
     File_act_pj << pj_time_act
 
 
-def normalize_directionalbasis(Mesh_obj, deg):
+def normalize_directionalbasis(eC0, eL0, eR0, mesh, deg):
 
-    eC0 = Mesh_obj.eC0
-    eL0 = Mesh_obj.eL0
-    eR0 = Mesh_obj.eR0
+    #eC0 = Mesh_obj.eC0
+    #eL0 = Mesh_obj.eL0
+    #eR0 = Mesh_obj.eR0
 
     eC0_normalized = eC0 / df.sqrt(df.inner(eC0, eC0))
     eL0_normalized = eL0 / df.sqrt(df.inner(eL0, eL0))
@@ -253,7 +253,7 @@ def normalize_directionalbasis(Mesh_obj, deg):
     eC0_normalized = (
         df.project(
             eC0_normalized,
-            df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0),
+            df.VectorFunctionSpace(mesh, "DG", 0),
             form_compiler_parameters={
                 "representation": "uflacs",
                 "quadrature_degree": deg,
@@ -267,7 +267,7 @@ def normalize_directionalbasis(Mesh_obj, deg):
     eL0_normalized = (
         df.project(
             eL0_normalized,
-            df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0),
+            df.VectorFunctionSpace(mesh, "DG", 0),
             form_compiler_parameters={
                 "representation": "uflacs",
                 "quadrature_degree": deg,
@@ -281,7 +281,7 @@ def normalize_directionalbasis(Mesh_obj, deg):
     eR0_normalized = (
         df.project(
             eR0_normalized,
-            df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0),
+            df.VectorFunctionSpace(mesh, "DG", 0),
             form_compiler_parameters={
                 "representation": "uflacs",
                 "quadrature_degree": deg,
@@ -293,7 +293,7 @@ def normalize_directionalbasis(Mesh_obj, deg):
     isnan_eR0_normalized = np.argwhere(np.isnan(eR0_normalized)).flatten()
 
     mesh_coordinates = df.FunctionSpace(
-        Mesh_obj.mesh, "DG", 0
+        mesh, "DG", 0
     ).tabulate_dof_coordinates()
 
     np.set_printoptions(threshold=sys.maxsize)
@@ -336,9 +336,9 @@ def normalize_directionalbasis(Mesh_obj, deg):
                 3 * closest_pt_id : 3 * closest_pt_id + 3
             ]
 
-    eC0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0))
-    eL0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0))
-    eR0_normalized_ = df.Function(df.VectorFunctionSpace(Mesh_obj.mesh, "DG", 0))
+    eC0_normalized_ = df.Function(df.VectorFunctionSpace(mesh, "DG", 0))
+    eL0_normalized_ = df.Function(df.VectorFunctionSpace(mesh, "DG", 0))
+    eR0_normalized_ = df.Function(df.VectorFunctionSpace(mesh, "DG", 0))
 
     eC0_normalized_.vector()[:] = eC0_normalized
     eL0_normalized_.vector()[:] = eL0_normalized
@@ -362,7 +362,6 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
         isLV = SimDet["isLV"]
 
         if(isLV):
-
 
             mesh_params = {
                 "directory": IODet["directory_me"],
@@ -399,7 +398,9 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
                 eC0, eL0, eR0  = vtk_py3.addLVfiber_LDRB(fiber_angle_param)
 
     if "isBiV" in list(SimDet.keys()):
+
         isBiV = SimDet["isBiV"]
+
         if(isBiV):
             mesh_params = {
                 "directory": IODet["directory_me"],
@@ -419,6 +420,12 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
             except AttributeError:
 
                 # Set BiVFiber
+                baseid = [SimDet["topid"]]
+                if "RVtopid" in SimDet.keys():
+                    baseid.append(SimDet["RVtopid"])
+                if "LVtopid" in SimDet.keys():
+                    baseid.append(SimDet["LVtopid"])
+
                 fiber_angle_param = {"mesh": Mesh_obj.mesh,\
                 	 "facetboundaries": Mesh_obj.facetboundaries,\
                 	 "LV_fiber_angle": [0.01,-0.01], \
@@ -433,33 +440,24 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
                 	 "matid":  Mesh_obj.matid,\
                 	 "isrotatept": False,\
                 	 "isreturn": True,\
-                     "outfilename": IODet["casename_me"],
-                     "outdirectory": IODet["outputfolder"] + IODet["caseID"] + IODet["folderName"],
+                         "outfilename": IODet["casename_me"],
+                         "outdirectory": IODet["outputfolder"] + IODet["caseID"] + IODet["folderName"],
+                         "baseid": baseid,
                 	 "epiid": SimDet["epiid"],\
                 	 "rvid": SimDet["RVendoid"],\
-                	 "lvid": 2,\
+                	 "lvid": SimDet["LVendoid"],\
                 	 "degree": 4}
             
                 eC0, eL0, eR0 = vtk_py.SetBiVFiber_Quad_PyQ(fiber_angle_param)
 
-    #df.File(IODet["outputfolder"] + IODet["caseID"] + IODet["folderName"] + "/matid.pvd") << Mesh_obj.matid
-    mesh_params = {
-        "directory": IODet["directory_me"],
-        "casename": IODet["casename"],
-        "outputfolder": IODet["outputfolder"],
-        "foldername": IODet["folderName"],
-        "isLV": IODet["isLV"],
-    }
-
-    Mesh_obj = lv_mechanics_mesh(mesh_params, SimDet)
-    eC0 = Mesh_obj.eC0
-    eL0 = Mesh_obj.eL0
-    eR0 = Mesh_obj.eR0
-
     deg = SimDet["GiccioneParams"]["deg"]
-    eC0_normalized, eL0_normalized, eR0_normalized = normalize_directionalbasis(
-        Mesh_obj, deg
-    )
+    #eC0_normalized, eL0_normalized, eR0_normalized = normalize_directionalbasis(
+    #    eC0, eL0, eR0, Mesh_obj.mesh, deg
+    #)
+    eC0_normalized = eC0 / df.sqrt(df.inner(eC0, eC0))
+    eL0_normalized = eL0 / df.sqrt(df.inner(eL0, eL0))
+    eR0_normalized = eR0 / df.sqrt(df.inner(eR0, eR0))
+
 
     if SimDet["Mechanics Discretization"] is "P1P1":
         var_deg = 1
@@ -485,7 +483,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
     Ecc_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Ecc")
     if not os.path.exists(Ecc_outdirectory):
         os.mkdir(Ecc_outdirectory)
-    df.File(os.path.join(Ecc_outdirectory, "Ecc_direction.pvd")) << eC0_normalized
+    #df.File(os.path.join(Ecc_outdirectory, "Ecc_direction.pvd")) << eC0_normalized
     File_Ecc = df.File(os.path.join(Ecc_outdirectory, "Ecc.pvd"))
     Ecc_arr = []
     Ecc_arr_RV = []
@@ -493,7 +491,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
     Ell_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Ell")
     if not os.path.exists(Ell_outdirectory):
         os.mkdir(Ell_outdirectory)
-    df.File(os.path.join(Ell_outdirectory, "Ell_direction.pvd")) << eL0_normalized
+    #df.File(os.path.join(Ell_outdirectory, "Ell_direction.pvd")) << eL0_normalized
     File_Ell = df.File(os.path.join(Ell_outdirectory, "Ell.pvd"))
     Ell_arr = []
     Ell_arr_RV = []
@@ -501,7 +499,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
     Err_outdirectory = os.path.join(IODet["outputfolder"], IODet["caseID"], "Err")
     if not os.path.exists(Err_outdirectory):
         os.mkdir(Err_outdirectory)
-    df.File(os.path.join(Err_outdirectory, "Err_direction.pvd")) << eR0_normalized
+    #df.File(os.path.join(Err_outdirectory, "Err_direction.pvd")) << eR0_normalized
     File_Err = df.File(os.path.join(Err_outdirectory, "Err.pvd"))
     Err_arr = []
     Err_arr_RV = []
