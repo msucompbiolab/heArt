@@ -168,14 +168,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     if isPJ:
         export.hdf.write(EPmodel_pj.mesh, "PJ/mesh")
 
-    # Dump input file
-    with open(outputfolder + folderName + "SimDet.log", "w") as f:
-        json.dump(SimDet, f, indent=4, cls=json_serialize)
-    # Dump input file
-    with open(outputfolder + folderName + "IODet.log", "w") as f:
-        json.dump(IODet, f, indent=4, cls=json_serialize)
-
-
+    ## Dump input file
+    export.dump_input_file()
 
     default_params = {
         "EDP": 12.0,
@@ -199,8 +193,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     preinc = default_params["preinc"]
 
     it = 0
-    tempfile = File(outputfolder + folderName + "displacement.pvd")
-    tempfileLoading = File(outputfolder + folderName + "displacement_loading.pvd")
+    #tempfile = File(outputfolder + folderName + "displacement.pvd")
+    #tempfileLoading = File(outputfolder + folderName + "displacement_loading.pvd")
     #tempfileEP = File(outputfolder + folderName + "EP.pvd")
     #tempfileSactive = File(outputfolder + folderName + "Sactive.pvd")
     #tempfilePotential = File(outputfolder + folderName + "potential.pvd")
@@ -229,8 +223,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
             solver_elas.solvenonlinear()
 
-        if it % 1 == 0:
-           tempfileLoading << MEmodel_.GetDisplacement()
+        #if it % 1 == 0:
+        #   tempfileLoading << MEmodel_.GetDisplacement()
 
 
         export.writePV(MEmodel_, 0)
@@ -652,8 +646,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         potential_me.vector()[:] = potential_ref.vector().get_local()[:]
 
-        if cnt % 2 == 0:
-           tempfile << MEmodel_.GetDisplacement()  # LCL
+        #if cnt % 2 == 0:
+           #tempfile << MEmodel_.GetDisplacement()  # LCL
            #tempfileEP << EPmodel_ep.getphivar()
            #tempfileSactive << MEmodel_.GetSActive()
            #tempfilePotential << potential_ref
@@ -811,6 +805,15 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         export.writePV(MEmodel_, state_obj.tstep)
 
+        if isLV:
+            export.writeQ(MEmodel_, [CLmodel_.Qsa, CLmodel_.Qad, CLmodel_.Qsv, 
+                                     CLmodel_.Qmv, CLmodel_.Qav], state_obj.tstep)
+            export.writeP(MEmodel_, np.array([CLmodel_.Psa, CLmodel_.Pad, CLmodel_.Psv, 
+                                              CLmodel_.PLA, CLmodel_.PLV])*0.0075, state_obj.tstep)
+            export.writeV(MEmodel_, np.array([CLmodel_.V_sa, CLmodel_.V_ad, CLmodel_.V_sv, 
+                                              CLmodel_.V_LA, CLmodel_.V_LV]), state_obj.tstep)
+
+
         if isBiV:
             export.writeQ(MEmodel_, np.array([CLmodel_.Qsa, CLmodel_.Qad, CLmodel_.Qsv, CLmodel_.Qtv,
                                               CLmodel_.Qpvv, CLmodel_.Qpa, CLmodel_.Qpv, CLmodel_.Qmv,
@@ -818,11 +821,12 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
             export.writeP(MEmodel_, np.array([CLmodel_.Psa, CLmodel_.Pad, CLmodel_.Psv, CLmodel_.Ppa,
                                               CLmodel_.Ppv, CLmodel_.PLA, CLmodel_.PLV, CLmodel_.PRV,
-                                              CLmodel_.PRA]), state_obj.tstep)
+                                              CLmodel_.PRA]*0.0075), state_obj.tstep)
 
             export.writeV(MEmodel_, np.array([CLmodel_.V_sa, CLmodel_.V_ad, CLmodel_.V_sv, CLmodel_.V_pa,
                                               CLmodel_.V_pv, CLmodel_.V_LA, CLmodel_.V_LV, CLmodel_.V_RV,
                                               CLmodel_.V_RA]), state_obj.tstep)
+
 
         if cnt % SimDet["writeStep"] == 0.0:
             export.writetpt(MEmodel_, state_obj.tstep)
@@ -868,6 +872,9 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             export.writeRStrain(MEmodel_, state_obj.tstep, E_radi_BiV)
 
         cnt += 1
+
+    export.dump_restart_file(CLmodel_)
+
 
 def createEPmodel(IODet, SimDet):
 

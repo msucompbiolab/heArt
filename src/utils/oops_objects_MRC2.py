@@ -428,6 +428,7 @@ class lv_mesh(object):
             self.mesh, FiniteElement("Lagrange", self.mesh.ufl_cell(), 1)
         )
         self.poissonF = Function(self.poissonFS)
+        self.poissonF.vector()[:] = 1.0 #Set Default to be one
 
         if f.has_dataset(casename + "/" + "varyingspring"):
             f.read(self.poissonF, casename + "/" + "varyingspring")
@@ -1808,14 +1809,50 @@ class exportfiles(object):
 
         self.outputfolder = IODet["outputfolder"]
         self.folderName = IODet["folderName"] + IODet["caseID"] + "/"
+        self.SimDet = SimDet
+        self.IODet = IODet
 
         self.comm_me = mpi_comm_me
         self.comm_ep = mpi_comm_ep
 
         self.removeAllfiles()
         self.opendatafilestreams()
-        # self.openVTKfilestreams()
         self.openHDF5filestreams()
+
+    def dump_input_file(self):
+        # Dump input file
+        with open(self.outputfolder + self.folderName + "SimDet.log", "w") as f:
+            json.dump(self.SimDet, f, indent=4, cls=json_serialize)
+        # Dump input file
+        with open(self.outputfolder + self.folderName + "IODet.log", "w") as f:
+            json.dump(self.IODet, f, indent=4, cls=json_serialize)
+
+
+    def dump_restart_file(self, CLmodel):
+
+        isBiV = False
+        if "isBiV" in list(self.SimDet.keys()):
+            isBiV = self.SimDet["isBiV"]
+
+        SimDetCopy = self.SimDet
+        SimDetCopy["closedloopparam"]["V_sa"] = CLmodel.V_sa 
+        SimDetCopy["closedloopparam"]["V_ad"] = CLmodel.V_ad 
+        SimDetCopy["closedloopparam"]["V_sv"] = CLmodel.V_sv 
+        SimDetCopy["closedloopparam"]["V_LA"] = CLmodel.V_LA 
+        SimDetCopy["closedloopparam"]["V_LV"] = CLmodel.V_LV 
+        SimDetCopy["EDP"] = CLmodel.PLV*0.0075
+
+        if isBiV:
+            SimDetCopy["closedloopparam"]["V_pa"] = CLmodel.V_pa
+            SimDetCopy["closedloopparam"]["V_pv"] = CLmodel.V_pv 
+            SimDetCopy["closedloopparam"]["V_RV"] = CLmodel.V_RV
+            SimDetCopy["closedloopparam"]["V_RA"] = CLmodel.V_RA
+            SimDetCopy["RVEDPfactor"] = CLmodel.PRV/CLmodel.PLV
+
+        # Dump input file
+        with open(self.outputfolder + self.folderName + "SimDetRestart.log", "w") as f:
+            json.dump(SimDetCopy, f, indent=4, cls=json_serialize)
+
 
     def removeAllfiles(self):
         outputfolder = self.outputfolder

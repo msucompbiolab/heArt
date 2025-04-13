@@ -125,7 +125,7 @@ Circparam = {
     "V_LV": 9.37059e+01,# 9.51769e+01, #9.53730e+01,#114.197219883,
     "V_RV": 7.62423e+01,# 8.32750e+01, #8.23440e+01,#107.18412269,
     "V_RA": 2.79130e+01,# 2.68550e+01,  #2.62437e+01,#26.1123080465,
-    "stop_iter": 2,
+    "stop_iter": 1,
     # LVAD
     #'Q_lvad_rpm' : 28,
     #'Q_lvad_scale' : 0.0
@@ -167,11 +167,11 @@ SimDetails = {
 
 
 # Run Simulation
-#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
-compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = [0,1], RVid = 2)
-plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=3)
+#compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = [0,1], RVid = 2)
+#plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=3)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -

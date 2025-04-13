@@ -1177,12 +1177,15 @@ class MEmodel(object):
         if "springbc" in list(self.SimDet.keys()) and self.SimDet["springbc"]:
             if "springparam" in list(self.SimDet.keys()):
                 k_spring = self.SimDet["springparam"]
-                c_damping = self.SimDet["dashpotparam"]
                 if "springfacets" in list(self.SimDet.keys()):
                     spr_facetids = self.SimDet["springfacets"]
 
             else:
                 k_spring = [2.0e3, 2.0e3]  # default
+
+            if "dashpotparam" in list(self.SimDet.keys()):
+                c_damping = self.SimDet["dashpotparam"]
+            else:
                 c_damping = [2.0e2, 2.0e1]  # default
 
             if self.isLV:
@@ -1324,25 +1327,31 @@ class MEmodel(object):
 
                 # Laplace_u = self.GetLaplace()
 
+                u_me_ED = self.u_me_ED
+                isspringon = self.isspringon
                 F3_epi = inner(
                     outer(N_me, N_me)
                     * (
-                        k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * u_me
-                        + c_damping[0] * (u_me - u_me_n)
+                        #k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * u_me
+                        #+ c_damping[0] * (u_me - u_me_n)
+                        k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * (u_me - u_me_ED) 
+                        + c_damping[0] * (u_me - u_me_n - u_me_ED)
                     ),
                     v_me,
                 ) * (ds_me(epiid)) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
-                        k_spring[1] * epiid_Kadj_coeff[1] * u_me
-                        + c_damping[1] * (u_me - u_me_n)
+                        #k_spring[1] * epiid_Kadj_coeff[1] * u_me
+                        #+ c_damping[1] * (u_me - u_me_n)
+                        k_spring[1] * epiid_Kadj_coeff[1] * (u_me - u_me_ED)
+                        + c_damping[1] * (u_me - u_me_n - u_me_ED)
                     ),
                     v_me,
                 ) * (
                     ds_me(epiid)
                 )
 
-                F3 = F3_epi
+                F3 = isspringon*F3_epi
 
                 # spring at base
                 if (

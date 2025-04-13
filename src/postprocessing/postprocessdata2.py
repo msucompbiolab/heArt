@@ -349,6 +349,9 @@ def normalize_directionalbasis(eC0, eL0, eR0, mesh, deg):
 
 def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
 
+    isLV = False
+    isBiV = False
+
     mesh = df.Mesh()
     hdf = df.HDF5File(
         mesh.mpi_comm(),
@@ -395,7 +398,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
                     "degree": SimDet["GiccioneParams"]["deg"]
                 }
 
-                eC0, eL0, eR0  = vtk_py3.addLVfiber_LDRB(fiber_angle_param)
+                eC0, eL0, eR0  = vtk_py.addLVfiber_LDRB(fiber_angle_param)
 
     if "isBiV" in list(SimDet.keys()):
 
@@ -506,7 +509,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
 
     for u_arr_ in u_arr:
 
-        if isinstance(LVid, str):
+        if isinstance(LVid, int):
             wall_vol = df.assemble(
                 df.Constant(1.0) * Mesh_obj.dx(LVid),
                 form_compiler_parameters={"representation": "uflacs"},
@@ -533,7 +536,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
         Ccc = df.inner(eC0_normalized, Cmat * eC0_normalized)
         Ecc = 0.5 * (1 - 1 / Ccc)
 
-        if isinstance(LVid, str):
+        if isinstance(LVid, int):
             global_Ecc = (
                 df.assemble(
                     Ecc * Mesh_obj.dx(LVid),
@@ -577,7 +580,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
 
         Cll = df.inner(eL0_normalized, Cmat * eL0_normalized)
         Ell = 0.5 * (1 - 1 / Cll)
-        if isinstance(LVid, str):
+        if isinstance(LVid, int):
             global_Ell = (
                 df.assemble(
                     Ell * Mesh_obj.dx(LVid),
@@ -621,7 +624,7 @@ def compute_strain(IODet, SimDet, LVid=1, RVid=2, cycle=None):
 
         Crr = df.inner(eR0_normalized, Cmat * eR0_normalized)
         Err = 0.5 * (1 - 1 / Crr)
-        if isinstance(LVid, str):
+        if isinstance(LVid, int):
             global_Err = (
                 df.assemble(
                     Err * Mesh_obj.dx(LVid),

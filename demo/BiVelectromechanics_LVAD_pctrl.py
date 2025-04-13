@@ -39,7 +39,7 @@ IODetails = {
     "directory_ep": "../BiVMesh/",
     "outputfolder": "/mnt/scratch/lclee/output_heArt_py3/outputs_BiVelectromechanics/",
     "folderName": "/",
-    "caseID": "BiVelectromechanics_pctrl_p1p1_LVAD",
+    "caseID": "BiVelectromechanics_pctrl_p1p1_LVAD_7K",
 }
 
 contRactility = 200e3
@@ -119,18 +119,18 @@ Circparam = {
     "Q_pv": 0.0646105314407,
     "Q_pvv": 0.0,
     # volumes
-    "V_sa": 7.53937e+02, #7.52360e+02, #7.39492e+02,# 7.39872e+02, #7.42631e+02,#747.095750279,
-    "V_ad": 3.48060e+02, #3.35851e+02, #2.85198e+02,# 2.87456e+02, #3.04518e+02,#332.137059531,
-    "V_sv": 2.73329e+03, #2.70405e+03, #2.68173e+03,# 2.65740e+03, #2.64335e+03,#2620.36391023,
-    "V_pa": 3.72950e+02, #3.73726e+02, #3.75004e+02,# 3.75685e+02, #3.75742e+02,#375.714158013,
-    "V_pv": 9.42127e+02, #1.00256e+03, #1.09984e+03,# 1.14305e+03, #1.14776e+03,#1135.52295648,
-    "V_LA": 1.37609e+01, #1.39903e+01, #1.44591e+01,# 1.46367e+01, #1.46561e+01,#14.6706180758,
-    "V_LV": 7.88765e+01, #8.28927e+01, #9.37059e+01,# 9.51769e+01, #9.53730e+01,#114.197219883,
-    "V_RV": 8.53658e+01, #8.37537e+01, #7.62423e+01,# 8.32750e+01, #8.23440e+01,#107.18412269,
-    "V_RA": 3.01507e+01, #2.88819e+01, #2.79130e+01,# 2.68550e+01,  #2.62437e+01,#26.1123080465,
-    "stop_iter": 2,
+    "V_sa":7.53966e+02, # 7.53937e+02, #7.52360e+02, #7.39492e+02,# 7.39872e+02, #7.42631e+02,
+    "V_ad":3.48677e+02, # 3.48060e+02, #3.35851e+02, #2.85198e+02,# 2.87456e+02, #3.04518e+02,
+    "V_sv":2.75086e+03, # 2.73329e+03, #2.70405e+03, #2.68173e+03,# 2.65740e+03, #2.64335e+03,
+    "V_pa":3.72723e+02, # 3.72950e+02, #3.73726e+02, #3.75004e+02,# 3.75685e+02, #3.75742e+02,
+    "V_pv":9.07160e+02, # 9.42127e+02, #1.00256e+03, #1.09984e+03,# 1.14305e+03, #1.14776e+03,
+    "V_LA":1.36161e+01, # 1.37609e+01, #1.39903e+01, #1.44591e+01,# 1.46367e+01, #1.46561e+01,
+    "V_LV":7.68626e+01, # 7.88765e+01, #8.28927e+01, #9.37059e+01,# 9.51769e+01, #9.53730e+01,
+    "V_RV":8.83728e+01, # 8.53658e+01, #8.37537e+01, #7.62423e+01,# 8.32750e+01, #8.23440e+01,
+    "V_RA":3.09132e+01, # 3.01507e+01, #2.88819e+01, #2.79130e+01,# 2.68550e+01, #2.62437e+01,
+    "stop_iter": 10,
     # LVAD
-    'Q_lvad_rpm' : 5000,
+    'Q_lvad_rpm' : 7000,
     'Q_lvad_scale' : 1.0,
     'Q_lvad_characteristic': HeartMate
 }
@@ -139,8 +139,8 @@ Circparam = {
 SimDetails = {
     "HeartBeatLength": 800.0,
     "dt": 1.0,
-    "EDP": 9.50484e+02 *0.0075, #1.77139e+03*0.0075,#1.90088e+03*0.0075,#1.91646e+03*0.0075,
-    "RVEDPfactor": 8.48336e+02/9.50484e+02, #1.03761e+03/1.77139e+03,#8.48190e+02/1.90088e+03,#7.70257e+02/1.91646e+03,
+    "EDP": 9.11432e+02*0.0075, #1.77139e+03*0.0075,#1.90088e+03*0.0075,#1.91646e+03*0.0075,
+    "RVEDPfactor": 8.73190e+02/9.11432e+02, #1.03761e+03/1.77139e+03,#8.48190e+02/1.90088e+03,#7.70257e+02/1.91646e+03,
     "writeStep": 40.0,
     "GiccioneParams": GuccioneParams,
     "nLoadSteps": 10,
@@ -174,8 +174,8 @@ SimDetails = {
 run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Postprocessing
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
-compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = [0,1], RVid = 2)
-plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=3)
+#compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = [0,1], RVid = 2)
+#plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=10)
 # extractdisplacement(IODet=IODetails, SimDet=SimDetails)
 # extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
