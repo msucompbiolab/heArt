@@ -1779,8 +1779,10 @@ class json_serialize(json.JSONEncoder):
             return float(obj)
         if isinstance(obj, np.ndarray):
             return obj.tolist()
-        if(isinstance(obj, type(Constant(1.0)))):
-             return float(obj)
+        if isinstance(obj, type(Constant(1.0))):
+            return float(obj)
+        else:
+            return obj.__class__.__name__
         return json.JSONEncoder.default(self, obj)
 
 

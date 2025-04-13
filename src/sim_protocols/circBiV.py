@@ -209,10 +209,10 @@ class CLmodel(object):
 
         self.V_LV = self.V_LV + self.parameters["delTat"] * (
             self.Qmv - self.Qav
-        )  # - self.Qlvad)
+            - self.Qlvad)
         self.V_sa = self.V_sa + self.parameters["delTat"] * (
             self.Qav - self.Qsa
-        )  # + self.Qlvad)
+            + self.Qlvad)
         self.V_ad = self.V_ad + self.parameters["delTat"] * (self.Qsa - self.Qad)
         self.V_sv = self.V_sv + self.parameters["delTat"] * (self.Qad - self.Qsv)
         self.V_RA = self.V_RA + self.parameters["delTat"] * (self.Qsv - self.Qtv)
