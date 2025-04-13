@@ -821,7 +821,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
             export.writeP(MEmodel_, np.array([CLmodel_.Psa, CLmodel_.Pad, CLmodel_.Psv, CLmodel_.Ppa,
                                               CLmodel_.Ppv, CLmodel_.PLA, CLmodel_.PLV, CLmodel_.PRV,
-                                              CLmodel_.PRA]*0.0075), state_obj.tstep)
+                                              CLmodel_.PRA])*0.0075, state_obj.tstep)
 
             export.writeV(MEmodel_, np.array([CLmodel_.V_sa, CLmodel_.V_ad, CLmodel_.V_sv, CLmodel_.V_pa,
                                               CLmodel_.V_pv, CLmodel_.V_LA, CLmodel_.V_LV, CLmodel_.V_RV,

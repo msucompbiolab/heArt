@@ -154,7 +154,7 @@ SimDetails = {
     "ispctrl": True,
     "isBiV": True,
     "epiid_Kadj_coeff": [10, 3], 
-    "dashpotparam": [10.0e2,2.0e1],
+    "dashpotparam": [2.0e2,2.0e1],
     "RVtopid": 6,
     "LVtopid": 5,
     "topid": 4,
