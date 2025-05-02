@@ -1977,7 +1977,7 @@ class exportfiles(object):
     def closeHDF5filestreams(self):
         self.hdf.close()
 
-    def writePV(self, MEmodel, t):
+    def writePV(self, MEmodel, t, CLmodel = None):
         isLV = self.isLV
         iswaorta = self.iswaorta
         isFCH = self.isFCH
@@ -1985,24 +1985,23 @@ class exportfiles(object):
 
         comm = self.comm_ep
 
-        if MEmodel.ispctrl:
+        if CLmodel is None:
             LVP = MEmodel.LVCavitypres.pres * 0.0075
-            # LVV = MEmodel.LV_closedsurf()
-            LVV = MEmodel.GetLVV()
-            if isBiV or isFCH:
-                RVP = MEmodel.RVCavitypres.pres * 0.0075
-                RVV = MEmodel.GetRVV()
-            if MEmodel.islumped:
-                LVP = MEmodel.lumped_pres
-                LVV = MEmodel.lumped_vol
-                # pass
-        else:
-            LVP = MEmodel.GetLVP() * 0.0075
             LVV = MEmodel.GetLVV()
 
-            if not isLV:
-                RVP = MEmodel.GetRVP() * 0.0075
+        else:
+            LVP = CLmodel.PLV * 0.0075
+            LVV = CLmodel.V_LV 
+
+        if isBiV or isFCH:
+       
+            if CLmodel is None:
+                RVP = MEmodel.RVCavitypres.pres * 0.0075
                 RVV = MEmodel.GetRVV()
+
+            else:
+                RVP = CLmodel.PRV * 0.0075
+                RVV = CLmodel.V_RV
 
         if MPI.rank(comm) == 0:
             fdataPV = self.fdataPV

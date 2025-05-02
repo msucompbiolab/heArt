@@ -75,6 +75,7 @@ def extract_Q(filename, BCL, ncycle, SimDet):
     Qav_array = []
     Qmv_array = []
     Qsa_array = []
+    Qad_array = []
     Qsv_array = []
     Qpvv_array = []
     Qtv_array = []
@@ -84,19 +85,20 @@ def extract_Q(filename, BCL, ncycle, SimDet):
 
     for row in reader:
         tpt_array.append(float(row[0]))
-        Qav_array.append(float(row[1]))
-        Qmv_array.append(float(row[2]))
-        Qsa_array.append(float(row[3]))
-        Qsv_array.append(float(row[4]))
+        Qsa_array.append(float(row[1]))
+        Qad_array.append(float(row[2]))
+        Qsv_array.append(float(row[3]))
+        Qmv_array.append(float(row[4]))
+        Qav_array.append(float(row[5]))
 
         if isBiV:
-            Qpvv_array.append(float(row[5]))
             Qtv_array.append(float(row[6]))
-            Qpa_array.append(float(row[7]))
-            Qpv_array.append(float(row[8]))
-            Qlvad_array.append(float(row[9]))
+            Qpvv_array.append(float(row[7]))
+            Qpa_array.append(float(row[8]))
+            Qpv_array.append(float(row[9]))
+            Qlvad_array.append(float(row[10]))
         else:
-            Qlvad_array.append(float(row[5]))
+            Qlvad_array.append(float(row[10]))
 
     tpt_array = np.array(tpt_array)
     Qav_array = np.array(Qav_array)
@@ -151,6 +153,7 @@ def extract_P(filename, BCL, ncycle, SimDet):
     Psv_array = []
     PLV_array = []
     Psa_array = []
+    Pad_array = []
     PLA_array = []
     Ppv_array = []
     PRV_array = []
@@ -158,16 +161,17 @@ def extract_P(filename, BCL, ncycle, SimDet):
     PRA_array = []
     for row in reader:
         tpt_array.append(float(row[0]))
-        Psv_array.append(float(row[1]))
-        PLV_array.append(float(row[2]))
-        Psa_array.append(float(row[3]))
+        Psa_array.append(float(row[1]))
+        Pad_array.append(float(row[2]))
+        Psv_array.append(float(row[3]))
         PLA_array.append(float(row[4]))
+        PLV_array.append(float(row[5]))
 
         if isBiV:
-            Ppv_array.append(float(row[5]))
-            PRV_array.append(float(row[6]))
-            Ppa_array.append(float(row[7]))
-            PRA_array.append(float(row[8]))
+            Ppa_array.append(float(row[6]))
+            Ppv_array.append(float(row[7]))
+            PRV_array.append(float(row[8]))
+            PRA_array.append(float(row[9]))
 
     tpt_array = np.array(tpt_array)
     Psv_array = np.array(Psv_array)
@@ -455,7 +459,6 @@ def probeqty(directory, fieldvariable, points, ind, index):
     return np.array(point_fieldvararray)
 
 
-# def probetimeseries(directory, filebasename, fieldvariable, points, isparallel, ind):
 def probetimeseries(directory, fieldvariable, points, ind, elemtype, deg):
     assert (elemtype == "CG" and deg == 1) or (
         elemtype == "DG" and deg == 0
@@ -559,3 +562,15 @@ def extractvtk(
     hdf.close()
 
     return var_array
+
+def readh5fieldvar(filename, fieldvariable, var):
+
+    mesh = df.Mesh()
+    hdf = df.HDF5File(mesh.mpi_comm(), filename, "r")
+    attr = hdf.attributes(fieldvariable)
+    nsteps = attr["count"]
+    dataset = fieldvariable + "/vector_%d" % (nsteps - 1)
+    hdf.read(var, dataset)
+ 
+    return
+

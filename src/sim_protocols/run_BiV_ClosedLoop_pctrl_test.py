@@ -36,6 +36,7 @@ from .circ import CLmodel
 from .circBiV import CLmodel as CLmodel_biv
 
 # from ..mechanics.volume_ca import MeshModifier
+from ..postprocessing.postprocessdatalib2 import *
 
 import json
 
@@ -135,8 +136,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     # Set up export class
     export = exportfiles(comm_me, comm_ep, IODet, SimDet)
+    export.exportVTKobj("facetboundaries_me.pvd", MEmodel_.facetboundaries_me)
 
-    #export.exportVTKobj("facetboundaries_ep.pvd", facetboundaries_ep)
     #export.exportVTKobj("EpiBCid_ep.pvd", EpiBCid_ep)
     # export.exportVTKobj("f0.pvd", project(MEmodel_.Mesh.f0, VectorFunctionSpace(MEmodel_.Mesh.mesh, "DG", 0)))
 
@@ -201,6 +202,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
     #if isPJ:
     #    tempfilePJ = File(outputfolder + folderName + "PJ.pvd")
+    #MEmodel_.isspringon = 1.0
     while 1:
         printout("Loading", comm_me)
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
@@ -262,7 +264,11 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     #printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
 
     # Assign displacement at end of loading (LCL)
-    MEmodel_.u_me_ED.assign(MEmodel_.GetDisplacement())
+    if "springref" in SimDet.keys():
+        readh5fieldvar(SimDet["springref"][0], SimDet["springref"][1], MEmodel_.u_me_ED)
+    else:
+        MEmodel_.u_me_ED.assign(MEmodel_.GetDisplacement())
+        #print("nothing")
     MEmodel_.isspringon = 1.0
 
     printout("volume = " + str(MEmodel_.GetLVV()), comm_me)
@@ -389,7 +395,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if state_obj.cycle > stop_iter:
             break
 
-        #if state_obj.t > 120:
+        #if state_obj.t > 100:
         #    break
 
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
@@ -493,6 +499,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         # Newton's solver
         # import pdb; pdb.set_trace()
+        MEmodel_.LVCavitypres.pres = P_LV #LCL
 
         def Rp(plv, vlv):
             MEmodel_.LVCavitypres.pres = plv
@@ -803,7 +810,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
             comm_me_.Bcast(a, root=0)
 
-        export.writePV(MEmodel_, state_obj.tstep)
+        #export.writePV(MEmodel_, state_obj.tstep)
+        export.writePV(MEmodel_, state_obj.tstep, CLmodel = CLmodel_)
 
         if isLV:
             export.writeQ(MEmodel_, [CLmodel_.Qsa, CLmodel_.Qad, CLmodel_.Qsv, 
@@ -815,16 +823,16 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
 
         if isBiV:
-            export.writeQ(MEmodel_, np.array([CLmodel_.Qsa, CLmodel_.Qad, CLmodel_.Qsv, CLmodel_.Qtv,
-                                              CLmodel_.Qpvv, CLmodel_.Qpa, CLmodel_.Qpv, CLmodel_.Qmv,
-                                              CLmodel_.Qav]), state_obj.tstep)
+            export.writeQ(MEmodel_, np.array([CLmodel_.Qsa, CLmodel_.Qad, CLmodel_.Qsv, CLmodel_.Qmv, CLmodel_.Qav,
+                                              CLmodel_.Qtv, CLmodel_.Qpvv, CLmodel_.Qpa, CLmodel_.Qpv
+                                              ]), state_obj.tstep)
 
-            export.writeP(MEmodel_, np.array([CLmodel_.Psa, CLmodel_.Pad, CLmodel_.Psv, CLmodel_.Ppa,
-                                              CLmodel_.Ppv, CLmodel_.PLA, CLmodel_.PLV, CLmodel_.PRV,
+            export.writeP(MEmodel_, np.array([CLmodel_.Psa, CLmodel_.Pad, CLmodel_.Psv, CLmodel_.PLA, CLmodel_.PLV,
+                                              CLmodel_.Ppa, CLmodel_.Ppv, CLmodel_.PRV,
                                               CLmodel_.PRA])*0.0075, state_obj.tstep)
 
-            export.writeV(MEmodel_, np.array([CLmodel_.V_sa, CLmodel_.V_ad, CLmodel_.V_sv, CLmodel_.V_pa,
-                                              CLmodel_.V_pv, CLmodel_.V_LA, CLmodel_.V_LV, CLmodel_.V_RV,
+            export.writeV(MEmodel_, np.array([CLmodel_.V_sa, CLmodel_.V_ad, CLmodel_.V_sv, CLmodel_.V_LA, CLmodel_.V_LV,
+                                              CLmodel_.V_pa, CLmodel_.V_pv, CLmodel_.V_RV,
                                               CLmodel_.V_RA]), state_obj.tstep)
 
 
@@ -873,7 +881,8 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
         cnt += 1
 
-    export.dump_restart_file(CLmodel_)
+        if(state_obj.tstep % state_obj.BCL == 0) :
+            export.dump_restart_file(CLmodel_)
 
 
 def createEPmodel(IODet, SimDet):

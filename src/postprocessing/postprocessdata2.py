@@ -885,18 +885,28 @@ def plothemodynamics(IODet, SimDet, cycle=None):
     directory = IODet["outputfolder"] + "/"
     casename = IODet["caseID"]
     BCL = SimDet["HeartBeatLength"]
+    plt.figure()
     if cycle is None:
         cycle = SimDet["closedloopparam"]["stop_iter"] + 1
 
-    plt.figure()
-    for ncycle in range(cycle):
+        for ncycle in range(cycle):
+            filename = directory + casename + "/" + "BiV_PV.txt"
+            homo_tptt, homo_LVP, homo_LVV, homo_RVP, homo_RVV, homo_Qmv = extract_PV(
+                filename, BCL, ncycle, SimDet
+            )
+            plt.plot(homo_LVV, homo_LVP, label=f"LV Cycle = {ncycle}")
+            if SimDet.get("isBiV") or SimDet.get("isFCH"):
+                plt.plot(homo_RVV, homo_RVP, label=f"RV Cycle = {ncycle}")
+
+    else:
         filename = directory + casename + "/" + "BiV_PV.txt"
         homo_tptt, homo_LVP, homo_LVV, homo_RVP, homo_RVV, homo_Qmv = extract_PV(
-            filename, BCL, ncycle, SimDet
+            filename, BCL, int(cycle), SimDet
         )
-        plt.plot(homo_LVV, homo_LVP, label=f"LV Cycle = {ncycle}")
+        plt.plot(homo_LVV, homo_LVP, label=f"LV Cycle = {cycle}")
         if SimDet.get("isBiV") or SimDet.get("isFCH"):
-            plt.plot(homo_RVV, homo_RVP, label=f"RV Cycle = {ncycle}")
+            plt.plot(homo_RVV, homo_RVP, label=f"RV Cycle = {cycle}")
+
 
     hemodynamics_outdirectory = os.path.join(
         IODet["outputfolder"], IODet["caseID"], "hemodynamics"
@@ -914,104 +924,196 @@ def plotpressure(IODet, SimDet, cycle=None, compartment="All"):
     directory = IODet["outputfolder"] + "/"
     casename = IODet["caseID"]
     BCL = SimDet["HeartBeatLength"]
+    plt.figure()
+    filename = directory + casename + "/" + "BiV_P.txt"
+
     if cycle is None:
         cycle = SimDet["closedloopparam"]["stop_iter"] + 1
 
-    plt.figure()
-    for ncycle in range(cycle):
-        filename = directory + casename + "/" + "BiV_P.txt"
+        for ncycle in range(cycle):
 
+            tpt, Psv, PLV, Psa, PLA, Ppv, PRV, Ppa, PRA = extract_P(
+                filename, BCL, ncycle, SimDet
+            )
+
+            if ncycle == cycle - 1:
+                meanPsv = time_average(tpt, Psv)
+                print(
+                    "Mean Psv = ",
+                    meanPsv,
+                    "mmHg; Peak Psv = ",
+                    max(Psv),
+                    "mmHg",
+                )
+                meanPLV = time_average(tpt, PLV)
+                print(
+                    "Mean PLV = ",
+                    meanPLV,
+                    "mmHg; Peak PLV = ",
+                    max(PLV),
+                    "mmHg",
+                )
+                meanPsa = time_average(tpt, Psa)
+                print(
+                    "Mean Psa = ",
+                    meanPsa,
+                    "mmHg; Peak Psa = ",
+                    max(Psa),
+                    "mmHg",
+                )
+                meanPLA = time_average(tpt, PLA)
+                print(
+                    "Mean PLA = ",
+                    meanPLA,
+                    "mmHg; Peak PLA = ",
+                    max(PLA),
+                    "mmHg",
+                )
+
+            if compartment == "All" or "sv" in compartment:
+                plt.plot(tpt, Psv, label=f"Psv Cycle = {ncycle}")
+            if compartment == "All" or "lv" in compartment:
+                plt.plot(tpt, PLV, label=f"PLV Cycle = {ncycle}")
+            if compartment == "All" or "sa" in compartment:
+                plt.plot(tpt, Psa, label=f"Psa Cycle = {ncycle}")
+            if compartment == "All" or "la" in compartment:
+                plt.plot(tpt, PLA, label=f"PLA Cycle = {ncycle}")
+
+            if "isBiV" in list(SimDet.keys()):
+                if SimDet["isBiV"]:
+                    if compartment == "All" or "pv" in compartment:
+                        plt.plot(tpt, Ppv, label=f"Ppv Cycle = {ncycle}")
+                    if compartment == "All" or "rv" in compartment:
+                        plt.plot(tpt, PRV, label=f"PRV Cycle = {ncycle}")
+                    if compartment == "All" or "pa" in compartment:
+                        plt.plot(tpt, Ppa, label=f"Ppa Cycle = {ncycle}")
+                    if compartment == "All" or "ra" in compartment:
+                        plt.plot(tpt, PRA, label=f"PRA Cycle = {ncycle}")
+
+                    if ncycle == cycle - 1:
+                        meanPpv = time_average(tpt, Ppv)
+                        print(
+                            "Mean Ppv = ",
+                            meanPpv,
+                            "mmHg; Peak Ppv = ",
+                            max(Ppv),
+                            "mmHg",
+                        )
+                        meanPRV = time_average(tpt, PRV)
+                        print(
+                            "Mean PRV = ",
+                            meanPRV,
+                            "mmHg; Peak PRV = ",
+                            max(PRV),
+                            "mmHg",
+                        )
+                        meanPpa = time_average(tpt, Ppa)
+                        print(
+                            "Mean Ppa = ",
+                            meanPpa,
+                            "mmHg; Peak Ppa = ",
+                            max(Ppa),
+                            "mmHg",
+                        )
+                        meanPRA = time_average(tpt, PRA)
+                        print(
+                            "Mean PRA = ",
+                            meanPRA,
+                            "mmHg; Peak PRA = ",
+                            max(PRA),
+                            "mmHg",
+                        )
+
+    else:
         tpt, Psv, PLV, Psa, PLA, Ppv, PRV, Ppa, PRA = extract_P(
-            filename, BCL, ncycle, SimDet
+            filename, BCL, int(cycle), SimDet
         )
 
-        if ncycle == cycle - 1:
-            meanPsv = time_average(tpt, Psv)
-            print(
-                "Mean Psv = ",
-                meanPsv * 0.0075,
-                "mmHg; Peak Psv = ",
-                max(Psv) * 0.0075,
-                "mmHg",
-            )
-            meanPLV = time_average(tpt, PLV)
-            print(
-                "Mean PLV = ",
-                meanPLV * 0.0075,
-                "mmHg; Peak PLV = ",
-                max(PLV) * 0.0075,
-                "mmHg",
-            )
-            meanPsa = time_average(tpt, Psa)
-            print(
-                "Mean Psa = ",
-                meanPsa * 0.0075,
-                "mmHg; Peak Psa = ",
-                max(Psa) * 0.0075,
-                "mmHg",
-            )
-            meanPLA = time_average(tpt, PLA)
-            print(
-                "Mean PLA = ",
-                meanPLA * 0.0075,
-                "mmHg; Peak PLA = ",
-                max(PLA) * 0.0075,
-                "mmHg",
-            )
+        meanPsv = time_average(tpt, Psv)
+        print(
+            "Mean Psv = ",
+            meanPsv,
+            "mmHg; Peak Psv = ",
+            max(Psv),
+            "mmHg",
+        )
+        meanPLV = time_average(tpt, PLV)
+        print(
+            "Mean PLV = ",
+            meanPLV,
+            "mmHg; Peak PLV = ",
+            max(PLV),
+            "mmHg",
+        )
+        meanPsa = time_average(tpt, Psa)
+        print(
+            "Mean Psa = ",
+            meanPsa,
+            "mmHg; Peak Psa = ",
+            max(Psa),
+            "mmHg",
+        )
+        meanPLA = time_average(tpt, PLA)
+        print(
+            "Mean PLA = ",
+            meanPLA,
+            "mmHg; Peak PLA = ",
+            max(PLA),
+            "mmHg",
+        )
 
         if compartment == "All" or "sv" in compartment:
-            plt.plot(tpt, Psv * 0.0075, label=f"Psv Cycle = {ncycle}")
+            plt.plot(tpt, Psv, label=f"Psv Cycle = {cycle}")
         if compartment == "All" or "lv" in compartment:
-            plt.plot(tpt, PLV * 0.0075, label=f"PLV Cycle = {ncycle}")
+            plt.plot(tpt, PLV, label=f"PLV Cycle = {cycle}")
         if compartment == "All" or "sa" in compartment:
-            plt.plot(tpt, Psa * 0.0075, label=f"Psa Cycle = {ncycle}")
+            plt.plot(tpt, Psa, label=f"Psa Cycle = {cycle}")
         if compartment == "All" or "la" in compartment:
-            plt.plot(tpt, PLA * 0.0075, label=f"PLA Cycle = {ncycle}")
+            plt.plot(tpt, PLA, label=f"PLA Cycle = {cycle}")
 
         if "isBiV" in list(SimDet.keys()):
             if SimDet["isBiV"]:
                 if compartment == "All" or "pv" in compartment:
-                    plt.plot(tpt, Ppv * 0.0075, label=f"Ppv Cycle = {ncycle}")
+                    plt.plot(tpt, Ppv, label=f"Ppv Cycle = {cycle}")
                 if compartment == "All" or "rv" in compartment:
-                    plt.plot(tpt, PRV * 0.0075, label=f"PRV Cycle = {ncycle}")
+                    plt.plot(tpt, PRV, label=f"PRV Cycle = {cycle}")
                 if compartment == "All" or "pa" in compartment:
-                    plt.plot(tpt, Ppa * 0.0075, label=f"Ppa Cycle = {ncycle}")
+                    plt.plot(tpt, Ppa, label=f"Ppa Cycle = {cycle}")
                 if compartment == "All" or "ra" in compartment:
-                    plt.plot(tpt, PRA * 0.0075, label=f"PRA Cycle = {ncycle}")
+                    plt.plot(tpt, PRA, label=f"PRA Cycle = {cycle}")
 
-                if ncycle == cycle - 1:
-                    meanPpv = time_average(tpt, Ppv)
-                    print(
-                        "Mean Ppv = ",
-                        meanPpv * 0.0075,
-                        "mmHg; Peak Ppv = ",
-                        max(Ppv) * 0.0075,
-                        "mmHg",
-                    )
-                    meanPRV = time_average(tpt, PRV)
-                    print(
-                        "Mean PRV = ",
-                        meanPRV * 0.0075,
-                        "mmHg; Peak PRV = ",
-                        max(PRV) * 0.0075,
-                        "mmHg",
-                    )
-                    meanPpa = time_average(tpt, Ppa)
-                    print(
-                        "Mean Ppa = ",
-                        meanPpa * 0.0075,
-                        "mmHg; Peak Ppa = ",
-                        max(Ppa) * 0.0075,
-                        "mmHg",
-                    )
-                    meanPRA = time_average(tpt, PRA)
-                    print(
-                        "Mean PRA = ",
-                        meanPRA * 0.0075,
-                        "mmHg; Peak PRA = ",
-                        max(PRA) * 0.0075,
-                        "mmHg",
-                    )
+                meanPpv = time_average(tpt, Ppv)
+                print(
+                    "Mean Ppv = ",
+                    meanPpv,
+                    "mmHg; Peak Ppv = ",
+                    max(Ppv),
+                    "mmHg",
+                )
+                meanPRV = time_average(tpt, PRV)
+                print(
+                    "Mean PRV = ",
+                    meanPRV,
+                    "mmHg; Peak PRV = ",
+                    max(PRV),
+                    "mmHg",
+                )
+                meanPpa = time_average(tpt, Ppa)
+                print(
+                    "Mean Ppa = ",
+                    meanPpa,
+                    "mmHg; Peak Ppa = ",
+                    max(Ppa),
+                    "mmHg",
+                )
+                meanPRA = time_average(tpt, PRA)
+                print(
+                    "Mean PRA = ",
+                    meanPRA,
+                    "mmHg; Peak PRA = ",
+                    max(PRA),
+                    "mmHg",
+                )
 
     hemodynamics_outdirectory = os.path.join(
         IODet["outputfolder"], IODet["caseID"], "hemodynamics"

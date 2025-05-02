@@ -27,29 +27,29 @@ from heArt_py3.src.postprocessing.postprocessdata2 import plotpressure as plotpr
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
-    "casename_me": "ellipsoidal_baselinegeo_coarse",
-    "casename_ep": "ellipsoidal_baselinegeo_medium2",
-    #"casename": "ellipsoidal_baselinegeo",
+    #"casename_me": "ellipsoidal_baselinegeo_coarse",
+    "casename_me": "ellipsoidal_baselinegeo_medium3",
+    "casename_ep": "ellipsoidal_baselinegeo_fine1",
     #"directory_me": "../../../heArt_py3_purkinje/LV_pj_lc/",
-    "directory_ep": "../LVMesh/lc/",
-    "directory_me": "../LVMesh/lc/",
-    #"directory_ep": "../LVMesh/vh/",
-    "directory_pj": "../PJmesh/",
+    "directory_me": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    "directory_ep": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+     #"directory_ep": "../LVMesh/vh/",
+    "directory_pj": "/mnt/home/lclee/heArt/heArt_py3/PJmesh/",
     "casename_pj": "PJmarked",
-    "outputfolder": "./Outputs/",
+    "outputfolder": "/mnt/scratch/lclee/output_heArt_py3/outputs_BiVelectromechanics/",
     "folderName": "/",
-    "caseID": "LVelectromechanics-PJ-test-Tmax1800",
+    "caseID": "LVelectromechanics-PJ-test",
     #"caseID": "LVelectromechanics-test-lbbb",
     "isLV": True,
 }
 
-contRactility = 1200e3
+contRactility = 220e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(130.0),
+        "Cparam": Constant(50.0),#Constant(130.0),
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
@@ -79,65 +79,38 @@ Circparam = {
     "Tmax_la": 120,
     "tau_la": 25,
     "tdelay_la": 160,
-    "Csa": 0.0032,
-    "Cad": 0.033,
+    "Csa": 0.0052,
+    "Cad": 0.013,
     "Csv": 0.28,
     "Vsa0": 360,
     "Vad0": 40,
     "Vsv0": 3370.0,
-    "Rav": 2000,#500,
+    "Rav": 2000,
     "Rsv": 100.0,
-    "Rsa": 18000,
+    "Rsa": 58000,
     "Rad": 106000,
-    "Rmv": 2000.0,#200.0,
-    "V_sv": 3709.681538561804,
-    "V_sa": 386.4525256055264,
-    "V_ad": 309.22012729232915,
-    "V_LA": 157.01981722400419,
-    "V_LV": 101.62599131634467,
-    "stop_iter": 3,
+    "Rmv": 2000,
+    "V_sa": 407.9870929796549, #4.09767e2,
+    "V_ad": 139.88354730982294,#1.44290e2,
+    "V_sv": 3800.6771443568937,#3.80285e3,
+    "V_LA": 193.99555092431984,#1.94894e2,
+    "V_LV": 98.40525741977021, #8.39793e1,
+    "stop_iter": 0,
 }
-#Circparam = {    
-#    "Ees_la": 120,
-#    "A_la": 60.0,
-#    "B_la": 0.03,
-#    "V0_la": 10,
-#    "Tmax_la": 150,
-#    "tau_la": 30,
-#    "tdelay_la": 225,
-#    "Csa": 0.0035,
-#    "Cad": 0.04,
-#    "Csv": 0.5,
-#    "Vsa0": 320,
-#    "Vsv0": 3370.0,
-#    "Vad0": 40,
-#    "Rav": 5000.0,
-#    "Rsv": 100.0,
-#    "Rsa": 18000,
-#    "Rad": 25000,
-#    "Rmv": 250.0,
-#    # volumes
-#    "V_sv": 3600,
-#    "V_LV": 105,
-#    "V_sa": 1750,
-#    "V_ad": 37,
-#    "V_LA": 35,
-#    "stop_iter": 1,
-#
-#}
 
 SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 0.5,
-    "writeStep": 5.0,
+    "EDP": 12.342740722563716,#1.24326e1,
+    "writeStep": 5,
     "GiccioneParams": GuccioneParams,
-    "nLoadSteps": 15,
+    "nLoadSteps": 50,
     "DTI_EP": False,
     "DTI_ME": False,
-    "d_pj": 5e1,#5e-2,#5e1,
-    "d_iso": 0.02,#*5e-2,
-    "d_ani_factor": 0.4,#*5e-2,
+    "d_pj": 5e0,#5e-2,#5e1,
+    "d_iso": 0.0002,#*5e-2,
+    "d_ani_factor": 0.004,#*5e-2,
     "ani_factor": 1000.0,
     "ploc_tol": 0.07,
     "Isclosed": True,
@@ -147,6 +120,8 @@ SimDetails = {
     "Mechanics Discretization": "P1P1",#"P1P1",
     "isPJ": True,
     "isLV": True,
+    "isBiV": False,
+    "spring_atbase": True,
     "topid": 4,
     "LVendoid": 2,
     "RVendoid": 0,
@@ -156,10 +131,11 @@ SimDetails = {
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
-    "epiid_Kadj_coeff": [50, 10],
-    # "springparam": [2.0e3, 2.0e2],  # Kepi_n / Kepi_t
-    # "dashpotparam": [2.0e2, 2.0e1],  # Cepi_n / Cepi_t
-    # "spring_atbase": 0,
+    "epiid_Kadj_coeff": [10, 10],
+    "active_region": [0],
+    "annulus_region": [1],
+    "annulus_stiffness_factor": 100,
+    "dashpotparam": [10.0e1,2.0e1],
     "permeability": 1.0e-9,
     "p_a": 0.0,
     "p_v": 1300.0,
@@ -169,8 +145,8 @@ SimDetails = {
     # "d_iso_pj": 150.0,
     "ploc_mode": False,
     "ploc": [[-0.574335, -1.8842, -0.168375]],
-    "current_intensity": 10,#50,
-    "PJ_current_intensity": 15,#5,#15,
+    "current_intensity": 5,#50,
+    "PJ_current_intensity": 10,#5,#15,
     "pacing_timing": [[0.0, 10.0]],
     "lbbb": False,#True,
     "lbbb_delay": 1e-9,
@@ -186,10 +162,11 @@ run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 # Extract only Displacement
 #dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["u", "CG", 1]], EP_var=[], PJ_var=[])
 #dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["fstress", "DG", 0], ["potential_ref", "DG", 0]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
+#dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["u", "CG", 1]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
 #compute_activation(IODet=IODetails, SimDet=SimDetails)
 #compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
-# plothemodynamics(IODet=IODetails, SimDet=SimDetails)
-# plotpressure(IODet=IODetails, SimDet=SimDetails)
+#plothemodynamics(IODet=IODetails, SimDet=SimDetails)
+#plotpressure(IODet=IODetails, SimDet=SimDetails)
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
 # compute_activation(IODet=IODetails, SimDet=SimDetails)
 

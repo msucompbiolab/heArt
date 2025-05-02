@@ -1105,8 +1105,20 @@ class MEmodel(object):
                         F1 += derivative(WpRub_me, w_me, wtest_me) * dx_me
                 region_cnt += 1
 
-        else:  # not iswaorta, not poro, not fch_fe
-            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+        elif self.isLV: 
+            if (
+                "annulus_region" in list(self.SimDet.keys())
+            ):
+                region_cnt = 0
+                annulus_stiff_factor = self.SimDet["annulus_stiffness_factor"]
+                F1 = derivative(Wp_me, w_me, wtest_me) * dx_me(0)
+                for regionid in self.SimDet["annulus_region"]:
+                    F1 += Constant(annulus_stiff_factor) * derivative(Wp_me, w_me, wtest_me) * dx_me(regionid) 
+            else:
+                F1 = derivative(Wp_me, w_me, wtest_me) * dx_me
+
+        else:  # not iswaorta, not poro, not fch_fe 
+            F1 = derivative(Wp_me, w_me, wtest_me) * dx_me 
 
         if "active_region" in list(self.SimDet.keys()):
             print("Active region = ", self.SimDet["active_region"])
@@ -1117,6 +1129,7 @@ class MEmodel(object):
                     Sactive = activeforms.PK2StressTensor()
                 else:
                     Sactive = activeforms.PK2StressTensor_atr() # *
+
                 if region_cnt == 0:
                     # F4 = inner(Fmat * Sactive, grad(v_me)) * (dx_me(int(regionid)))
                     F4 = (
@@ -1124,7 +1137,7 @@ class MEmodel(object):
                         * inner(Fmat * Sactive, grad(v_me))
                         * dx_me(int(regionid))
                     )
-                    print("Assigning active stress to ", regionid)
+                    print("Assigning active stress to ", regionid, " with factor ", factor)
                 else:
                     # F4 += inner(Fmat * Sactive, grad(v_me)) * (dx_me(int(regionid)))
                     F4 += (
@@ -1132,13 +1145,14 @@ class MEmodel(object):
                         * inner(Fmat * Sactive, grad(v_me))
                         * dx_me(int(regionid))
                     )
-                    print("Assigning active stress to ", regionid)
+                    print("Assigning active stress to ", regionid, " with factor ", factor)
 
                 region_cnt += 1
 
         else:
             Sactive = activeforms.PK2StressTensor()
             F4 = inner(Fmat * Sactive, grad(v_me)) * dx_me
+
 
         Ftotal = F1 + F4
 
@@ -1335,7 +1349,7 @@ class MEmodel(object):
                         #k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * u_me
                         #+ c_damping[0] * (u_me - u_me_n)
                         k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * (u_me - u_me_ED) 
-                        + c_damping[0] * (u_me - u_me_n - u_me_ED)
+                        + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
                 ) * (ds_me(epiid)) + inner(
@@ -1344,7 +1358,7 @@ class MEmodel(object):
                         #k_spring[1] * epiid_Kadj_coeff[1] * u_me
                         #+ c_damping[1] * (u_me - u_me_n)
                         k_spring[1] * epiid_Kadj_coeff[1] * (u_me - u_me_ED)
-                        + c_damping[1] * (u_me - u_me_n - u_me_ED)
+                        + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,
                 ) * (
@@ -1359,8 +1373,20 @@ class MEmodel(object):
                     and self.SimDet["spring_atbase"]
                 ):
                     a_, b_ = self.GetTopSpring()
-                    F3_base = a_ * inner(b_, v_me) * ds_me(topid)
+                    F3_base = self.LVCavitypres * a_ * inner(b_, v_me) * ds_me(topid)
                     F3 -= F3_base
+
+                # constraint average motion at base (LCL)
+                #utop_avg_x = assemble(u_me[0]*ds_me(topid))/assemble(Constant(1.0)*ds_me(topid))
+                #utop_avg_y = assemble(u_me[1]*ds_me(topid))/assemble(Constant(1.0)*ds_me(topid))
+                #utop_avg_z = assemble(u_me[2]*ds_me(topid))/assemble(Constant(1.0)*ds_me(topid))
+                #utop_avg = Constant((utop_avg_x, utop_avg_y, utop_avg_z))
+                #F3_base = Constant(1e5)*inner(outer(N_me, N_me)*(u_me - utop_avg), v_me)*(ds_me(topid))
+
+                #W_base = Constant(1e3)*(inner(u_me,N_me) - 
+                #         assemble(inner(u_me,N_me)*ds_me(topid))/assemble(Constant(1.0)*ds_me(topid)))**2*ds_me(topid)
+                #F3_base = derivative(W_base, u_me, v_me)
+                #F3 += F3_base
 
             elif self.isBiV:
 
@@ -1370,14 +1396,14 @@ class MEmodel(object):
                     outer(N_me, N_me)
                     * (
                         k_spring[0] * epiid_Kadj_coeff[0] * self.Mesh.poissonF * (u_me - u_me_ED) 
-                        + c_damping[0] * (u_me - u_me_n - u_me_ED)
+                        + c_damping[0] * (u_me - u_me_n)
                     ),
                     v_me,
                 ) * (ds_me(epiid)) + inner(
                     (Identity(u_me.ufl_shape[0]) - outer(N_me, N_me))
                     * (
                         k_spring[1] * epiid_Kadj_coeff[1] * (u_me - u_me_ED)
-                        + c_damping[1] * (u_me - u_me_n - u_me_ED)
+                        + c_damping[1] * (u_me - u_me_n)
                     ),
                     v_me,
                 ) * (

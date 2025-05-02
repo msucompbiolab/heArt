@@ -326,6 +326,7 @@ class Forms(object):
             metadata={"quadrature_degree": 4},
         )
         pe = self.parameters["lv_constrained_pres"]
+        pe = Constant(1.0)
         F = self.Fmat()
         J = self.J()
 

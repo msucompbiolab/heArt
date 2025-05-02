@@ -30,24 +30,27 @@ from heArt_py3.src.postprocessing.postprocessdata2 import (
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # ellipsoidal_baselinegeo
 IODetails = {
-    "casename_me": "ellipsoidal_baselinegeo_coarse",
-    "casename_ep": "ellipsoidal_baselinegeo_coarse",
-    "directory_me": "../LVMesh/lc/",
-    "directory_ep": "../LVMesh/lc/",
-    #"outputfolder": "/mnt/Output/outputs_LVelectromechanics/",
-    "outputfolder": "./Outputs/",
+    #"casename_me": "ellipsoidal_baselinegeo_coarse",
+    "casename_me": "ellipsoidal_baselinegeo_medium3",
+    #"casename_ep": "ellipsoidal_baselinegeo_coarse",
+    "casename_ep": "ellipsoidal_baselinegeo_medium3",
+    "directory_me": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    "directory_ep": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    "outputfolder": "/mnt/scratch/lclee/output_heArt_py3/outputs_BiVelectromechanics/",
+    #"outputfolder": "./Outputs/",
     "folderName": "",
-    "caseID": "LVelectromechanics_ncircp_P1P1",
+    #"caseID": "LVelectromechanics_ncircp_P1P1_test_K10_10_mesh3_cap_contract180",
+    "caseID": "LVelectromechanics_ncircp_P1P1_test_K30_10_mesh3_cap_contract220",
     "isLV": True,
 }
 
-contRactility = 400e3
+contRactility = 220e3#150e3#400e3
 
 GuccioneParams = {
     "ParamsSpecified": True,
     "Passive model": {"Name": "Guccione"},
     "Passive params": {
-        "Cparam": Constant(130.0),
+        "Cparam": Constant(50.0),#Constant(130.0),
         "bff": Constant(29.0),
         "bfx": Constant(13.3),
         "bxx": Constant(26.6),
@@ -88,13 +91,13 @@ Circparam = {
     "Rsv": 100.0,
     "Rsa": 58000,
     "Rad": 106000,
-    "Rmv": 2000,#5000.0,#2000.0,#200.0,
-    "V_sa": 4.09767e2,#3.96351e2,#3.91238e2,#3.05990/0.0075,#386.4525256055264,
-    "V_ad": 1.44290e2,#2.34590e2, #1.99282e2,#2.17041/0.0075,#309.22012729232915,
-    "V_sv": 3.80285e3,#3.75315e3,#3.78462e3,#27.8388/0.0075,#3709.681538561804,
-    "V_LA": 1.94894e2 ,#1.74052e2,#1.87231e2,#1.17362/0.0075,#157.01981722400419,
-    "V_LV": 8.39793e1,#8.31736e1,#8.63382e1,#0.623930/0.0075,#101.62599131634467,
-    "stop_iter": 3,
+    "Rmv": 2000,
+    "V_sa": 407.9870929796549, #4.09767e2,
+    "V_ad": 139.88354730982294,#1.44290e2,
+    "V_sv": 3800.6771443568937,#3.80285e3,
+    "V_LA": 193.99555092431984,#1.94894e2,
+    "V_LV": 98.40525741977021, #8.39793e1,
+    "stop_iter": 5,
     "issoftplus": False,
 }
 
@@ -103,10 +106,10 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 0.5, 
-    "EDP": 1.24326e1,
-    "writeStep": 5.0,
+    "EDP": 12.342740722563716,#1.24326e1,
+    "writeStep": 5,
     "GiccioneParams": GuccioneParams,
-    "nLoadSteps": 25,
+    "nLoadSteps": 50,
     "DTI_EP": False,
     "DTI_ME": False,
     "d_iso": 1.5 * 0.005,
@@ -127,9 +130,11 @@ SimDetails = {
     "Isclosed": True,
     "closedloopparam": Circparam,
     "Ischemia": False,
-    "springbc": True,#0,
+    "springbc": True,
+    #"springref": ["/mnt/Research/heArt/heArt_py3/demo/Data_test.h5", "ME/u_loading"],
     "Mechanics Discretization": "P1P1",#"P2P1",
     "isLV": True,
+    "spring_atbase": True,
     "topid": 4,
     "LVendoid": 2,
     "RVendoid": 0,
@@ -139,8 +144,11 @@ SimDetails = {
     "isunloading": False,
     "isunloadingonly": False,
     "ispctrl": True,
-    "epiid_Kadj_coeff": [40, 2],
-    "dashpotparam": [10.0e2,2.0e1],
+    "epiid_Kadj_coeff": [30,10], #[10,5],#[40, 2],
+    "active_region": [0],
+    "annulus_region": [1],
+    "annulus_stiffness_factor": 100,
+    "dashpotparam": [10.0e1,2.0e1],
     "permeability": 1.0e-9,
     "p_a": 0.0,
     "p_v": 1300.0,
@@ -149,12 +157,12 @@ SimDetails = {
 }
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 # Postprocessing
 #dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["fstress", "DG", 0]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
 # postprocessdata(IODet=IODetails, SimDet=SimDetails)
-#extractdisplacement(IODet=IODetails, SimDet=SimDetails)
-#compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
-#plothemodynamics(IODet=IODetails, SimDet=SimDetails, cycle=3)
-# extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
+compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
+extractdisplacement(IODet=IODetails, SimDet=SimDetails)
+plothemodynamics(IODet=IODetails, SimDet=SimDetails)
+#extractdisplacementloading(IODet=IODetails, SimDet=SimDetails)
