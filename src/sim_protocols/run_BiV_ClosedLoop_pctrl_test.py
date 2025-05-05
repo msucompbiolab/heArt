@@ -638,6 +638,24 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                    printout("Solving FHN PJ", comm_me)
                    solver_FHN_pj.solvenonlinear()
 
+        else:
+            if state_obj.t < state_obj.dt.dt:
+                EPmodel_ep.reset()
+ 
+            # Activate EP network
+            if(state_obj.t > SimDet["pacing_timing"][0][0] and \
+               state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
+                for  p in range(0,len(EPmodel_ep.fstim_array)):
+                    EPmodel_ep.fstim_array[p].iStim = intensity
+                    print("pacing", EPmodel_ep.fstim_array)
+            else:
+                for  p in range(0,len(EPmodel_ep.fstim_array)):
+                    EPmodel_ep.fstim_array[p].iStim = 0.0
+
+            if not SimDet.get("lv_lumped") and not ishomo:
+                printout("Solving FHN EP", comm_me)
+                solver_FHN_ep.solvenonlinear()
+
         if isrestart == 0:
             MEmodel_.UpdateVar()  # For damping
             EPmodel_ep.UpdateVar()
@@ -693,8 +711,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                         tstart_arr[p] += state_obj.dt.dt
                 else:
                     EPmodel_ep.fstim_array[p].iStim = 0.0
-
-
 
         F_n = MEmodel_.GetFmat()
         fstress_DG = project(
