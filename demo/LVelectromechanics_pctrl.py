@@ -7,7 +7,7 @@ import numpy as np
 sys.setrecursionlimit(5000)  # Increase to a higher value
 sys.path.append("/mnt/Research/heArt")
 sys.path.append("/mnt/Research")
-#sys.path.append("/mnt/Research/heArt_py3_original")
+sys.path.append("/mnt/Research/heArt_py3_original")
 sys.path.append("/mnt/Output")
 
 import vtk_py3
@@ -31,12 +31,15 @@ IODetails = {
     "casename_me": "ellipsoidal_baselinegeo_medium3",
     "casename_ep": "ellipsoidal_baselinegeo_fine1",
     #"directory_me": "../../../heArt_py3_purkinje/LV_pj_lc/",
-    "directory_me": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
-    "directory_ep": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    #"directory_me": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    #"directory_ep": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    "directory_me": "/mnt/Research/heArt_py3_original/heArt_py3/LVMesh/lc/",
+    "directory_ep": "/mnt/Research/heArt_py3_original/heArt_py3/LVMesh/lc/",
      #"directory_ep": "../LVMesh/vh/",
     "directory_pj": "/mnt/home/lclee/heArt/heArt_py3/PJmesh/",
     "casename_pj": "PJmarked",
-    "outputfolder": "/mnt/scratch/lclee/output_heArt_py3/outputs_BiVelectromechanics/",
+    #"outputfolder": "/mnt/scratch/lclee/output_heArt_py3/outputs_BiVelectromechanics/",
+    "outputfolder": "./outputs_BiVelectromechanics/",
     "folderName": "/",
     "caseID": "LVelectromechanics-test",
     #"caseID": "LVelectromechanics-test-lbbb",
@@ -154,7 +157,7 @@ SimDetails = {
 }
 
 # Run Simulation
-#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 
 # Postprocessing
 #postprocessdata(IODet=IODetails, SimDet=SimDetails)
@@ -166,7 +169,7 @@ SimDetails = {
 #plothemodynamics(IODet=IODetails, SimDet=SimDetails)
 #plotpressure(IODet=IODetails, SimDet=SimDetails)
 #compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
-compute_activation(IODet=IODetails, SimDet=SimDetails)
+#compute_activation(IODet=IODetails, SimDet=SimDetails)
 # dumpvtk(IODet=IODetails, SimDet=SimDetails)
 # compute_activation(IODet=IODetails, SimDet=SimDetails)
 

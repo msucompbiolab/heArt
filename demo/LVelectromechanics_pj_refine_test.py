@@ -7,7 +7,7 @@ import numpy as np
 sys.setrecursionlimit(5000)  # Increase to a higher value
 sys.path.append("/mnt/Research/heArt")
 sys.path.append("/mnt/Research")
-#sys.path.append("/mnt/Research/heArt_py3_original")
+sys.path.append("/mnt/Research/heArt_py3_original")
 sys.path.append("/mnt/Output")
 
 import vtk_py3
@@ -31,12 +31,17 @@ IODetails = {
     "casename_me": "ellipsoidal_baselinegeo_medium3",
     "casename_ep": "ellipsoidal_baselinegeo_fine1",
     #"directory_me": "../../../heArt_py3_purkinje/LV_pj_lc/",
-    "directory_me": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
-    "directory_ep": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    #"directory_me": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    #"directory_ep": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    "directory_me": "/mnt/Research/heArt_py3_original/heArt_py3/LVMesh/lc/",
+    "directory_ep": "/mnt/Research/heArt_py3_original/heArt_py3/LVMesh/lc/",
      #"directory_ep": "../LVMesh/vh/",
-    "directory_pj": "/mnt/home/lclee/heArt/heArt_py3/PJmesh/",
+     #"directory_ep": "../LVMesh/vh/",
+    #"directory_pj": "/mnt/home/lclee/heArt/heArt_py3/PJmesh/",
+    "directory_pj": "/mnt/Research/heArt_py3_original/heArt_py3/PJmesh/",
     "casename_pj": "PJmarked",
-    "outputfolder": "/mnt/scratch/lclee/output_heArt_py3/outputs_BiVelectromechanics/",
+    #"outputfolder": "/mnt/scratch/lclee/output_heArt_py3/outputs_BiVelectromechanics/",
+    "outputfolder": "./outputs_BiVelectromechanics/",
     "folderName": "/",
     "caseID": "LVelectromechanics-PJ-test",
     #"caseID": "LVelectromechanics-test-lbbb",
@@ -102,10 +107,10 @@ SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 0.5,
-    "EDP": 12.342740722563716,#1.24326e1,
+    "EDP": 1.0,#12.342740722563716,#1.24326e1,
     "writeStep": 5,
     "GiccioneParams": GuccioneParams,
-    "nLoadSteps": 50,
+    "nLoadSteps": 2,#50,
     "DTI_EP": False,
     "DTI_ME": False,
     "d_pj": 5e0,#5e-2,#5e1,
