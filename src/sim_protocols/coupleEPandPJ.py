@@ -48,17 +48,17 @@ class coupleEPandPJ(object):
             if(phi_pj_val > 0.9 and self.tstart_arr[p] < 1.0):
                 if(self.tstart_arr[p] < 0):
                     self.tstart_arr[p] = 0
-                    if("fstim_array" in dir(EPmodel)):
-                        EPmodel.fstim_array[p].iStim = self.pj_intensity
-                    else:
+                    if("fstim_val_array" in dir(EPmodel)):
                         EPmodel.fstim_val_array[p] = self.pj_intensity
+                    else:
+                        EPmodel.fstim_array[p].iStim = self.pj_intensity
                 else:
                     self.tstart_arr[p] += state_obj.dt.dt
             else:
-                if("fstim_array" in dir(EPmodel)):
-                    EPmodel.fstim_array[p].iStim = 0.0
-                else:
+                if("fstim_val_array" in dir(EPmodel)):
                     EPmodel.fstim_val_array[p] = 0.0
+                else:
+                    EPmodel.fstim_array[p].iStim = 0.0
 
         if("UpdateActivation" in dir(EPmodel)):
             EPmodel.UpdateActivation()

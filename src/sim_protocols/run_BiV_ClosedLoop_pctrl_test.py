@@ -28,7 +28,8 @@ from ..utils.oops_objects_MRC2 import exportfiles
 from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
 from ..utils.oops_objects_MRC2 import json_serialize
 
-from ..ep.EPmodel_basic_test import EPmodel
+#from ..ep.EPmodel_basic_test import EPmodel
+from ..ep.EPmodel_cpp import EPmodel
 
 from ..mechanics.MEmodel3 import MEmodel
 
@@ -374,8 +375,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if state_obj.cycle > stop_iter:
             break
 
-        if state_obj.t > 20:
-            break
 
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
             params = {
@@ -606,12 +605,22 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                    # Activate PJ fiber network
                    if(state_obj.t > SimDet["pacing_timing"][0][0] and \
                       state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
-                       EPmodel_pj.fstim_array[0].iStim = pj_intensity
-                       print("pacing", EPmodel_pj.fstim_array)
+                       if("fstim_val_array" in dir(EPmodel_pj)):
+                           EPmodel_pj.fstim_val_array[0] = pj_intensity
+                           print("pacing", EPmodel_pj.fstim_val_array)
+                       else:
+                           EPmodel_pj.fstim_array[0].iStim = pj_intensity
+                           print("pacing", EPmodel_pj.fstim_array)
                    else:
-                       EPmodel_pj.fstim_array[0].iStim = 0.0
+                       if("fstim_val_array" in dir(EPmodel_pj)):
+                           EPmodel_pj.fstim_val_array[0] = 0
+                       else:
+                           EPmodel_pj.fstim_array[0].iStim = 0
+
                        print("not pacing")
 
+                   if("UpdateActivation" in dir(EPmodel_pj)):
+                       EPmodel_pj.UpdateActivation()
                    printout("Solving FHN PJ", comm_me)
                    solver_FHN_pj.solvenonlinear()
 
