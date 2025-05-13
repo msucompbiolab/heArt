@@ -27,22 +27,23 @@ from heArt_py3.src.postprocessing.postprocessdata2 import plotpressure as plotpr
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
-    #"casename_me": "ellipsoidal_baselinegeo_coarse",
-    #"casename_ep": "ellipsoidal_baselinegeo_coarse",
-    "casename_me": "ellipsoidal_baselinegeo_medium3",
-    "casename_ep": "ellipsoidal_baselinegeo_fine1",
+    "casename_me": "ellipsoidal_baselinegeo_coarse",
+    "casename_ep": "ellipsoidal_baselinegeo_coarse",
+    #"casename_me": "ellipsoidal_baselinegeo_medium3",
+    #"casename_ep": "ellipsoidal_baselinegeo_fine1",
     #"directory_me": "../../../heArt_py3_purkinje/LV_pj_lc/",
-    #"directory_me": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
-    #"directory_ep": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
-    "directory_me": "/mnt/Research/heArt_py3_original/heArt_py3/LVMesh/lc/",
-    "directory_ep": "/mnt/Research/heArt_py3_original/heArt_py3/LVMesh/lc/",
+    "directory_me": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    "directory_ep": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
+    #"directory_me": "/mnt/Research/heArt_py3_original/heArt_py3/LVMesh/lc/",
+    #"directory_ep": "/mnt/Research/heArt_py3_original/heArt_py3/LVMesh/lc/",
      #"directory_ep": "../LVMesh/vh/",
      #"directory_ep": "../LVMesh/vh/",
-    #"directory_pj": "/mnt/home/lclee/heArt/heArt_py3/PJmesh/",
-    "directory_pj": "/mnt/Research/heArt_py3_original/heArt_py3/PJmesh/",
+    "directory_pj": "/mnt/home/lclee/heArt/heArt_py3/PJmesh/",
+    #"directory_pj": "/mnt/Research/heArt_py3_original/heArt_py3/PJmesh/",
     "casename_pj": "PJmarked",
     #"outputfolder": "/mnt/scratch/lclee/output_heArt_py3/outputs_BiVelectromechanics/",
-    "outputfolder": "./outputs_BiVelectromechanics/",
+    "outputfolder": "/mnt/home/lclee/heArt/heArt_py3/demo/outputs_BiVelectromechanics/",
+    #"outputfolder": "./outputs_BiVelectromechanics/",
     "folderName": "/",
     "caseID": "LVelectromechanics-PJ-test",
     #"caseID": "LVelectromechanics-test-lbbb",
@@ -101,17 +102,17 @@ Circparam = {
     "V_sv": 3800.6771443568937,#3.80285e3,
     "V_LA": 193.99555092431984,#1.94894e2,
     "V_LV": 98.40525741977021, #8.39793e1,
-    "stop_iter": 0,
+    "stop_iter": 1,
 }
 
 SimDetails = {
     "diaplacementInfo_ref": False,
     "HeartBeatLength": 800.0,
     "dt": 0.5,
-    "EDP": 1.0,#12.342740722563716,#1.24326e1,
+    "EDP": 12.342740722563716,#1.24326e1,
     "writeStep": 5,
     "GiccioneParams": GuccioneParams,
-    "nLoadSteps": 2,#50,
+    "nLoadSteps": 50,
     "DTI_EP": False,
     "DTI_ME": False,
     "d_pj": 5e0,#5e-2,#5e1,
@@ -160,7 +161,7 @@ SimDetails = {
 }
 
 # Run Simulation
-run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 
 # Postprocessing
 #postprocessdata(IODet=IODetails, SimDet=SimDetails)

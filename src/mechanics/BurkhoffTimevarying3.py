@@ -5,6 +5,7 @@
 from dolfin import *
 import math
 import numpy as np
+from ..utils.oops_objects_MRC2 import printout
 
 
 class BurkhoffTimevarying(object):
@@ -16,16 +17,16 @@ class BurkhoffTimevarying(object):
         bivMesh = self.parameters["mesh"]
         mesh = bivMesh
 
-        print("Using Burkhoff model")
+        printout("Using Burkhoff model", mesh.mpi_comm())
 
         self.t_init = self.parameters["t_init"]
         self.isActive = self.parameters["isActive"]
 
-        print("t_init vector is :")
-        print(self.t_init.vector().get_local())
+        #print("t_init vector is :")
+        #print(self.t_init.vector().get_local())
 
-        print("isActive vector is :")
-        print(self.isActive.vector().get_local())
+        #print("isActive vector is :")
+        #print(self.isActive.vector().get_local())
 
         isActive_write_elem = FunctionSpace(mesh, "CG", 1)
         self.isActive_write_elem = isActive_write_elem

@@ -372,6 +372,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     it_ = 0
 
     while 1:
+
         if state_obj.cycle > stop_iter:
             break
 
@@ -578,7 +579,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             else:
                 P_RV = root1[1]
 
-
         state_obj.tstep = state_obj.tstep + state_obj.dt.dt
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)
         state_obj.t = state_obj.tstep - state_obj.cycle * state_obj.BCL
@@ -607,17 +607,17 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                       state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
                        if("fstim_val_array" in dir(EPmodel_pj)):
                            EPmodel_pj.fstim_val_array[0] = pj_intensity
-                           print("pacing", EPmodel_pj.fstim_val_array)
+                           printout("pacing", comm_me)#, EPmodel_pj.fstim_val_array)
                        else:
                            EPmodel_pj.fstim_array[0].iStim = pj_intensity
-                           print("pacing", EPmodel_pj.fstim_array)
+                           printout("pacing", comm_me)#, EPmodel_pj.fstim_array)
                    else:
                        if("fstim_val_array" in dir(EPmodel_pj)):
                            EPmodel_pj.fstim_val_array[0] = 0
                        else:
                            EPmodel_pj.fstim_array[0].iStim = 0
 
-                       print("not pacing")
+                       printout("not pacing", comm_me)
 
                    if("UpdateActivation" in dir(EPmodel_pj)):
                        EPmodel_pj.UpdateActivation()
@@ -633,7 +633,7 @@ def run_BiV_ClosedLoop(IODet, SimDet):
                state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
                 for  p in range(0,len(EPmodel_ep.fstim_array)):
                     EPmodel_ep.fstim_array[p].iStim = intensity
-                    print("pacing", EPmodel_ep.fstim_array)
+                    printout("pacing", comm_me)#, EPmodel_ep.fstim_array)
             else:
                 for  p in range(0,len(EPmodel_ep.fstim_array)):
                     EPmodel_ep.fstim_array[p].iStim = 0.0

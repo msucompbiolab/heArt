@@ -33,31 +33,31 @@ public:
       for (const auto& p : solver_params) {
           if(p.first == "c"){
               c = double(solver_params[p.first]);
-              std::cout << p.first << " = " << c << std::endl;
+              //std::cout << p.first << " = " << c << std::endl;
           };
           if(p.first == "alpha"){
               alpha = double(solver_params[p.first]);
-              std::cout << p.first << " = " << alpha << std::endl;
+              //std::cout << p.first << " = " << alpha << std::endl;
           };
           if(p.first == "g"){
               g = double(solver_params[p.first]);
-              std::cout << p.first << " = " << g << std::endl;
+              //std::cout << p.first << " = " << g << std::endl;
           };
           if(p.first == "b"){
               b = double(solver_params[p.first]);
-              std::cout << p.first << " = " << b << std::endl;
+              //std::cout << p.first << " = " << b << std::endl;
           };
           if(p.first == "mu1"){
               mu1 = double(solver_params[p.first]);
-              std::cout << p.first << " = " << mu1 << std::endl;
+              //std::cout << p.first << " = " << mu1 << std::endl;
           };
           if(p.first == "mu2"){
               mu2 = double(solver_params[p.first]);
-              std::cout << p.first << " = " << mu2 << std::endl;
+              //std::cout << p.first << " = " << mu2 << std::endl;
           };
           if(p.first == "k"){
               k = double(solver_params[p.first]);
-              std::cout << p.first << " = " << k << std::endl;
+              //std::cout << p.first << " = " << k << std::endl;
           };
       };
   };
@@ -135,6 +135,27 @@ public:
     VecRestoreArray(r_, &array_r);
 
   };
+
+  void Zero_r(std::shared_ptr<dolfin::PETScVector> r)
+  {
+    Vec r_ = r->vec();
+    assert(r_);
+  
+    PetscInt local_size;
+    PetscScalar *array_r;
+  
+    VecGetLocalSize(r_, &local_size);
+  
+    VecGetArray(r_, &array_r);
+  
+    for (PetscInt i = 0; i < local_size; i++) {
+        array_r[i] = 0.0;
+    };
+  
+    VecRestoreArray(r_, &array_r);
+
+  };
+
 };
 
 // Bind cpp object to python
@@ -142,7 +163,8 @@ PYBIND11_MODULE(SIGNATURE, m) {
     py::class_<FHNmodel>(m, "FHNmodel")
         .def(py::init<py::dict>())  // Constructor with dictionary
         .def("Update_fphi", &FHNmodel::Update_fphi)
-        .def("Update_r", &FHNmodel::Update_r);
+        .def("Update_r", &FHNmodel::Update_r)
+        .def("Zero_r", &FHNmodel::Zero_r);
 };
 
 

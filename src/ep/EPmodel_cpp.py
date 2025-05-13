@@ -320,7 +320,7 @@ class EPmodel(object):
             # Solve for u for (M + kA)*u = M*(un + k*fphi + I)
             self.w_n_ep.vector().axpy(float(self.k), self.f_phi_.vector())
             self.Mass_P.mult(self.w_n_ep.vector(), self.t1_ep)
-            print("Solving t1: ", max(self.I_source_vec.get_local()))
+            #print("Solving t1: ", max(self.I_source_vec.get_local()))
             self.t1_ep.axpy(float(self.k), self.I_source_vec)
             self.solver.solve(self.MD_matrix, self.w_ep.vector(), self.t1_ep)
             if np.isnan(np.min(self.w_ep.vector().get_local())):
@@ -372,7 +372,9 @@ class EPmodel(object):
     def reset(self):
         self.w_n_ep.vector().zero()
         self.w_ep.vector().zero()
-        self.r_ep.vector().zero()
+        
+        r_vec = self.r_ep.vector()
+        self.FHNmodel.Zero_r(r_vec)
 
         return
 

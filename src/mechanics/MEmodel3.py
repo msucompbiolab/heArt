@@ -374,7 +374,7 @@ class MEmodel(object):
                 LVV = self.GetLVV()
 
                 if LVP > EDP:
-                    print("Decrease load step")
+                    printout("Decrease load step", comm_me)
                     self.LVCavityvol.vol -= volinc
                     volinc = volinc / 2.0
                     continue
@@ -1121,7 +1121,7 @@ class MEmodel(object):
             F1 = derivative(Wp_me, w_me, wtest_me) * dx_me 
 
         if "active_region" in list(self.SimDet.keys()):
-            print("Active region = ", self.SimDet["active_region"])
+            printout("Active region = " + str(self.SimDet["active_region"]), comm_me)
             region_cnt = 0
             for regionid in self.SimDet["active_region"]:
                 factor = {3: 0.2, 4: 0.1}.get(regionid, 1.0)  # hdf5-specific
@@ -1137,7 +1137,7 @@ class MEmodel(object):
                         * inner(Fmat * Sactive, grad(v_me))
                         * dx_me(int(regionid))
                     )
-                    print("Assigning active stress to ", regionid, " with factor ", factor)
+                    printout("Assigning active stress to "+ str(regionid) + " with factor " + str(factor), comm_me)
                 else:
                     # F4 += inner(Fmat * Sactive, grad(v_me)) * (dx_me(int(regionid)))
                     F4 += (
@@ -1145,7 +1145,7 @@ class MEmodel(object):
                         * inner(Fmat * Sactive, grad(v_me))
                         * dx_me(int(regionid))
                     )
-                    print("Assigning active stress to ", regionid, " with factor ", factor)
+                    printout("Assigning active stress to "+ str(regionid) + " with factor " + str(factor), comm_me)
 
                 region_cnt += 1
 
