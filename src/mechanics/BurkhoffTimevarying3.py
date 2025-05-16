@@ -86,6 +86,7 @@ class BurkhoffTimevarying(object):
         f0 = self.parameters["fiber"]
         t0 = self.parameters["material params"]["t0"]
         t_a = self.parameters["t_a"]
+        cyc = self.parameters["cycle"]
 
         Cmat = F.T * F
         lmbda = sqrt(dot(f0, Cmat * f0))
@@ -101,6 +102,8 @@ class BurkhoffTimevarying(object):
         t0 = self.parameters["material params"]["t0"]
 
         t_a = self.parameters["t_a"]  # current time
+        cycle = self.parameters["cycle"]
+        BCL = self.parameters["HeartBeatLength"]
 
         if "t_trans" in list(self.parameters["material params"].keys()):
             t_trans = self.parameters["material params"]["t_trans"]
@@ -116,7 +119,7 @@ class BurkhoffTimevarying(object):
         #    t_init = self.t_init # time of activation
 
         t_init = self.t_init
-        t_since_activation = t_a - t_init
+        t_since_activation = t_a - t_init - cycle * BCL
 
         xp4 = conditional(
             gt(t_since_activation, Constant(0.0)), 1.0, 0.0
@@ -138,6 +141,8 @@ class BurkhoffTimevarying(object):
     def w2(self):
         t0 = self.parameters["material params"]["t0"]
         t_a = self.parameters["t_a"]
+        cycle = self.parameters["cycle"]
+        BCL = self.parameters["HeartBeatLength"]
 
         if "t_trans" in list(self.parameters["material params"].keys()):
             t_trans = self.parameters["material params"]["t_trans"]
@@ -148,7 +153,8 @@ class BurkhoffTimevarying(object):
 
         t_init = self.t_init  # time of activation
 
-        t_since_activation = t_a - t_init
+        #t_since_activation = t_a - t_init
+        t_since_activation = t_a - t_init - cycle * BCL
 
         xp2 = conditional(le(t_trans, t_since_activation), 1.0, 0.0)
 

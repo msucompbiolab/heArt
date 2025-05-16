@@ -28,8 +28,8 @@ from ..utils.oops_objects_MRC2 import exportfiles
 from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
 from ..utils.oops_objects_MRC2 import json_serialize
 
-#from ..ep.EPmodel_basic_test import EPmodel
-from ..ep.EPmodel_cpp import EPmodel
+from ..ep.EPmodel_basic_test import EPmodel
+#from ..ep.EPmodel_cpp import EPmodel
 
 from ..mechanics.MEmodel3 import MEmodel
 
@@ -335,11 +335,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
     P_LV = MEmodel_.GetLVP()  # LVCavitypres.pres
     V_LV = MEmodel_.GetLVV()  # GetVolumeComputation()
 
-    #if isPJ:
-    #    tstart_arr = [-10]*len(pj_t_nodes)
-    #    probesPJ = Probes(pj_t_nodes.flatten(), EPmodel_pj.w_ep.function_space().sub(0))
-    #    comms = EPmodel_pj.mesh.mpi_comm()
-
     if isBiV or isFCH:
         if SimDet.get("fch_fe"):
             P_LA = MEmodel_.GetLAP()  # set an initial value for P_LA and P_RA
@@ -583,7 +578,19 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         state_obj.cycle = math.floor(state_obj.tstep / state_obj.BCL)
         state_obj.t = state_obj.tstep - state_obj.cycle * state_obj.BCL
 
-        MEmodel_.t_a.vector()[:] = state_obj.t
+        # Compute local time since activation
+        t_init = MEmodel_.activeforms.t_init.vector().get_local()
+        local_cycle = np.floor((MEmodel_.t_a.vector().get_local() - t_init)/ state_obj.BCL)
+        local_cycle[local_cycle < 0] = 0 # Return zero if cycle is less than zero
+        MEmodel_.cycle.vector()[:] = local_cycle
+        MEmodel_.t_a.vector()[:] = MEmodel_.t_a.vector().get_local() + state_obj.dt.dt
+        MEmodel_.t_since_activation.vector()[:] =  MEmodel_.t_a.vector().get_local()  - t_init - local_cycle * state_obj.BCL
+       
+        print("Init vector", flush=True)
+        print(MEmodel_.activeforms.t_init.vector().get_local(), flush=True)
+        print("Cycle", flush=True)
+        print(MEmodel_.cycle.vector().get_local(), flush=True)
+        #MEmodel_.t_a.vector()[:] = state_obj.t
 
         isrestart = 0
         state_obj.dt.dt = delTat
@@ -760,6 +767,11 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             export.hdf.write(MEmodel_.GetDisplacement(), "ME/u", writecnt)
             export.hdf.write(potential_ref, "ME/potential_ref", writecnt)
             export.hdf.write(MEmodel_.GetSActive(), "ME/Sactive", writecnt)
+            export.hdf.write(MEmodel_.Get_t_a(), "ME/t_a", writecnt)
+            export.hdf.write(MEmodel_.Get_t_init(), "ME/t_init", writecnt)
+            export.hdf.write(MEmodel_.Get_isActive(), "ME/isActive", writecnt)
+            export.hdf.write(MEmodel_.Get_local_cycle(), "ME/cycle", writecnt)
+            export.hdf.write(MEmodel_.Get_t_since_act(), "ME/t_since_act", writecnt)
             export.hdf.write(Eul_fiber_BiV_DG, "ME/Eff", writecnt)
             export.hdf.write(fstress_DG, "ME/fstress", writecnt)
             export.hdf.write(MEmodel_.GetP(), "ME/imp_constraint", writecnt)

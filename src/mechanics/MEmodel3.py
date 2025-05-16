@@ -894,6 +894,16 @@ class MEmodel(object):
         self.t_a = Function(self.Quad)
         self.t_a.vector()[:] = 0
 
+        self.cycle = Function(self.Quad)
+        self.cycle.vector()[:] = 0
+
+        self.t_since_activation = Function(self.Quad)
+        self.t_since_activation.vector()[:] = 0
+
+
+
+
+
         # ls0 = 1.85
         # Tact = GuccioneParams["Tmax"]
 
@@ -975,6 +985,7 @@ class MEmodel(object):
             "sheet": s0_me,
             "sheet-normal": n0_me,
             "t_a": self.t_a,
+            "cycle": self.cycle,
             "Threshold_Potential": 0.9,
             "growth_tensor": None,
         }
@@ -984,6 +995,11 @@ class MEmodel(object):
 
         if "Active params" in list(GuccioneParams.keys()):
             activeparams.update({"material params": GuccioneParams["Active params"]})
+
+        if "HeartBeatLength" in list(self.SimDet.keys()):
+            activeparams.update({"HeartBeatLength": self.SimDet["HeartBeatLength"]})
+
+
 
         if "HomogenousActivation" in list(GuccioneParams.keys()):
             activeparams.update(
@@ -1769,8 +1785,33 @@ class MEmodel(object):
 
    #     return Sactive_
 
-    def GetCt(self):
-        return self.activeforms.Get_t_a()
+    def Get_t_a(self):
+        t_a_ = project(self.t_a, self.QDG)
+        return t_a_
+
+    def Get_t_init(self):
+        t_init_ = project(self.activeforms.t_init, self.QDG)
+        return t_init_
+
+    def Get_t_since_act(self):
+        t_since_act_ = project(self.t_since_activation, self.QDG)
+        return t_since_act_
+
+
+
+    def Get_local_cycle(self):
+        cycle_ = project(self.cycle, self.QDG)
+        return cycle_
+
+
+
+    def Get_isActive(self):
+        isActive_ = project(self.activeforms.isActive, self.QDG)
+        return isActive_
+
+
+
+
 
     def GetDeformedBasis(self, params):
         default_params = {

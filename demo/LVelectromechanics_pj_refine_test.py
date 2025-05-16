@@ -27,10 +27,10 @@ from heArt_py3.src.postprocessing.postprocessdata2 import plotpressure as plotpr
 
 #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
 IODetails = {
-    "casename_me": "ellipsoidal_baselinegeo_coarse",
-    "casename_ep": "ellipsoidal_baselinegeo_coarse",
-    #"casename_me": "ellipsoidal_baselinegeo_medium3",
-    #"casename_ep": "ellipsoidal_baselinegeo_fine1",
+    #"casename_me": "ellipsoidal_baselinegeo_coarse",
+    #"casename_ep": "ellipsoidal_baselinegeo_coarse",
+    "casename_me": "ellipsoidal_baselinegeo_medium3",
+    "casename_ep": "ellipsoidal_baselinegeo_fine1",
     #"directory_me": "../../../heArt_py3_purkinje/LV_pj_lc/",
     "directory_me": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
     "directory_ep": "/mnt/home/lclee/heArt/heArt_py3/LVMesh/lc/",
@@ -45,7 +45,7 @@ IODetails = {
     "outputfolder": "/mnt/home/lclee/heArt/heArt_py3/demo/outputs_BiVelectromechanics/",
     #"outputfolder": "./outputs_BiVelectromechanics/",
     "folderName": "/",
-    "caseID": "LVelectromechanics-PJ-test",
+    "caseID": "LVelectromechanics-PJ-test_noncpp",
     #"caseID": "LVelectromechanics-test-lbbb",
     "isLV": True,
 }
@@ -161,7 +161,7 @@ SimDetails = {
 }
 
 # Run Simulation
-#run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
+run_BiV_ClosedLoop(IODet=IODetails, SimDet=SimDetails)
 
 # Postprocessing
 #postprocessdata(IODet=IODetails, SimDet=SimDetails)
@@ -169,7 +169,7 @@ SimDetails = {
 # Extract only Displacement
 #dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["u", "CG", 1]], EP_var=[], PJ_var=[])
 #dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["fstress", "DG", 0], ["potential_ref", "DG", 0]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
-dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["u", "CG", 1]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
+#dumpvtk(IODet=IODetails, SimDet=SimDetails, ME_var=[["u", "CG", 1]], EP_var=[["phi", "CG", 1]], PJ_var=[["phi", "CG", 1]])
 #compute_activation(IODet=IODetails, SimDet=SimDetails)
 #compute_strain(IODet=IODetails, SimDet=SimDetails, LVid = 0)
 #plothemodynamics(IODet=IODetails, SimDet=SimDetails)
