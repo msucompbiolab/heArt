@@ -28,8 +28,8 @@ from ..utils.oops_objects_MRC2 import exportfiles
 from ..utils.mesh_scale_create_fiberFiles import create_EDFibers
 from ..utils.oops_objects_MRC2 import json_serialize
 
-from ..ep.EPmodel_basic_test import EPmodel
-#from ..ep.EPmodel_cpp import EPmodel
+#from ..ep.EPmodel_basic_test import EPmodel
+from ..ep.EPmodel_cpp import EPmodel
 
 from ..mechanics.MEmodel3 import MEmodel
 
@@ -371,7 +371,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         if state_obj.cycle > stop_iter:
             break
 
-
         if not SimDet.get("fch_lumped") and not SimDet.get("lv_lumped"):
             params = {
                 "P_LV": P_LV,
@@ -638,14 +637,26 @@ def run_BiV_ClosedLoop(IODet, SimDet):
             # Activate EP network
             if(state_obj.t > SimDet["pacing_timing"][0][0] and \
                state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
-                for  p in range(0,len(EPmodel_ep.fstim_array)):
-                    EPmodel_ep.fstim_array[p].iStim = intensity
+                    if("fstim_val_array" in dir(EPmodel_ep)):
+                        for  p in range(0,len(EPmodel_ep.fstim_val_array)):
+                            EPmodel_ep.fstim_val_array[p] = intensity
+                    else:
+                        for  p in range(0,len(EPmodel_ep.fstim_array)):
+                            EPmodel_ep.fstim_array[p].iStim = intensity
                     printout("pacing", comm_me)#, EPmodel_ep.fstim_array)
             else:
                 for  p in range(0,len(EPmodel_ep.fstim_array)):
-                    EPmodel_ep.fstim_array[p].iStim = 0.0
+                    if("fstim_val_array" in dir(EPmodel_ep)):
+                        for  p in range(0,len(EPmodel_ep.fstim_val_array)):
+                            EPmodel_ep.fstim_val_array[p] = 0.0
+                    else:
+                        for  p in range(0,len(EPmodel_ep.fstim_array)):
+                            EPmodel_ep.fstim_array[p].iStim = 0.0
 
             if not SimDet.get("lv_lumped") and not ishomo:
+                if("UpdateActivation" in dir(EPmodel_ep)):
+                    EPmodel_ep.UpdateActivation()
+
                 printout("Solving FHN EP", comm_me)
                 solver_FHN_ep.solvenonlinear()
 
