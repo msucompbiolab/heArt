@@ -58,7 +58,7 @@ class MEmodel(object):
         eclgn0_me_Gauss = getattr(self.Mesh, "eclgn0_ao", None)
         eclgn1_me_Gauss = getattr(self.Mesh, "eclgn1_ao", None)
 
-        self.mesh_me = self.Mesh.mesh
+        self.mesh = self.Mesh.mesh
         self.facetboundaries_me = self.Mesh.facetboundaries
         self.edgeboundaries_me = self.Mesh.edgeboundaries
         self.matid_me = self.Mesh.matid
@@ -73,16 +73,16 @@ class MEmodel(object):
             for id_ in self.SimDet["LVendoid"]:
                 if cnt == 0:
                     dsendo = self.ds_me(
-                        id_, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
+                        id_, domain=self.mesh, subdomain_data=self.facetboundaries_me
                     )
                 else:
                     dsendo += self.ds_me(
-                        id_, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
+                        id_, domain=self.mesh, subdomain_data=self.facetboundaries_me
                     )
                 cnt += 1
         else:
             dsendo = self.ds_me(
-                LVendoid, domain=self.mesh_me, subdomain_data=self.facetboundaries_me
+                LVendoid, domain=self.mesh, subdomain_data=self.facetboundaries_me
             )
         self.LVendo_area_me = Expression(("val"), val=0.0, degree=2)
         self.LVendo_area_me.val = assemble(
@@ -117,20 +117,20 @@ class MEmodel(object):
 
         if self.discretization == "P1P1":
             Velem = VectorElement(
-                "CG", self.mesh_me.ufl_cell(), 1, quad_scheme="default"
+                "CG", self.mesh.ufl_cell(), 1, quad_scheme="default"
             )
         else:
             Velem = VectorElement(
-                "CG", self.mesh_me.ufl_cell(), 2, quad_scheme="default"
+                "CG", self.mesh.ufl_cell(), 2, quad_scheme="default"
             )
 
-        Qelem = FiniteElement("CG", self.mesh_me.ufl_cell(), 1, quad_scheme="default")
+        Qelem = FiniteElement("CG", self.mesh.ufl_cell(), 1, quad_scheme="default")
         Qelem._quad_scheme = "default"
-        Relem = FiniteElement("Real", self.mesh_me.ufl_cell(), 0, quad_scheme="default")
+        Relem = FiniteElement("Real", self.mesh.ufl_cell(), 0, quad_scheme="default")
         Relem._quad_scheme = "default"
         Quadelem = FiniteElement(
             "Quadrature",
-            self.mesh_me.ufl_cell(),
+            self.mesh.ufl_cell(),
             degree=self.deg_me,
             quad_scheme="default",
         )
@@ -140,7 +140,7 @@ class MEmodel(object):
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
         Telem2 = TensorElement(
             "Quadrature",
-            self.mesh_me.ufl_cell(),
+            self.mesh.ufl_cell(),
             degree=self.deg_me,
             shape=2 * (3,),
             quad_scheme="default",
@@ -150,7 +150,7 @@ class MEmodel(object):
             e._quad_scheme = "default"
         Telem4 = TensorElement(
             "Quadrature",
-            self.mesh_me.ufl_cell(),
+            self.mesh.ufl_cell(),
             degree=self.deg_me,
             shape=4 * (3,),
             quad_scheme="default",
@@ -174,11 +174,11 @@ class MEmodel(object):
                         and self.SimDet["springbc"]
                     ):
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Qelem])
+                            self.mesh, MixedElement([Velem, Qelem])
                         )
                     else:
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Qelem, VRelem])
+                            self.mesh, MixedElement([Velem, Qelem, VRelem])
                         )
                 else:
                     if (
@@ -186,11 +186,11 @@ class MEmodel(object):
                         and self.SimDet["springbc"]
                     ):
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Qelem, Relem])
+                            self.mesh, MixedElement([Velem, Qelem, Relem])
                         )
                     else:
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Qelem, Relem, VRelem])
+                            self.mesh, MixedElement([Velem, Qelem, Relem, VRelem])
                         )
             elif self.isBiV or self.isFCH:
                 if self.ispctrl:
@@ -199,11 +199,11 @@ class MEmodel(object):
                         and self.SimDet["springbc"]
                     ):
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Qelem])
+                            self.mesh, MixedElement([Velem, Qelem])
                         )
                     else:
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Qelem, VRelem])
+                            self.mesh, MixedElement([Velem, Qelem, VRelem])
                         )
                 else:
                     if (
@@ -211,11 +211,11 @@ class MEmodel(object):
                         and self.SimDet["springbc"]
                     ):
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Qelem, Relem, Relem])
+                            self.mesh, MixedElement([Velem, Qelem, Relem, Relem])
                         )
                     else:
                         self.W = FunctionSpace(
-                            self.mesh_me,
+                            self.mesh,
                             MixedElement([Velem, Qelem, Relem, Relem, VRelem]),
                         )
         else:
@@ -225,10 +225,10 @@ class MEmodel(object):
                         "springbc" in list(self.SimDet.keys())
                         and self.SimDet["springbc"]
                     ):
-                        self.W = FunctionSpace(self.mesh_me, MixedElement([Velem]))
+                        self.W = FunctionSpace(self.mesh, MixedElement([Velem]))
                     else:
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, VRelem])
+                            self.mesh, MixedElement([Velem, VRelem])
                         )
                 else:
                     if (
@@ -236,11 +236,11 @@ class MEmodel(object):
                         and self.SimDet["springbc"]
                     ):
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Relem])
+                            self.mesh, MixedElement([Velem, Relem])
                         )
                     else:
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Relem, VRelem])
+                            self.mesh, MixedElement([Velem, Relem, VRelem])
                         )
             elif self.isBiV or self.isFCH:
                 if self.ispctrl:
@@ -248,10 +248,10 @@ class MEmodel(object):
                         "springbc" in list(self.SimDet.keys())
                         and self.SimDet["springbc"]
                     ):
-                        self.W = FunctionSpace(self.mesh_me, MixedElement([Velem]))
+                        self.W = FunctionSpace(self.mesh, MixedElement([Velem]))
                     else:
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, VRelem])
+                            self.mesh, MixedElement([Velem, VRelem])
                         )
                 else:
                     if (
@@ -259,18 +259,18 @@ class MEmodel(object):
                         and self.SimDet["springbc"]
                     ):
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Relem, Relem])
+                            self.mesh, MixedElement([Velem, Relem, Relem])
                         )
                     else:
                         self.W = FunctionSpace(
-                            self.mesh_me, MixedElement([Velem, Relem, Relem, VRelem])
+                            self.mesh, MixedElement([Velem, Relem, Relem, VRelem])
                         )
 
-        self.Quad = FunctionSpace(self.mesh_me, Quadelem)
-        self.TF = FunctionSpace(self.mesh_me, Telem2)
-        self.Q = FunctionSpace(self.mesh_me, "CG", 1)
-        self.QDG = FunctionSpace(self.mesh_me, "DG", 0)
-        self.V_CG1 = VectorFunctionSpace(self.mesh_me, "CG", 1)
+        self.Quad = FunctionSpace(self.mesh, Quadelem)
+        self.TF = FunctionSpace(self.mesh, Telem2)
+        self.Q = FunctionSpace(self.mesh, "CG", 1)
+        self.QDG = FunctionSpace(self.mesh, "DG", 0)
+        self.V_CG1 = VectorFunctionSpace(self.mesh, "CG", 1)
 
         self.we_n = Function(self.W.sub(0).collapse())
 
@@ -333,9 +333,9 @@ class MEmodel(object):
         outfolder = outputfolder + folderName + "deformation_unloadED/"
 
         targetmesh = Mesh(self.Mesh.mesh)
-        xtarget = project(SpatialCoordinate(self.mesh_me), self.V_CG1).vector()
+        xtarget = project(SpatialCoordinate(self.mesh), self.V_CG1).vector()
 
-        comm_me = self.mesh_me.mpi_comm()
+        comm_me = self.mesh.mpi_comm()
 
         if MPI.rank(comm_me) == 0:
             if not os.path.isdir(outfolder):
@@ -361,7 +361,7 @@ class MEmodel(object):
             if MPI.rank(comm_me) == 0:
                 print(it, LVP, LVV, file=fdataPV)
 
-            hdf.write(self.mesh_me, "unloading" + str(it) + "/mesh")
+            hdf.write(self.mesh, "unloading" + str(it) + "/mesh")
             hdf.write(
                 self.GetDisplacement(), "unloading" + str(it) + "/u_loading", it_load
             )
@@ -394,7 +394,7 @@ class MEmodel(object):
                 if abs(LVP - EDP) < EDPtol:
                     # Get Residual
                     x = project(
-                        SpatialCoordinate(self.mesh_me) + self.GetDisplacement(),
+                        SpatialCoordinate(self.mesh) + self.GetDisplacement(),
                         self.V_CG1,
                     ).vector()
 
@@ -424,23 +424,23 @@ class MEmodel(object):
 
                 # Update mesh
                 self.Reset()
-                self.mesh_me.coordinates()[:, 0] = newmesh.coordinates()[:, 0]
-                self.mesh_me.coordinates()[:, 1] = newmesh.coordinates()[:, 1]
-                self.mesh_me.coordinates()[:, 2] = newmesh.coordinates()[:, 2]
+                self.mesh.coordinates()[:, 0] = newmesh.coordinates()[:, 0]
+                self.mesh.coordinates()[:, 1] = newmesh.coordinates()[:, 1]
+                self.mesh.coordinates()[:, 2] = newmesh.coordinates()[:, 2]
 
                 self.facetboundaries_me.set_values(newboundaries.array())
 
                 # Update LV endo surface area for imposing BC
                 dsendo = self.ds_me(
                     LVendoid,
-                    domain=self.mesh_me,
+                    domain=self.mesh,
                     subdomain_data=self.facetboundaries_me,
                 )
                 self.LVendo_area_me.val = assemble(
                     Constant(1.0) * dsendo,
                     form_compiler_parameters={"representation": "uflacs"},
                 )
-                self.mesh_me.bounding_box_tree().build(self.mesh_me)
+                self.mesh.bounding_box_tree().build(self.mesh)
 
                 # Update fiber
                 default_params.update({"meshName": "unloadfiber_" + str(it)})
@@ -466,7 +466,7 @@ class MEmodel(object):
 
         # Write mesh
         f = HDF5File(comm_me, outfolder + "UnloadMesh.hdf5", "w")
-        f.write(self.mesh_me, "UnloadMesh")
+        f.write(self.mesh, "UnloadMesh")
         f.close()
 
         f = dolfin.HDF5File(comm_me, outfolder + "UnloadMesh.hdf5", "a")
@@ -490,7 +490,7 @@ class MEmodel(object):
         #                               n0_me_Gauss=n0_me_Gauss.vector().get_local()[:], \
         #        )
         # File(outfolder+"facetboundaries.pvd") << self.facetboundaries_me
-        # File(outfolder+"mesh.pvd") << self.mesh_me
+        # File(outfolder+"mesh.pvd") << self.mesh
         f.close()
 
         os.system(
@@ -638,7 +638,7 @@ class MEmodel(object):
         GuccioneParams = self.SimDet["GiccioneParams"]
         aorta_params = GuccioneParams.get("Aorta params")
 
-        comm_me = self.mesh_me.mpi_comm()
+        comm_me = self.mesh.mpi_comm()
 
         # isLV or isBiV
         topid = self.SimDet.get("topid")
@@ -686,7 +686,7 @@ class MEmodel(object):
         isincomp = GuccioneParams["incompressible"]
         deg_me = GuccioneParams["deg"]
 
-        mesh_me = self.mesh_me
+        mesh = self.mesh
         facetboundaries_me = self.facetboundaries_me
         f0_me = self.f0_me
         s0_me = self.s0_me
@@ -698,7 +698,7 @@ class MEmodel(object):
         eclgn0_me = self.eclgn0_me
         eclgn1_me = self.eclgn1_me
 
-        N_me = FacetNormal(mesh_me)
+        N_me = FacetNormal(mesh)
         W_me = self.W
         Q_me = self.Q
         TF_me = self.TF
@@ -912,7 +912,7 @@ class MEmodel(object):
         LVendo_area_me = self.LVendo_area_me
 
         params = {
-            "mesh": mesh_me,
+            "mesh": mesh,
             "facetboundaries": facetboundaries_me,
             "facet_normal": N_me,
             "mixedfunctionspace": W_me,
@@ -974,7 +974,7 @@ class MEmodel(object):
         self.uflforms = uflforms
 
         activeparams = {
-            "mesh": mesh_me,
+            "mesh": mesh,
             "dx": dx_me,
             "deg": GuccioneParams["deg"],
             "facetboundaries": facetboundaries_me,
@@ -1033,7 +1033,7 @@ class MEmodel(object):
 
         # printout("Total active force = " + str(assemble(activeforms.PK1Stress()*dx_me)), comm_me)
 
-        X_me = SpatialCoordinate(mesh_me)
+        X_me = SpatialCoordinate(mesh)
 
         state_obj = self.parameters["state_obj"]
 
@@ -1466,7 +1466,7 @@ class MEmodel(object):
             Kappa = Constant(1.0e5)
             # res_p = ((J - 1) - p_me / Kappa) * q_me * dx_me
 
-            h_elem = CellDiameter(mesh_me)
+            h_elem = CellDiameter(mesh)
             mu = Constant(5.0e4)
 
             if self.discretization_technique == 1:
@@ -1485,15 +1485,15 @@ class MEmodel(object):
 
             # elif self.discretization_technique == 2:
             #    Fs = (
-            #        (1.0 / (CellVolume(mesh_me)) ** (1.0 / 3.0))
-            #        * (p_me - p_me / CellVolume(mesh_me))
-            #        * (q_me - q_me / CellVolume(mesh_me))
+            #        (1.0 / (CellVolume(mesh)) ** (1.0 / 3.0))
+            #        * (p_me - p_me / CellVolume(mesh))
+            #        * (q_me - q_me / CellVolume(mesh))
             #        * dx_me
             #    )
             # elif self.discretization_technique == 0:
             #    p_bar = project(p_me, self.QDG)
             #    Fs = (
-            #        (1.0 / (CellVolume(mesh_me)) ** (1.0 / 3.0))
+            #        (1.0 / (CellVolume(mesh)) ** (1.0 / 3.0))
             #        * (p_me - p_bar)
             #        * (q_me)
             #        * dx_me
@@ -1549,7 +1549,7 @@ class MEmodel(object):
             "w": self.w_me,
             "boundary_conditions": self.bcs,
             "Type": 0,  # Default
-            "mesh": self.mesh_me,
+            "mesh": self.mesh,
             "mode": 1,
         }
 
@@ -1828,7 +1828,7 @@ class MEmodel(object):
         meshName = default_params["meshName"]
 
         #  - - - - - - - - - - - -- - - - - - - - - - - - - - - -- - - - - - -
-        mesh_me = self.mesh_me
+        mesh = self.mesh
         facetboundaries_me = self.facetboundaries_me
         deg_me = self.deg_me
         LVendoid = self.SimDet["LVendoid"]
@@ -1836,16 +1836,16 @@ class MEmodel(object):
         epiid = self.SimDet["epiid"]
         isLV = self.isLV
 
-        meshDispFunc = VectorFunctionSpace(mesh_me, "CG", 1)
+        meshDispFunc = VectorFunctionSpace(mesh, "CG", 1)
         VQuadelem_me = VectorElement(
-            "Quadrature", mesh_me.ufl_cell(), degree=deg_me, quad_scheme="default"
+            "Quadrature", mesh.ufl_cell(), degree=deg_me, quad_scheme="default"
         )
         VQuadelem_me._quad_scheme = "default"
-        fiberFS = FunctionSpace(mesh_me, VQuadelem_me)
+        fiberFS = FunctionSpace(mesh, VQuadelem_me)
 
         meshDisplacement = project(self.GetDisplacement(), meshDispFunc)
         deformedMesh, deformedBoundary = update_mesh(
-            mesh=mesh_me, displacement=meshDisplacement, boundaries=facetboundaries_me
+            mesh=mesh, displacement=meshDisplacement, boundaries=facetboundaries_me
         )
 
         outputfolder = self.parameters["outputfolder"]
@@ -1870,7 +1870,7 @@ class MEmodel(object):
 
         eCC_ED, eLL_ED, eRR_ED = create_EDFibers(EDmeshData)
 
-        # Copy directional field from functionspace with mesh_me to deformedmesh
+        # Copy directional field from functionspace with mesh to deformedmesh
         eCC = Function(fiberFS)
         eRR = Function(fiberFS)
         eLL = Function(fiberFS)
