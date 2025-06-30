@@ -325,25 +325,6 @@ def run_BiV_ClosedLoop(IODet, SimDet):
         else:
             if state_obj.t < state_obj.dt.dt:
                 EPmodel_ep.reset()
- 
-            # Activate EP network
-            if(state_obj.t > SimDet["pacing_timing"][0][0] and \
-               state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
-                    if("fstim_val_array" in dir(EPmodel_ep)):
-                        for  p in range(0,len(EPmodel_ep.fstim_val_array)):
-                            EPmodel_ep.fstim_val_array[p] = intensity
-                    else:
-                        for  p in range(0,len(EPmodel_ep.fstim_array)):
-                            EPmodel_ep.fstim_array[p].iStim = intensity
-                    printout("pacing", comm_me)#, EPmodel_ep.fstim_array)
-            else:
-                for  p in range(0,len(EPmodel_ep.fstim_array)):
-                    if("fstim_val_array" in dir(EPmodel_ep)):
-                        for  p in range(0,len(EPmodel_ep.fstim_val_array)):
-                            EPmodel_ep.fstim_val_array[p] = 0.0
-                    else:
-                        for  p in range(0,len(EPmodel_ep.fstim_array)):
-                            EPmodel_ep.fstim_array[p].iStim = 0.0
 
             if not SimDet.get("lv_lumped") and not ishomo:
                 if("UpdateActivation" in dir(EPmodel_ep)):
@@ -351,6 +332,26 @@ def run_BiV_ClosedLoop(IODet, SimDet):
 
                 printout("Solving FHN EP", comm_me)
                 solver_FHN_ep.solvenonlinear()
+ 
+                # Activate EP network
+                if(state_obj.t > SimDet["pacing_timing"][0][0] and \
+                   state_obj.t < SimDet["pacing_timing"][0][0] + SimDet["pacing_timing"][0][1] ):
+                        if("fstim_val_array" in dir(EPmodel_ep)):
+                            for  p in range(0,len(EPmodel_ep.fstim_val_array)):
+                                EPmodel_ep.fstim_val_array[p] = intensity
+                        else:
+                            for  p in range(0,len(EPmodel_ep.fstim_array)):
+                                EPmodel_ep.fstim_array[p].iStim = intensity
+                        printout("pacing", comm_me)#, EPmodel_ep.fstim_array)
+                else:
+                    for  p in range(0,len(EPmodel_ep.fstim_array)):
+                        if("fstim_val_array" in dir(EPmodel_ep)):
+                            for  p in range(0,len(EPmodel_ep.fstim_val_array)):
+                                EPmodel_ep.fstim_val_array[p] = 0.0
+                        else:
+                            for  p in range(0,len(EPmodel_ep.fstim_array)):
+                                EPmodel_ep.fstim_array[p].iStim = 0.0
+
 
         if isrestart == 0:
             MEmodel_.UpdateVar()  # For damping
@@ -456,7 +457,7 @@ def exportdata(comm_me, writecnt, cnt, export, state_obj, info, msg, IODet, SimD
 
     outputfolder = IODet["outputfolder"]
     folderName = IODet["folderName"] + IODet["caseID"] + "/"
-    isPJ = SimDet["isPJ"]
+    isPJ = SimDet.get("isPJ")
 
     fstress_DG = project(
         MEmodel_.Getfstress(),
@@ -484,7 +485,7 @@ def exportdata(comm_me, writecnt, cnt, export, state_obj, info, msg, IODet, SimD
                     pass
                 else:
                     f_PV.write(
-                        f"{state_obj.t}, {CLmodel_.V_LV}, {CLmodel_PLV}, {CLmodel_.V_RV}, {CLmodel_.PRV}, {CLmodel_.V_LA}, {CLmodel_.PLA}, {CLmodel_.V_RA}, {CLmodel_.PRA}, {CLmodel_.V_sv}, {CLmodel_.V_sa}, {CLmodel_.V_ad}, {CLmodel_.V_pv}, {CLmodel_.V_pa} \n"
+                        f"{state_obj.t}, {CLmodel_.V_LV}, {CLmodel_.PLV}, {CLmodel_.V_RV}, {CLmodel_.PRV}, {CLmodel_.V_LA}, {CLmodel_.PLA}, {CLmodel_.V_RA}, {CLmodel_.PRA}, {CLmodel_.V_sv}, {CLmodel_.V_sa}, {CLmodel_.V_ad}, {CLmodel_.V_pv}, {CLmodel_.V_pa} \n"
                     )
     with open(outputfolder + folderName + "output_nfev.txt", "a") as nfev:
         if (

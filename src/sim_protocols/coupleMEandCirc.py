@@ -76,8 +76,8 @@ class coupleMEandCirc(object):
                 P_RV = MEmodel_.GetRVP()
                 V_RV = MEmodel_.GetRVV()
             elif SimDet.get("fch_lumped"):
-                P_LV = EDP / 0.0075
-                P_RV = EDP / 0.0075
+                P_LV = SimDet.get("EDP") / 0.0075
+                P_RV = SimDet.get("EDP") / 0.0075
             else:
                 P_RV = MEmodel_.GetRVP()  # LVCavitypres.pres
                 V_RV = MEmodel_.GetRVV()  # GetVolumeComputation()
@@ -233,6 +233,8 @@ class coupleMEandCirc(object):
                     Rp_fch_call, x0, xtol=1e-4, factor=0.01, full_output=True
                 )
             elif SimDet.get("fch_lumped"):
+                info = None
+                msg = None
                 pass
             else:
                 root1, info, ier, msg = fsolve(
