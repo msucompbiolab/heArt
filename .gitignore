@@ -1,0 +1,8 @@
+# Mesh inputs are ~42 MB each and are fetched, not tracked: scripts/fetch_mesh.sh
+data/mesh/
+
+# Run artifacts
+outputs/
+.import_root/
+__pycache__/
+*.pyc

@@ -1,0 +1,335 @@
+{
+  "activation_params": {
+    "t0": 260.0,
+    "t0_atr": 70.0,
+    "t_trans": 290.0,
+    "t_trans_atr": 105.0,
+    "tau": 35.0,
+    "tau_atr": 24.0,
+    "tdelay_atr": 660.0
+  },
+  "cycle_summary": {
+    "LA": {
+      "EF": 0.4454415861638452,
+      "Pmax_mmhg": 12.888890326669438,
+      "Pmin_mmhg": 6.848860326160422,
+      "SV_ml": 50.54970029683677,
+      "Vmax_ml": 113.482220490844,
+      "Vmin_ml": 62.93252019400723
+    },
+    "LV": {
+      "EF": 0.5087352929748915,
+      "Pmax_mmhg": 145.2988514978792,
+      "Pmin_mmhg": 0.48404872430648865,
+      "SV_ml": 102.63798058475064,
+      "Vmax_ml": 201.75124863966596,
+      "Vmin_ml": 99.11326805491532
+    },
+    "RA": {
+      "EF": 0.16891402215093054,
+      "Pmax_mmhg": 8.959575279104447,
+      "Pmin_mmhg": 4.705161376130609,
+      "SV_ml": 21.491883802463207,
+      "Vmax_ml": 127.23564052757835,
+      "Vmin_ml": 105.74375672511515
+    },
+    "RV": {
+      "EF": 0.5422200726448488,
+      "Pmax_mmhg": 23.505974413919848,
+      "Pmin_mmhg": 0.037232060064752485,
+      "SV_ml": 102.63003724725195,
+      "Vmax_ml": 189.277458406587,
+      "Vmin_ml": 86.64742115933504
+    }
+  },
+  "events": [
+    {
+      "activation": {
+        "atrial_ct": 0.8289693629698562,
+        "atrial_t_since_onset_ms": 89.0,
+        "ventricular_ct": 1.9507099509343647e-06
+      },
+      "arterial_mmhg": {
+        "P_pa": 8.82913000486526,
+        "P_sa": 105.34640008710099
+      },
+      "caption_t_ms": 0.0,
+      "detector": {
+        "flag": "mv_open",
+        "from": 1,
+        "kind": "valve",
+        "to": 0
+      },
+      "key": "E1_mv_close",
+      "label": "MV closure / LV contraction onset",
+      "pressures_mmhg": {
+        "LA": 7.680036775313667,
+        "LV": 7.702107371879798,
+        "RA": 6.677875654080795,
+        "RV": 6.839499839804374
+      },
+      "pressures_pa": {
+        "LA": 1024.0049033751557,
+        "LV": 1026.947649583973,
+        "RA": 890.383420544106,
+        "RV": 911.9333119739165
+      },
+      "t_ms": 749.0,
+      "t_offset_from_caption_ms": -51.0,
+      "valves": {
+        "av_open": 0,
+        "mv_open": 0,
+        "pvv_open": 0,
+        "tv_open": 0
+      },
+      "volumes_ml": {
+        "LA": 76.27555342800017,
+        "LV": 201.74964959727546,
+        "RA": 106.81377745280702,
+        "RV": 189.277458406587
+      }
+    },
+    {
+      "activation": {
+        "atrial_ct": 1.660764908365686e-05,
+        "atrial_t_since_onset_ms": 352.5,
+        "ventricular_ct": 0.9198828416136989
+      },
+      "arterial_mmhg": {
+        "P_pa": 19.825605606184165,
+        "P_sa": 117.27550367581468
+      },
+      "caption_t_ms": 160.0,
+      "detector": {
+        "column": "P_LV",
+        "kind": "extremum",
+        "which": "max"
+      },
+      "key": "E2_peak_plv",
+      "label": "Peak LV pressure",
+      "pressures_mmhg": {
+        "LA": 9.6619363480748,
+        "LV": 145.2988514978792,
+        "RA": 7.350618713857735,
+        "RV": 23.40559847107073
+      },
+      "pressures_pa": {
+        "LA": 1288.2581797433068,
+        "LV": 19373.18019971723,
+        "RA": 980.0824951810313,
+        "RV": 3120.746462809431
+      },
+      "t_ms": 212.5,
+      "t_offset_from_caption_ms": 52.5,
+      "valves": {
+        "av_open": 1,
+        "mv_open": 0,
+        "pvv_open": 1,
+        "tv_open": 0
+      },
+      "volumes_ml": {
+        "LA": 106.33734388649826,
+        "LV": 125.66992032257552,
+        "RA": 126.61296860062767,
+        "RV": 117.02913261657271
+      }
+    },
+    {
+      "activation": {
+        "atrial_ct": 1.6624323545568776e-07,
+        "atrial_t_since_onset_ms": 463.0,
+        "ventricular_ct": 0.3768573282491528
+      },
+      "arterial_mmhg": {
+        "P_pa": 15.975011626509202,
+        "P_sa": 119.61817725678304
+      },
+      "caption_t_ms": 320.0,
+      "detector": {
+        "flag": "tv_open",
+        "from": 0,
+        "kind": "valve",
+        "to": 1
+      },
+      "key": "E3_tv_open",
+      "label": "TV opening / RV filling onset",
+      "pressures_mmhg": {
+        "LA": 12.605970305212876,
+        "LV": 48.00777473899436,
+        "RA": 7.500894317724234,
+        "RV": 7.405258527794297
+      },
+      "pressures_pa": {
+        "LA": 1680.7960406950504,
+        "LV": 6401.036631865914,
+        "RA": 1000.1192423632313,
+        "RV": 987.3678037059063
+      },
+      "t_ms": 323.0,
+      "t_offset_from_caption_ms": 3.0,
+      "valves": {
+        "av_open": 0,
+        "mv_open": 0,
+        "pvv_open": 0,
+        "tv_open": 1
+      },
+      "volumes_ml": {
+        "LA": 112.93388544575936,
+        "LV": 99.11339232351621,
+        "RA": 127.23564052757835,
+        "RV": 86.64742115933504
+      }
+    },
+    {
+      "activation": {
+        "atrial_ct": 4.203287245788932e-08,
+        "atrial_t_since_onset_ms": 496.0,
+        "ventricular_ct": 0.14679095991255597
+      },
+      "arterial_mmhg": {
+        "P_pa": 14.47744183368447,
+        "P_sa": 118.41159587633403
+      },
+      "caption_t_ms": 360.0,
+      "detector": {
+        "flag": "mv_open",
+        "from": 0,
+        "kind": "valve",
+        "to": 1
+      },
+      "key": "E4_mv_open",
+      "label": "MV opening / LV filling onset",
+      "pressures_mmhg": {
+        "LA": 12.886936771928656,
+        "LV": 12.824671689701013,
+        "RA": 6.346170752400341,
+        "RV": 2.2706918682422077
+      },
+      "pressures_pa": {
+        "LA": 1718.2582362571543,
+        "LV": 1709.9562252934684,
+        "RA": 846.1561003200455,
+        "RV": 302.7589157656277
+      },
+      "t_ms": 356.0,
+      "t_offset_from_caption_ms": -4.0,
+      "valves": {
+        "av_open": 0,
+        "mv_open": 1,
+        "pvv_open": 0,
+        "tv_open": 1
+      },
+      "volumes_ml": {
+        "LA": 113.47847736537759,
+        "LV": 99.113797552985,
+        "RA": 122.13634456142834,
+        "RV": 94.42789638943975
+      }
+    },
+    {
+      "activation": {
+        "atrial_ct": 1.0,
+        "atrial_t_since_onset_ms": 70.0,
+        "ventricular_ct": 3.3570094284063748e-06
+      },
+      "arterial_mmhg": {
+        "P_pa": 8.725784638935933,
+        "P_sa": 105.94084895579853
+      },
+      "caption_t_ms": 720.0,
+      "detector": {
+        "kind": "atrial_activation_peak"
+      },
+      "key": "E5_atrial",
+      "label": "Active atrial filling",
+      "pressures_mmhg": {
+        "LA": 9.364842961055162,
+        "LV": 7.517939318431158,
+        "RA": 7.00263918774043,
+        "RV": 6.820400621014875
+      },
+      "pressures_pa": {
+        "LA": 1248.6457281406883,
+        "LV": 1002.3919091241545,
+        "RA": 933.6852250320574,
+        "RV": 909.3867494686501
+      },
+      "t_ms": 730.0,
+      "t_offset_from_caption_ms": 10.0,
+      "valves": {
+        "av_open": 0,
+        "mv_open": 1,
+        "pvv_open": 0,
+        "tv_open": 1
+      },
+      "volumes_ml": {
+        "LA": 63.48222562215398,
+        "LV": 200.75404598574917,
+        "RA": 105.81839080698413,
+        "RV": 189.17267849149155
+      }
+    }
+  ],
+  "provenance": "fch_events.events",
+  "schema": 1,
+  "trace": {
+    "cycle_rows": 1600,
+    "cycle_t_first_ms": 0.0,
+    "cycle_t_last_ms": 799.5,
+    "heartbeat_ms": 800.0,
+    "path": "/home/ubuntu/heArt_legacy/.claude/worktrees/four-chamber-hfpef-sim-57f861/.outputs/fch_coupled/anchor_v2b/anchored/output_PV.csv",
+    "rows": 16001,
+    "tstep_first_ms": 7200.0,
+    "tstep_last_ms": 7999.5
+  },
+  "valve_events_ms": {
+    "av_open": [
+      [
+        100.5,
+        0,
+        1
+      ],
+      [
+        300.0,
+        1,
+        0
+      ]
+    ],
+    "mv_open": [
+      [
+        356.0,
+        0,
+        1
+      ],
+      [
+        749.0,
+        1,
+        0
+      ]
+    ],
+    "pvv_open": [
+      [
+        29.0,
+        0,
+        1
+      ],
+      [
+        301.5,
+        1,
+        0
+      ]
+    ],
+    "tv_open": [
+      [
+        323.0,
+        0,
+        1
+      ],
+      [
+        742.5,
+        1,
+        0
+      ]
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "parameters": {
+    "material.Cparam_la": 135.0218522027135,
+    "material.Cparam_lv": 287.09139112532137,
+    "material.Cparam_ra": 108.12614156864583,
+    "material.Cparam_rv": 380.0833737929689,
+    "material.Tmax_la": 54662.34140406369,
+    "material.Tmax_lv": 416378.6385022104,
+    "material.Tmax_ra": 295774.40594068763,
+    "material.Tmax_rv": 384059.1598016127
+  }
+}

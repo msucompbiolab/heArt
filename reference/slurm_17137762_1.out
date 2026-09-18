@@ -1,0 +1,385 @@
+[legacy-fenics] activated /mnt/research/compbiolab/HeartX/runtime/legacy-dolfin/.venv_fenics_mamba (dolfin 2019.1.0). DOLFINx is separate; do not mix.
+[job] deploy: sha=5d1b5d0b branch=claude/four-chamber-hfpef-sim-57f861 tree=dirty paths=orchestrate/fch_baseline_config.py,demo/fch_baseline.py,src/sim_protocols/fch_restart.py,jobs/job_fch_coupled_forward.sh synced=2026-09-11T17:27:03Z from=m3xl
+[job] arm 1=vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287: no_preload=0 coupling=volctrl4 kappa=0 structure=none active_l0=1.28 active_strain=0 gamma=/// tmax=480000/60000/55000/55000
+[job] mesh=/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/unload_rvwall_c287 params=/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/circuits/anchor_v2b_sv300pv50_rad0.7_csa1.5_params.json ranks=16 stop_iter=3 material=default sampled_rv_cparam=0 out=/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287
+22:11:18.429 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+22:11:18.429 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+[fch_baseline] seeded from configs/surrogate_fch_calibration (refine1/sample_0003)
+[fch_baseline] material: {'Cparam_lv': 287.09139112532137, 'Cparam_rv': 287.0, 'Cparam_la': 135.0218522027135, 'Cparam_ra': 108.12614156864583, 'Tmax_lv': 480000.0, 'Tmax_rv': 60000.0, 'Tmax_la': 55000.0, 'Tmax_ra': 55000.0}
+[fch_baseline] vascular keys transferred: ['Cad', 'Cpa', 'Cpv', 'Csa', 'Csv', 'Rad', 'Rav', 'Rav_rg', 'Rmv', 'Rpa', 'Rpv', 'Rpvv', 'Rsa', 'Rsv', 'Rtv', 'V_ad', 'V_pa', 'V_pv', 'V_sa', 'V_sv', 'Vad0', 'Vpa0', 'Vpv0', 'Vsa0', 'Vsv0']
+[fch_baseline] mesh dir: /mnt/gs21/scratch/ziaeirad/fch_coupled/case03/unload_rvwall_c287/  stop_iter=1  viscous_eta=250.0
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+22:11:27.404 INFO  fe/solve       FCH mechanics mesh file: /mnt/gs21/scratch/ziaeirad/fch_coupled/case03/unload_rvwall_c287/fch_clregion_whole.hdf5 (group 'fch_clregion')
+22:11:28.035 INFO  fe/solve       FCH region/facet contract OK: matid[8, 9, 10, 11] + facets[1, 2, 3, 6, 9] all present.
+22:11:28.035 INFO  fe/solve       df.Mesh size is : 75827.000000
+22:11:28.082 INFO  fe/solve       Minimal radius ratio: 0.00047258757053840375
+22:11:28.083 INFO  fe/solve       Maximal radius ratio: 0.997449191468879
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+22:11:44.073 INFO  fe/solve       Active region = [10, 9, 8, 11]
+22:11:44.074 INFO  fe/solve       Assigning active stress to 10
+22:11:44.075 INFO  fe/solve       Assigning active stress to 9
+22:11:44.076 INFO  fe/solve       Assigning active stress to 8
+22:11:44.081 INFO  fe/solve       Assigning active stress to 11
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+22:13:15.737 INFO  fe/solve       V_LV_unload = 161.6423698975919
+22:13:15.737 INFO  fe/solve       V_RV_unload = 158.87468128418914
+22:13:15.737 INFO  fe/init        fch coupling: VOLUME-prescribed four-chamber coupling (volctrl4): the 0D target volumes go to four monolithic swept-cavity constraints, one nonlinear solve per step, cavity pressures = the multipliers (no pressure root-find)  coupling_mode=volctrl4 vol_tol_ml=0.001
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+22:13:17.994 INFO  fe/loading     BEGIN  mode=volctrl4 edp_lv_mmhg=8 edp_rv_mmhg=6 edp_la_mmhg=4 edp_ra_mmhg=4
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+22:13:51.787 INFO  fe/loading     progress 6%  done=0.221 total=4 v_lv_ml=162.642 v_rv_ml=159.875 v_la_ml=72.211 v_ra_ml=91.414 p_lv_mmhg=0.306 p_rv_mmhg=0.27 p_la_mmhg=0.301 p_ra_mmhg=0.25
+22:14:10.473 INFO  fe/loading     progress 11%  done=0.438 total=4 v_lv_ml=163.642 v_rv_ml=160.875 v_la_ml=73.211 v_ra_ml=92.414 p_lv_mmhg=0.609 p_rv_mmhg=0.536 p_la_mmhg=0.595 p_ra_mmhg=0.494
+22:14:29.187 INFO  fe/loading     progress 16%  done=0.651 total=4 v_lv_ml=164.642 v_rv_ml=161.875 v_la_ml=74.211 v_ra_ml=93.414 p_lv_mmhg=0.908 p_rv_mmhg=0.799 p_la_mmhg=0.882 p_ra_mmhg=0.734
+22:14:47.826 INFO  fe/loading     progress 21%  done=0.86 total=4 v_lv_ml=165.642 v_rv_ml=162.875 v_la_ml=75.211 v_ra_ml=94.414 p_lv_mmhg=1.204 p_rv_mmhg=1.06 p_la_mmhg=1.162 p_ra_mmhg=0.969
+22:15:06.495 INFO  fe/loading     progress 27%  done=1.065 total=4 v_lv_ml=166.642 v_rv_ml=163.875 v_la_ml=76.211 v_ra_ml=95.414 p_lv_mmhg=1.497 p_rv_mmhg=1.317 p_la_mmhg=1.436 p_ra_mmhg=1.199
+22:15:25.155 INFO  fe/loading     progress 32%  done=1.268 total=4 v_lv_ml=167.642 v_rv_ml=164.875 v_la_ml=77.211 v_ra_ml=96.414 p_lv_mmhg=1.787 p_rv_mmhg=1.572 p_la_mmhg=1.704 p_ra_mmhg=1.426
+22:16:02.539 INFO  fe/loading     progress 42%  done=1.664 total=4 v_lv_ml=169.642 v_rv_ml=166.875 v_la_ml=79.211 v_ra_ml=98.414 p_lv_mmhg=2.36 p_rv_mmhg=2.074 p_la_mmhg=2.227 p_ra_mmhg=1.868
+22:16:44.819 INFO  fe/loading     progress 51%  done=2.052 total=4 v_lv_ml=171.642 v_rv_ml=168.875 v_la_ml=81.211 v_ra_ml=100.414 p_lv_mmhg=2.924 p_rv_mmhg=2.567 p_la_mmhg=2.735 p_ra_mmhg=2.298
+22:17:42.188 INFO  fe/loading     progress 61%  done=2.432 total=4 v_lv_ml=173.642 v_rv_ml=170.875 v_la_ml=83.211 v_ra_ml=102.414 p_lv_mmhg=3.481 p_rv_mmhg=3.051 p_la_mmhg=3.235 p_ra_mmhg=2.719
+22:18:49.423 INFO  fe/loading     progress 70%  done=2.809 total=4 v_lv_ml=175.642 v_rv_ml=172.875 v_la_ml=85.211 v_ra_ml=104.414 p_lv_mmhg=4.034 p_rv_mmhg=3.528 p_la_mmhg=3.733 p_ra_mmhg=3.135
+22:19:56.650 INFO  fe/loading     progress 78%  done=3.119 total=4 v_lv_ml=177.642 v_rv_ml=174.875 v_la_ml=86.211 v_ra_ml=106.414 p_lv_mmhg=4.553 p_rv_mmhg=3.986 p_la_mmhg=4.036 p_ra_mmhg=3.543
+22:21:58.623 INFO  fe/loading     progress 84%  done=3.351 total=4 v_lv_ml=179.642 v_rv_ml=176.875 v_la_ml=85.711 v_ra_ml=108.414 p_lv_mmhg=5.024 p_rv_mmhg=4.421 p_la_mmhg=4.036 p_ra_mmhg=3.946
+22:28:52.974 INFO  fe/loading     progress 89%  done=3.577 total=4 v_lv_ml=183.642 v_rv_ml=180.875 v_la_ml=84.711 v_ra_ml=108.289 p_lv_mmhg=5.853 p_rv_mmhg=5.07 p_la_mmhg=4.01 p_ra_mmhg=4.246
+22:35:24.902 INFO  fe/loading     progress 95%  done=3.787 total=4 v_lv_ml=187.642 v_rv_ml=184.875 v_la_ml=84.211 v_ra_ml=107.789 p_lv_mmhg=6.686 p_rv_mmhg=5.707 p_la_mmhg=4.08 p_ra_mmhg=4.525
+22:46:21.463 INFO  fe/loading     progress 100%  done=3.99 total=4 v_lv_ml=195.642 v_rv_ml=184.375 v_la_ml=82.711 v_ra_ml=106.789 p_lv_mmhg=7.923 p_rv_mmhg=6.036 p_la_mmhg=4.035 p_ra_mmhg=4.561
+22:48:31.475 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.142 v_rv_ml=184.375 v_la_ml=82.711 v_ra_ml=106.664 p_lv_mmhg=8.007 p_rv_mmhg=6.06 p_la_mmhg=4.052 p_ra_mmhg=4.555
+22:49:18.564 INFO  fe/loading     progress 100%  done=3.992 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=106.539 p_lv_mmhg=7.966 p_rv_mmhg=5.984 p_la_mmhg=3.994 p_ra_mmhg=4.517
+22:49:37.118 INFO  fe/loading     progress 100%  done=3.99 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=106.414 p_lv_mmhg=7.964 p_rv_mmhg=5.979 p_la_mmhg=3.993 p_ra_mmhg=4.5
+22:49:55.681 INFO  fe/loading     progress 100%  done=3.989 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=106.289 p_lv_mmhg=7.961 p_rv_mmhg=5.974 p_la_mmhg=3.992 p_ra_mmhg=4.483
+22:50:14.284 INFO  fe/loading     progress 100%  done=3.988 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=106.164 p_lv_mmhg=7.958 p_rv_mmhg=5.969 p_la_mmhg=3.992 p_ra_mmhg=4.466
+22:50:32.839 INFO  fe/loading     progress 100%  done=3.986 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=106.039 p_lv_mmhg=7.955 p_rv_mmhg=5.964 p_la_mmhg=3.991 p_ra_mmhg=4.45
+22:50:51.430 INFO  fe/loading     progress 100%  done=3.985 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=105.914 p_lv_mmhg=7.953 p_rv_mmhg=5.959 p_la_mmhg=3.991 p_ra_mmhg=4.433
+22:51:10.002 INFO  fe/loading     progress 100%  done=3.984 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=105.789 p_lv_mmhg=7.95 p_rv_mmhg=5.954 p_la_mmhg=3.99 p_ra_mmhg=4.416
+22:51:28.554 INFO  fe/loading     progress 100%  done=3.982 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=105.664 p_lv_mmhg=7.947 p_rv_mmhg=5.949 p_la_mmhg=3.99 p_ra_mmhg=4.399
+22:52:56.470 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=105.539 p_lv_mmhg=8.018 p_rv_mmhg=6.027 p_la_mmhg=4.005 p_ra_mmhg=4.407
+22:53:15.042 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=105.414 p_lv_mmhg=8.015 p_rv_mmhg=6.022 p_la_mmhg=4.005 p_ra_mmhg=4.39
+22:53:33.593 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=105.289 p_lv_mmhg=8.012 p_rv_mmhg=6.018 p_la_mmhg=4.004 p_ra_mmhg=4.373
+22:53:52.159 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=105.164 p_lv_mmhg=8.01 p_rv_mmhg=6.013 p_la_mmhg=4.004 p_ra_mmhg=4.356
+22:54:05.997 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=105.039 p_lv_mmhg=8.007 p_rv_mmhg=6.008 p_la_mmhg=4.003 p_ra_mmhg=4.339
+22:54:19.808 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.914 p_lv_mmhg=8.005 p_rv_mmhg=6.004 p_la_mmhg=4.003 p_ra_mmhg=4.322
+22:54:33.628 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.789 p_lv_mmhg=8.002 p_rv_mmhg=5.999 p_la_mmhg=4.002 p_ra_mmhg=4.305
+22:54:47.422 INFO  fe/loading     progress 100%  done=3.999 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.664 p_lv_mmhg=8 p_rv_mmhg=5.995 p_la_mmhg=4.002 p_ra_mmhg=4.288
+22:55:01.239 INFO  fe/loading     progress 100%  done=3.998 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.539 p_lv_mmhg=7.997 p_rv_mmhg=5.99 p_la_mmhg=4.001 p_ra_mmhg=4.271
+22:55:15.025 INFO  fe/loading     progress 100%  done=3.997 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.414 p_lv_mmhg=7.995 p_rv_mmhg=5.986 p_la_mmhg=4.001 p_ra_mmhg=4.254
+22:55:28.833 INFO  fe/loading     progress 100%  done=3.996 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.289 p_lv_mmhg=7.993 p_rv_mmhg=5.981 p_la_mmhg=4 p_ra_mmhg=4.237
+22:55:42.668 INFO  fe/loading     progress 100%  done=3.995 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.164 p_lv_mmhg=7.99 p_rv_mmhg=5.977 p_la_mmhg=4 p_ra_mmhg=4.219
+22:55:56.469 INFO  fe/loading     progress 100%  done=3.994 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.039 p_lv_mmhg=7.988 p_rv_mmhg=5.972 p_la_mmhg=3.999 p_ra_mmhg=4.202
+22:56:10.289 INFO  fe/loading     progress 100%  done=3.993 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.914 p_lv_mmhg=7.985 p_rv_mmhg=5.968 p_la_mmhg=3.999 p_ra_mmhg=4.185
+22:56:24.092 INFO  fe/loading     progress 100%  done=3.991 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.789 p_lv_mmhg=7.983 p_rv_mmhg=5.964 p_la_mmhg=3.998 p_ra_mmhg=4.168
+22:56:37.941 INFO  fe/loading     progress 100%  done=3.99 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.664 p_lv_mmhg=7.981 p_rv_mmhg=5.959 p_la_mmhg=3.998 p_ra_mmhg=4.151
+22:56:51.788 INFO  fe/loading     progress 100%  done=3.989 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.539 p_lv_mmhg=7.978 p_rv_mmhg=5.955 p_la_mmhg=3.997 p_ra_mmhg=4.134
+22:57:05.609 INFO  fe/loading     progress 100%  done=3.988 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.414 p_lv_mmhg=7.976 p_rv_mmhg=5.951 p_la_mmhg=3.997 p_ra_mmhg=4.116
+22:57:19.425 INFO  fe/loading     progress 100%  done=3.987 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.289 p_lv_mmhg=7.974 p_rv_mmhg=5.947 p_la_mmhg=3.996 p_ra_mmhg=4.099
+22:57:37.980 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.875 v_la_ml=82.461 v_ra_ml=103.164 p_lv_mmhg=8.001 p_rv_mmhg=6.013 p_la_mmhg=4.004 p_ra_mmhg=4.099
+22:57:51.779 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.875 v_la_ml=82.461 v_ra_ml=103.039 p_lv_mmhg=7.999 p_rv_mmhg=6.009 p_la_mmhg=4.003 p_ra_mmhg=4.082
+22:58:05.616 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.875 v_la_ml=82.461 v_ra_ml=102.914 p_lv_mmhg=7.997 p_rv_mmhg=6.005 p_la_mmhg=4.003 p_ra_mmhg=4.064
+22:58:19.433 INFO  fe/loading     progress 100%  done=3.999 total=4 v_lv_ml=196.392 v_rv_ml=184.875 v_la_ml=82.461 v_ra_ml=102.789 p_lv_mmhg=7.994 p_rv_mmhg=6.001 p_la_mmhg=4.002 p_ra_mmhg=4.047
+22:58:19.433 INFO  fe/loading     END  elapsed=2701.4s status=ok
+22:58:19.442 INFO  fe/loading     four-cavity volume ramp reached the per-chamber EDPs  solves=75 halvings=8 v_lv_ml=196.392 v_rv_ml=184.875 v_la_ml=82.461 v_ra_ml=102.789 p_lv_mmhg=7.994 p_rv_mmhg=6.001 p_la_mmhg=4.002 p_ra_mmhg=4.047
+22:58:19.653 INFO  fe/solve       volume = 196.39236989759226
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+22:58:57.263 INFO  fe/init        four-chamber strain emitter ON  path=/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/output_strain.csv axis_lv=endo-PCA axis_rv=endo-PCA axis_la=endo-PCA axis_ra=endo-PCA
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+22:59:02.440 INFO  fe/init        event snapshots ENABLED  events=E1_mv_close@749.0,E2_peak_plv@212.5,E3_tv_open@323.0,E4_mv_open@356.0,E5_atrial@730.0 first_cycle=1
+22:59:02.441 INFO  fe/coupling    BEGIN  cycles=2 bcl_ms=800 dt_ms=0.5 write_step=40
+23:05:27.315 INFO  fe/coupling    [single_solve_timing] volctrl4 wall time: 384.682491 s  solver=volctrl4 wall_s=384.682
+23:05:31.156 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.156 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.157 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.157 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.157 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.157 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.157 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.157 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.158 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.158 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.158 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.158 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.159 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.159 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.159 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.159 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.159 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.159 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.160 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.160 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.160 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.160 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.160 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.160 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.160 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.160 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+[fch_baseline] seeded from configs/surrogate_fch_calibration (refine1/sample_0003)
+[fch_baseline] material: {'Cparam_lv': 287.09139112532137, 'Cparam_rv': 287.0, 'Cparam_la': 135.0218522027135, 'Cparam_ra': 108.12614156864583, 'Tmax_lv': 480000.0, 'Tmax_rv': 60000.0, 'Tmax_la': 55000.0, 'Tmax_ra': 55000.0}
+[fch_baseline] vascular keys transferred: ['Cad', 'Cpa', 'Cpv', 'Csa', 'Csv', 'Rad', 'Rav', 'Rav_rg', 'Rmv', 'Rpa', 'Rpv', 'Rpvv', 'Rsa', 'Rsv', 'Rtv', 'V_ad', 'V_pa', 'V_pv', 'V_sa', 'V_sv', 'Vad0', 'Vpa0', 'Vpv0', 'Vsa0', 'Vsv0']
+[fch_baseline] mesh dir: /mnt/gs21/scratch/ziaeirad/fch_coupled/case03/unload_rvwall_c287/  stop_iter=3  viscous_eta=250.0
+23:05:31.160 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.161 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.161 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.161 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:31.178 INFO  orchestrate/config passive stiffness taken from the reference's own unload fit (matched pair)  Cparam_lv=287.091 Cparam_rv=287 Cparam_la=135.022 Cparam_ra=108.126
+23:05:31.178 WARN  orchestrate/config WARNING: Burkhoff slack sarcomere length l0 OVERRIDDEN (all chambers); the length-tension dead zone moves to shorter sarcomeres  l0_um=1.28
+23:05:33.203 INFO  fe/solve       FCH mechanics mesh file: /mnt/gs21/scratch/ziaeirad/fch_coupled/case03/unload_rvwall_c287/fch_clregion_whole.hdf5 (group 'fch_clregion')
+23:05:35.019 INFO  fe/solve       FCH region/facet contract OK: matid[8, 9, 10, 11] + facets[1, 2, 3, 6, 9] all present.
+23:05:35.020 INFO  fe/solve       df.Mesh size is : 4528.000000
+23:05:35.025 INFO  fe/solve       Minimal radius ratio: 0.00047258757053840375
+23:05:35.025 INFO  fe/solve       Maximal radius ratio: 0.997449191468879
+23:05:35.684 INFO  fe/solve       Active region = [10, 9, 8, 11]
+23:05:35.685 INFO  fe/solve       Assigning active stress to 10
+23:05:35.686 INFO  fe/solve       Assigning active stress to 9
+23:05:35.687 INFO  fe/solve       Assigning active stress to 8
+23:05:35.688 INFO  fe/solve       Assigning active stress to 11
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+23:07:01.617 INFO  fe/solve       V_LV_unload = 161.6423698975921
+23:07:01.617 INFO  fe/solve       V_RV_unload = 158.87468128418976
+23:07:01.618 INFO  fe/init        fch coupling: VOLUME-prescribed four-chamber coupling (volctrl4): the 0D target volumes go to four monolithic swept-cavity constraints, one nonlinear solve per step, cavity pressures = the multipliers (no pressure root-find)  coupling_mode=volctrl4 vol_tol_ml=0.001
+23:07:01.654 INFO  fe/loading     BEGIN  mode=volctrl4 edp_lv_mmhg=8 edp_rv_mmhg=6 edp_la_mmhg=4 edp_ra_mmhg=4
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+23:07:26.529 INFO  fe/loading     progress 6%  done=0.221 total=4 v_lv_ml=162.642 v_rv_ml=159.875 v_la_ml=72.211 v_ra_ml=91.414 p_lv_mmhg=0.306 p_rv_mmhg=0.27 p_la_mmhg=0.301 p_ra_mmhg=0.25
+23:07:31.118 INFO  fe/loading     progress 11%  done=0.438 total=4 v_lv_ml=163.642 v_rv_ml=160.875 v_la_ml=73.211 v_ra_ml=92.414 p_lv_mmhg=0.609 p_rv_mmhg=0.536 p_la_mmhg=0.595 p_ra_mmhg=0.494
+23:07:35.941 INFO  fe/loading     progress 16%  done=0.651 total=4 v_lv_ml=164.642 v_rv_ml=161.875 v_la_ml=74.211 v_ra_ml=93.414 p_lv_mmhg=0.908 p_rv_mmhg=0.799 p_la_mmhg=0.882 p_ra_mmhg=0.734
+23:07:40.542 INFO  fe/loading     progress 21%  done=0.86 total=4 v_lv_ml=165.642 v_rv_ml=162.875 v_la_ml=75.211 v_ra_ml=94.414 p_lv_mmhg=1.204 p_rv_mmhg=1.06 p_la_mmhg=1.162 p_ra_mmhg=0.969
+23:07:45.178 INFO  fe/loading     progress 27%  done=1.065 total=4 v_lv_ml=166.642 v_rv_ml=163.875 v_la_ml=76.211 v_ra_ml=95.414 p_lv_mmhg=1.497 p_rv_mmhg=1.317 p_la_mmhg=1.436 p_ra_mmhg=1.199
+23:07:49.653 INFO  fe/loading     progress 32%  done=1.268 total=4 v_lv_ml=167.642 v_rv_ml=164.875 v_la_ml=77.211 v_ra_ml=96.414 p_lv_mmhg=1.787 p_rv_mmhg=1.572 p_la_mmhg=1.704 p_ra_mmhg=1.426
+23:07:58.902 INFO  fe/loading     progress 42%  done=1.664 total=4 v_lv_ml=169.642 v_rv_ml=166.875 v_la_ml=79.211 v_ra_ml=98.414 p_lv_mmhg=2.36 p_rv_mmhg=2.074 p_la_mmhg=2.227 p_ra_mmhg=1.868
+23:08:09.159 INFO  fe/loading     progress 51%  done=2.052 total=4 v_lv_ml=171.642 v_rv_ml=168.875 v_la_ml=81.211 v_ra_ml=100.414 p_lv_mmhg=2.924 p_rv_mmhg=2.567 p_la_mmhg=2.735 p_ra_mmhg=2.298
+23:08:22.578 INFO  fe/loading     progress 61%  done=2.432 total=4 v_lv_ml=173.642 v_rv_ml=170.875 v_la_ml=83.211 v_ra_ml=102.414 p_lv_mmhg=3.481 p_rv_mmhg=3.051 p_la_mmhg=3.235 p_ra_mmhg=2.719
+23:08:38.635 INFO  fe/loading     progress 70%  done=2.809 total=4 v_lv_ml=175.642 v_rv_ml=172.875 v_la_ml=85.211 v_ra_ml=104.414 p_lv_mmhg=4.034 p_rv_mmhg=3.528 p_la_mmhg=3.733 p_ra_mmhg=3.135
+23:08:54.771 INFO  fe/loading     progress 78%  done=3.119 total=4 v_lv_ml=177.642 v_rv_ml=174.875 v_la_ml=86.211 v_ra_ml=106.414 p_lv_mmhg=4.553 p_rv_mmhg=3.986 p_la_mmhg=4.036 p_ra_mmhg=3.543
+23:09:23.175 INFO  fe/loading     progress 84%  done=3.351 total=4 v_lv_ml=179.642 v_rv_ml=176.875 v_la_ml=85.711 v_ra_ml=108.414 p_lv_mmhg=5.024 p_rv_mmhg=4.421 p_la_mmhg=4.036 p_ra_mmhg=3.946
+23:11:00.647 INFO  fe/loading     progress 89%  done=3.577 total=4 v_lv_ml=183.642 v_rv_ml=180.875 v_la_ml=84.711 v_ra_ml=108.289 p_lv_mmhg=5.853 p_rv_mmhg=5.07 p_la_mmhg=4.01 p_ra_mmhg=4.246
+23:12:29.152 INFO  fe/loading     progress 95%  done=3.787 total=4 v_lv_ml=187.642 v_rv_ml=184.875 v_la_ml=84.211 v_ra_ml=107.789 p_lv_mmhg=6.686 p_rv_mmhg=5.707 p_la_mmhg=4.08 p_ra_mmhg=4.525
+23:15:06.903 INFO  fe/loading     progress 100%  done=3.99 total=4 v_lv_ml=195.642 v_rv_ml=184.375 v_la_ml=82.711 v_ra_ml=106.789 p_lv_mmhg=7.923 p_rv_mmhg=6.036 p_la_mmhg=4.035 p_ra_mmhg=4.561
+23:15:38.965 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.142 v_rv_ml=184.375 v_la_ml=82.711 v_ra_ml=106.664 p_lv_mmhg=8.007 p_rv_mmhg=6.06 p_la_mmhg=4.052 p_ra_mmhg=4.555
+23:15:50.890 INFO  fe/loading     progress 100%  done=3.992 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=106.539 p_lv_mmhg=7.966 p_rv_mmhg=5.984 p_la_mmhg=3.994 p_ra_mmhg=4.517
+23:15:55.537 INFO  fe/loading     progress 100%  done=3.99 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=106.414 p_lv_mmhg=7.964 p_rv_mmhg=5.979 p_la_mmhg=3.993 p_ra_mmhg=4.5
+23:16:00.303 INFO  fe/loading     progress 100%  done=3.989 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=106.289 p_lv_mmhg=7.961 p_rv_mmhg=5.974 p_la_mmhg=3.992 p_ra_mmhg=4.483
+23:16:05.060 INFO  fe/loading     progress 100%  done=3.988 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=106.164 p_lv_mmhg=7.958 p_rv_mmhg=5.969 p_la_mmhg=3.992 p_ra_mmhg=4.466
+23:16:10.146 INFO  fe/loading     progress 100%  done=3.986 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=106.039 p_lv_mmhg=7.955 p_rv_mmhg=5.964 p_la_mmhg=3.991 p_ra_mmhg=4.45
+23:16:15.087 INFO  fe/loading     progress 100%  done=3.985 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=105.914 p_lv_mmhg=7.953 p_rv_mmhg=5.959 p_la_mmhg=3.991 p_ra_mmhg=4.433
+23:16:19.894 INFO  fe/loading     progress 100%  done=3.984 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=105.789 p_lv_mmhg=7.95 p_rv_mmhg=5.954 p_la_mmhg=3.99 p_ra_mmhg=4.416
+23:16:24.683 INFO  fe/loading     progress 100%  done=3.982 total=4 v_lv_ml=196.142 v_rv_ml=183.875 v_la_ml=82.461 v_ra_ml=105.664 p_lv_mmhg=7.947 p_rv_mmhg=5.949 p_la_mmhg=3.99 p_ra_mmhg=4.399
+23:16:46.547 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=105.539 p_lv_mmhg=8.018 p_rv_mmhg=6.027 p_la_mmhg=4.005 p_ra_mmhg=4.407
+23:16:51.363 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=105.414 p_lv_mmhg=8.015 p_rv_mmhg=6.022 p_la_mmhg=4.005 p_ra_mmhg=4.39
+23:16:56.059 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=105.289 p_lv_mmhg=8.012 p_rv_mmhg=6.018 p_la_mmhg=4.004 p_ra_mmhg=4.373
+23:17:00.968 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=105.164 p_lv_mmhg=8.01 p_rv_mmhg=6.013 p_la_mmhg=4.004 p_ra_mmhg=4.356
+23:17:04.453 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=105.039 p_lv_mmhg=8.007 p_rv_mmhg=6.008 p_la_mmhg=4.003 p_ra_mmhg=4.339
+23:17:08.086 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.914 p_lv_mmhg=8.005 p_rv_mmhg=6.004 p_la_mmhg=4.003 p_ra_mmhg=4.322
+23:17:11.746 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.789 p_lv_mmhg=8.002 p_rv_mmhg=5.999 p_la_mmhg=4.002 p_ra_mmhg=4.305
+23:17:15.386 INFO  fe/loading     progress 100%  done=3.999 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.664 p_lv_mmhg=8 p_rv_mmhg=5.995 p_la_mmhg=4.002 p_ra_mmhg=4.288
+23:17:18.972 INFO  fe/loading     progress 100%  done=3.998 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.539 p_lv_mmhg=7.997 p_rv_mmhg=5.99 p_la_mmhg=4.001 p_ra_mmhg=4.271
+23:17:22.348 INFO  fe/loading     progress 100%  done=3.997 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.414 p_lv_mmhg=7.995 p_rv_mmhg=5.986 p_la_mmhg=4.001 p_ra_mmhg=4.254
+23:17:25.964 INFO  fe/loading     progress 100%  done=3.996 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.289 p_lv_mmhg=7.993 p_rv_mmhg=5.981 p_la_mmhg=4 p_ra_mmhg=4.237
+23:17:29.633 INFO  fe/loading     progress 100%  done=3.995 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.164 p_lv_mmhg=7.99 p_rv_mmhg=5.977 p_la_mmhg=4 p_ra_mmhg=4.219
+23:17:33.235 INFO  fe/loading     progress 100%  done=3.994 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=104.039 p_lv_mmhg=7.988 p_rv_mmhg=5.972 p_la_mmhg=3.999 p_ra_mmhg=4.202
+23:17:36.887 INFO  fe/loading     progress 100%  done=3.993 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.914 p_lv_mmhg=7.985 p_rv_mmhg=5.968 p_la_mmhg=3.999 p_ra_mmhg=4.185
+23:17:40.580 INFO  fe/loading     progress 100%  done=3.991 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.789 p_lv_mmhg=7.983 p_rv_mmhg=5.964 p_la_mmhg=3.998 p_ra_mmhg=4.168
+23:17:44.074 INFO  fe/loading     progress 100%  done=3.99 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.664 p_lv_mmhg=7.981 p_rv_mmhg=5.959 p_la_mmhg=3.998 p_ra_mmhg=4.151
+23:17:47.718 INFO  fe/loading     progress 100%  done=3.989 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.539 p_lv_mmhg=7.978 p_rv_mmhg=5.955 p_la_mmhg=3.997 p_ra_mmhg=4.134
+23:17:51.509 INFO  fe/loading     progress 100%  done=3.988 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.414 p_lv_mmhg=7.976 p_rv_mmhg=5.951 p_la_mmhg=3.997 p_ra_mmhg=4.116
+23:17:55.089 INFO  fe/loading     progress 100%  done=3.987 total=4 v_lv_ml=196.392 v_rv_ml=184.375 v_la_ml=82.461 v_ra_ml=103.289 p_lv_mmhg=7.974 p_rv_mmhg=5.947 p_la_mmhg=3.996 p_ra_mmhg=4.099
+23:17:59.864 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.875 v_la_ml=82.461 v_ra_ml=103.164 p_lv_mmhg=8.001 p_rv_mmhg=6.013 p_la_mmhg=4.004 p_ra_mmhg=4.099
+23:18:03.425 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.875 v_la_ml=82.461 v_ra_ml=103.039 p_lv_mmhg=7.999 p_rv_mmhg=6.009 p_la_mmhg=4.003 p_ra_mmhg=4.082
+23:18:07.002 INFO  fe/loading     progress 100%  done=4 total=4 v_lv_ml=196.392 v_rv_ml=184.875 v_la_ml=82.461 v_ra_ml=102.914 p_lv_mmhg=7.997 p_rv_mmhg=6.005 p_la_mmhg=4.003 p_ra_mmhg=4.064
+23:18:10.610 INFO  fe/loading     progress 100%  done=3.999 total=4 v_lv_ml=196.392 v_rv_ml=184.875 v_la_ml=82.461 v_ra_ml=102.789 p_lv_mmhg=7.994 p_rv_mmhg=6.001 p_la_mmhg=4.002 p_ra_mmhg=4.047
+23:18:10.611 INFO  fe/loading     END  elapsed=669.0s status=ok
+23:18:10.615 INFO  fe/loading     four-cavity volume ramp reached the per-chamber EDPs  solves=75 halvings=8 v_lv_ml=196.392 v_rv_ml=184.875 v_la_ml=82.461 v_ra_ml=102.789 p_lv_mmhg=7.994 p_rv_mmhg=6.001 p_la_mmhg=4.002 p_ra_mmhg=4.047
+23:18:10.925 INFO  fe/solve       volume = 196.39236989759212
+23:18:11.032 INFO  fe/init        four-chamber strain emitter ON  path=/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/output_strain.csv axis_lv=endo-PCA axis_rv=endo-PCA axis_la=endo-PCA axis_ra=endo-PCA
+23:18:11.643 INFO  fe/init        event snapshots ENABLED  events=E1_mv_close@749.0,E2_peak_plv@212.5,E3_tv_open@323.0,E4_mv_open@356.0,E5_atrial@730.0 first_cycle=1
+23:18:11.644 INFO  fe/coupling    BEGIN  cycles=4 bcl_ms=800 dt_ms=0.5 write_step=40
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+Calling FFC just-in-time (JIT) compiler, this may take some time.
+23:42:20.439 INFO  fe/coupling    progress 5%  done=160 total=3200 cycle=0/3 t_ms=160 dt_ms=0.5 p_lv_mmhg=91.865 v_lv_ml=120.632 p_rv_mmhg=15.788 v_rv_ml=157.387 coupling=volctrl4 wall_s=1448.795
+00:00:14.109 INFO  fe/coupling    progress 10%  done=320 total=3200 cycle=0/3 t_ms=320 dt_ms=0.5 p_lv_mmhg=35.093 v_lv_ml=110.17 p_rv_mmhg=8.669 v_rv_ml=142.367 coupling=volctrl4 wall_s=2522.465
+00:09:41.197 INFO  fe/coupling    progress 15%  done=480 total=3200 cycle=0/3 t_ms=480 dt_ms=0.5 p_lv_mmhg=3.793 v_lv_ml=149.039 p_rv_mmhg=5.782 v_rv_ml=186.613 coupling=volctrl4 wall_s=3089.552
+00:15:08.582 INFO  fe/coupling    progress 20%  done=640 total=3200 cycle=0/3 t_ms=640 dt_ms=0.5 p_lv_mmhg=6.668 v_lv_ml=173.783 p_rv_mmhg=8.835 v_rv_ml=207.55 coupling=volctrl4 wall_s=3416.938
+00:21:48.188 INFO  fe/coupling    progress 25%  done=800 total=3200 cycle=1/3 t_ms=0 dt_ms=0.5 p_lv_mmhg=8.402 v_lv_ml=186.644 p_rv_mmhg=10.111 v_rv_ml=219.309 coupling=volctrl4 wall_s=3816.544
+00:43:53.656 INFO  fe/coupling    progress 30%  done=960 total=3200 cycle=1/3 t_ms=160 dt_ms=0.5 p_lv_mmhg=88.675 v_lv_ml=119.941 p_rv_mmhg=18.731 v_rv_ml=164.375 coupling=volctrl4 wall_s=5142.012
+00:51:08.955 INFO  fe/snapshot    event snapshot written  event=E2_peak_plv cycle=1 t_ms=212.5 target_t_ms=212.5 xdmf=snapshot_E2_peak_plv_c1_viz.xdmf
+01:02:03.880 INFO  fe/coupling    progress 35%  done=1120 total=3200 cycle=1/3 t_ms=320 dt_ms=0.5 p_lv_mmhg=33.338 v_lv_ml=109.679 p_rv_mmhg=9.172 v_rv_ml=144.115 coupling=volctrl4 wall_s=6232.236
+01:02:26.276 INFO  fe/snapshot    event snapshot written  event=E3_tv_open cycle=1 t_ms=323 target_t_ms=323 xdmf=snapshot_E3_tv_open_c1_viz.xdmf
+01:05:04.788 INFO  fe/snapshot    event snapshot written  event=E4_mv_open cycle=1 t_ms=356 target_t_ms=356 xdmf=snapshot_E4_mv_open_c1_viz.xdmf
+01:11:47.407 INFO  fe/coupling    progress 40%  done=1280 total=3200 cycle=1/3 t_ms=480 dt_ms=0.5 p_lv_mmhg=4.033 v_lv_ml=150.022 p_rv_mmhg=5.907 v_rv_ml=186.919 coupling=volctrl4 wall_s=6815.763
+01:17:13.955 INFO  fe/coupling    progress 45%  done=1440 total=3200 cycle=1/3 t_ms=640 dt_ms=0.5 p_lv_mmhg=6.992 v_lv_ml=175.589 p_rv_mmhg=9.011 v_rv_ml=207.916 coupling=volctrl4 wall_s=7142.311
+01:21:01.344 INFO  fe/snapshot    event snapshot written  event=E5_atrial cycle=1 t_ms=730 target_t_ms=730 xdmf=snapshot_E5_atrial_c1_viz.xdmf
+01:21:52.654 INFO  fe/snapshot    event snapshot written  event=E1_mv_close cycle=1 t_ms=750 target_t_ms=749 xdmf=snapshot_E1_mv_close_c1_viz.xdmf
+01:24:01.585 INFO  fe/coupling    progress 50%  done=1600 total=3200 cycle=2/3 t_ms=0 dt_ms=0.5 p_lv_mmhg=8.726 v_lv_ml=188.329 p_rv_mmhg=10.317 v_rv_ml=219.786 coupling=volctrl4 wall_s=7549.941
+01:46:07.235 INFO  fe/coupling    progress 55%  done=1760 total=3200 cycle=2/3 t_ms=160 dt_ms=0.5 p_lv_mmhg=86.673 v_lv_ml=119.565 p_rv_mmhg=19.021 v_rv_ml=165.123 coupling=volctrl4 wall_s=8875.591
+01:53:16.030 INFO  fe/snapshot    event snapshot written  event=E2_peak_plv cycle=2 t_ms=212.5 target_t_ms=212.5 xdmf=snapshot_E2_peak_plv_c2_viz.xdmf
+02:04:17.709 INFO  fe/coupling    progress 60%  done=1921 total=3200 cycle=2/3 t_ms=321 dt_ms=0.5 p_lv_mmhg=30.446 v_lv_ml=109.357 p_rv_mmhg=9.127 v_rv_ml=144.669 coupling=volctrl4 wall_s=9966.065
+02:04:34.445 INFO  fe/snapshot    event snapshot written  event=E3_tv_open cycle=2 t_ms=323 target_t_ms=323 xdmf=snapshot_E3_tv_open_c2_viz.xdmf
+02:07:13.115 INFO  fe/snapshot    event snapshot written  event=E4_mv_open cycle=2 t_ms=356 target_t_ms=356 xdmf=snapshot_E4_mv_open_c2_viz.xdmf
+02:13:59.954 INFO  fe/coupling    progress 65%  done=2082 total=3200 cycle=2/3 t_ms=482 dt_ms=0.5 p_lv_mmhg=4.188 v_lv_ml=151.16 p_rv_mmhg=6.022 v_rv_ml=187.577 coupling=volctrl4 wall_s=10548.31
+02:19:25.442 INFO  fe/coupling    progress 70%  done=2242 total=3200 cycle=2/3 t_ms=642 dt_ms=0.5 p_lv_mmhg=7.192 v_lv_ml=176.71 p_rv_mmhg=9.127 v_rv_ml=208.2 coupling=volctrl4 wall_s=10873.798
+02:23:05.749 INFO  fe/snapshot    event snapshot written  event=E5_atrial cycle=2 t_ms=730 target_t_ms=730 xdmf=snapshot_E5_atrial_c2_viz.xdmf
+02:23:47.261 INFO  fe/snapshot    event snapshot written  event=E1_mv_close cycle=2 t_ms=750 target_t_ms=749 xdmf=snapshot_E1_mv_close_c2_viz.xdmf
+02:26:15.879 INFO  fe/coupling    progress 75%  done=2402 total=3200 cycle=3/3 t_ms=2 dt_ms=0.5 p_lv_mmhg=8.886 v_lv_ml=189.255 p_rv_mmhg=10.403 v_rv_ml=220.013 coupling=volctrl4 wall_s=11284.235
+02:48:20.249 INFO  fe/coupling    progress 80%  done=2562 total=3200 cycle=3/3 t_ms=162 dt_ms=0.5 p_lv_mmhg=85.003 v_lv_ml=118.889 p_rv_mmhg=19.173 v_rv_ml=164.925 coupling=volctrl4 wall_s=12608.605
+02:55:13.315 INFO  fe/snapshot    event snapshot written  event=E2_peak_plv cycle=3 t_ms=212.5 target_t_ms=212.5 xdmf=snapshot_E2_peak_plv_c3_viz.xdmf
+03:06:20.286 INFO  fe/coupling    progress 85%  done=2722 total=3200 cycle=3/3 t_ms=322 dt_ms=0.5 p_lv_mmhg=27.994 v_lv_ml=109.136 p_rv_mmhg=9.017 v_rv_ml=144.987 coupling=volctrl4 wall_s=13688.642
+03:06:32.585 INFO  fe/snapshot    event snapshot written  event=E3_tv_open cycle=3 t_ms=323 target_t_ms=323 xdmf=snapshot_E3_tv_open_c3_viz.xdmf
+03:09:00.570 INFO  fe/snapshot    event snapshot written  event=E4_mv_open cycle=3 t_ms=356 target_t_ms=356 xdmf=snapshot_E4_mv_open_c3_viz.xdmf
+03:15:52.097 INFO  fe/coupling    progress 90%  done=2882 total=3200 cycle=3/3 t_ms=482 dt_ms=0.5 p_lv_mmhg=4.265 v_lv_ml=151.47 p_rv_mmhg=6.07 v_rv_ml=187.724 coupling=volctrl4 wall_s=14260.453
+03:21:21.202 INFO  fe/coupling    progress 95%  done=3042 total=3200 cycle=3/3 t_ms=642 dt_ms=0.5 p_lv_mmhg=7.296 v_lv_ml=177.261 p_rv_mmhg=9.192 v_rv_ml=208.369 coupling=volctrl4 wall_s=14589.558
+03:24:59.324 INFO  fe/snapshot    event snapshot written  event=E5_atrial cycle=3 t_ms=730 target_t_ms=730 xdmf=snapshot_E5_atrial_c3_viz.xdmf
+03:25:41.094 INFO  fe/snapshot    event snapshot written  event=E1_mv_close cycle=3 t_ms=750 target_t_ms=749 xdmf=snapshot_E1_mv_close_c3_viz.xdmf
+03:27:55.153 INFO  fe/coupling    progress 100%  done=3200 total=3200 cycle=4/3 t_ms=0 dt_ms=0.5 p_lv_mmhg=9.014 v_lv_ml=189.771 p_rv_mmhg=10.509 v_rv_ml=220.263 coupling=volctrl4 wall_s=14983.509
+03:27:55.575 INFO  fe/coupling    END  elapsed=14983.9s status=ok reason=stop_iter cycles_done=4 tstep_ms=3200
+[job] arm vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287 exit 0

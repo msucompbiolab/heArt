@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "provenance": "run_light.fch_snapshots",
+  "events": {
+    "E1_mv_close": 749.0,
+    "E2_peak_plv": 212.5,
+    "E3_tv_open": 323.0,
+    "E4_mv_open": 356.0,
+    "E5_atrial": 730.0
+  },
+  "bcl_ms": 800.0,
+  "snapshots": [
+    {
+      "key": "E2_peak_plv",
+      "cycle": 1,
+      "t_ms": 212.5,
+      "tstep_ms": 1012.5,
+      "target_t_ms": 212.5,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E2_peak_plv_c1.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E2_peak_plv_c1_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E2_peak_plv_c1_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E3_tv_open",
+      "cycle": 1,
+      "t_ms": 323.0,
+      "tstep_ms": 1123.0,
+      "target_t_ms": 323.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E3_tv_open_c1.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E3_tv_open_c1_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E3_tv_open_c1_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E4_mv_open",
+      "cycle": 1,
+      "t_ms": 356.0,
+      "tstep_ms": 1156.0,
+      "target_t_ms": 356.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E4_mv_open_c1.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E4_mv_open_c1_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E4_mv_open_c1_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E5_atrial",
+      "cycle": 1,
+      "t_ms": 730.0,
+      "tstep_ms": 1530.0,
+      "target_t_ms": 730.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E5_atrial_c1.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E5_atrial_c1_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E5_atrial_c1_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E1_mv_close",
+      "cycle": 1,
+      "t_ms": 750.0,
+      "tstep_ms": 1550.0,
+      "target_t_ms": 749.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E1_mv_close_c1.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E1_mv_close_c1_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E1_mv_close_c1_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E2_peak_plv",
+      "cycle": 2,
+      "t_ms": 212.5,
+      "tstep_ms": 1812.5,
+      "target_t_ms": 212.5,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E2_peak_plv_c2.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E2_peak_plv_c2_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E2_peak_plv_c2_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E3_tv_open",
+      "cycle": 2,
+      "t_ms": 323.0,
+      "tstep_ms": 1923.0,
+      "target_t_ms": 323.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E3_tv_open_c2.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E3_tv_open_c2_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E3_tv_open_c2_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E4_mv_open",
+      "cycle": 2,
+      "t_ms": 356.0,
+      "tstep_ms": 1956.0,
+      "target_t_ms": 356.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E4_mv_open_c2.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E4_mv_open_c2_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E4_mv_open_c2_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E5_atrial",
+      "cycle": 2,
+      "t_ms": 730.0,
+      "tstep_ms": 2330.0,
+      "target_t_ms": 730.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E5_atrial_c2.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E5_atrial_c2_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E5_atrial_c2_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E1_mv_close",
+      "cycle": 2,
+      "t_ms": 750.0,
+      "tstep_ms": 2350.0,
+      "target_t_ms": 749.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E1_mv_close_c2.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E1_mv_close_c2_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E1_mv_close_c2_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E2_peak_plv",
+      "cycle": 3,
+      "t_ms": 212.5,
+      "tstep_ms": 2612.5,
+      "target_t_ms": 212.5,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E2_peak_plv_c3.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E2_peak_plv_c3_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E2_peak_plv_c3_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E3_tv_open",
+      "cycle": 3,
+      "t_ms": 323.0,
+      "tstep_ms": 2723.0,
+      "target_t_ms": 323.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E3_tv_open_c3.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E3_tv_open_c3_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E3_tv_open_c3_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E4_mv_open",
+      "cycle": 3,
+      "t_ms": 356.0,
+      "tstep_ms": 2756.0,
+      "target_t_ms": 356.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E4_mv_open_c3.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E4_mv_open_c3_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E4_mv_open_c3_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E5_atrial",
+      "cycle": 3,
+      "t_ms": 730.0,
+      "tstep_ms": 3130.0,
+      "target_t_ms": 730.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E5_atrial_c3.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E5_atrial_c3_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E5_atrial_c3_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    },
+    {
+      "key": "E1_mv_close",
+      "cycle": 3,
+      "t_ms": 750.0,
+      "tstep_ms": 3150.0,
+      "target_t_ms": 749.0,
+      "h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E1_mv_close_c3.h5",
+      "xdmf": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E1_mv_close_c3_viz.xdmf",
+      "xdmf_h5": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/forward_v11_after_unlc287/arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/fch_case03_vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287/snapshots/snapshot_E1_mv_close_c3_viz.h5",
+      "reference": "unloaded_or_no_preload_reference (u is the FULL displacement)"
+    }
+  ]
+}

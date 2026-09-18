@@ -1,0 +1,107 @@
+{
+  "schema_version": "ed_state_manifest.v1",
+  "pipeline": "fch",
+  "state": "ed",
+  "case_id": "strocchi_03",
+  "source": {
+    "kind": "zenodo_3890034",
+    "path": "/mnt/gs21/scratch/ziaeirad/zenodo_val/03/work/03",
+    "segmentation": "ED"
+  },
+  "mesh": {
+    "filename": "fch_clregion_whole.hdf5",
+    "sha256": "f69ab08d6aa48c976562b6d260c29d12d33f6645f19799291bd2a2a1ecfb9aa3"
+  },
+  "edv_ml": {
+    "lv": 203.31819630957665,
+    "rv": 184.48154632164116,
+    "la": 85.40321470850549,
+    "ra": 108.8236063596824
+  },
+  "mesh_scale": 0.1,
+  "units": {
+    "coordinates_on_disk": "mm",
+    "coordinates_solver": "cm",
+    "volume": "mL",
+    "pressure": "Pa",
+    "time": "ms"
+  },
+  "bounding_box_disk_units": {
+    "min": [
+      -93.78111267089844,
+      50.15421295166016,
+      93.827880859375
+    ],
+    "max": [
+      58.53696823120117,
+      177.1662445068359,
+      215.8332672119141
+    ],
+    "extent": [
+      152.3180809020996,
+      127.01203155517575,
+      122.00538635253909
+    ]
+  },
+  "n_cells": 75827,
+  "n_vertices": 19748,
+  "measurement": {
+    "method": "divergence identity (1/3)|oint x.n dS| over the closed cavity surface at u=0, as forms_MRC2.*cavityvol_fch; solver kernel = legacy DOLFIN assemble (remesh.pipeline.io_hdf5.cavity_volumes_ml), cross-check = h5py + remesh_lvw.closure.enclosed_volume on the same facets",
+    "facet_dataset": "facetboundaries2",
+    "facet_ids": {
+      "lv": [
+        1
+      ],
+      "rv": [
+        6
+      ],
+      "la": [
+        2
+      ],
+      "ra": [
+        3
+      ]
+    },
+    "agreement_rel_tol": 1e-06,
+    "agreement_rel_max": 5.7457901680103175e-15,
+    "crosscheck_ml": {
+      "lv": 203.31819630957642,
+      "rv": 184.48154632164145,
+      "la": 85.40321470850539,
+      "ra": 108.82360635968178
+    },
+    "n_facets": {
+      "lv": 4278,
+      "rv": 4372,
+      "la": 2314,
+      "ra": 2624
+    },
+    "closure": {
+      "lv": {
+        "n_boundary_edges": 0,
+        "origin_relative_change": 2.977400372853634e-14
+      },
+      "rv": {
+        "n_boundary_edges": 0,
+        "origin_relative_change": 1.9246734356459508e-14
+      },
+      "la": {
+        "n_boundary_edges": 0,
+        "origin_relative_change": 3.2374236764115003e-15
+      },
+      "ra": {
+        "n_boundary_edges": 0,
+        "origin_relative_change": 1.6046424905570726e-14
+      }
+    }
+  },
+  "generated_utc": "2026-09-10T03:36:59Z",
+  "generator": {
+    "script": "scripts/make_fch_ed_manifest.py",
+    "git_sha": "unknown"
+  },
+  "refine": {
+    "filename": "fch_clregion_refine.hdf5",
+    "sha256": "3ac9c65f8d903a12b0086d3660dcc28f329508f17b30a952396f4fef8ca25504"
+  }
+}

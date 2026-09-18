@@ -1,0 +1,112 @@
+{
+ "schema": "arm_manifest.v1",
+ "stage": "forward",
+ "campaign": "fch_coupled",
+ "note": "forward v11 (afterload + preload lever after v10): l0 1.28, eta 250, RV 60k, atria 55k; preload +300 mL systemic venous with +50 / +0 pulmonary (the +150 pv of v10 over-filled the LA to 125 mL / 29 mmHg); systemic Rad+Rsa x0.7 / x0.6 (v10 +300 gave LV 171-177 mmHg at SV ~95), Csa x1.5 variant. 3 beats.",
+ "arms": [
+  {
+   "index": 0,
+   "arm_id": "vc4-l01.28-lv480-sv300pv50-rad0.7-unlc287",
+   "axis_values": {
+    "dsv": 300,
+    "dpv": 50,
+    "rad": 0.7,
+    "csa": 1.0,
+    "tmax_lv": 480000
+   },
+   "env": {
+    "FCH_COUPLING": "volctrl4",
+    "TMAX_LV": "480000",
+    "TMAX_RV": "60000",
+    "TMAX_LA": "55000",
+    "TMAX_RA": "55000",
+    "ACTIVE_L0": "1.28",
+    "VISCOUS_ETA": "250",
+    "SELECTED_PARAMS": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/circuits/anchor_v2b_sv300pv50_rad0.7_params.json"
+   },
+   "decision_keys": [
+    "fch_coupling_volume_prescribed@fch",
+    "fch_rv_wall_stiffness@fch"
+   ],
+   "output_subdir": "arms/vc4-l01.28-lv480-sv300pv50-rad0.7-unlc287"
+  },
+  {
+   "index": 1,
+   "arm_id": "vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287",
+   "axis_values": {
+    "dsv": 300,
+    "dpv": 50,
+    "rad": 0.7,
+    "csa": 1.5,
+    "tmax_lv": 480000
+   },
+   "env": {
+    "FCH_COUPLING": "volctrl4",
+    "TMAX_LV": "480000",
+    "TMAX_RV": "60000",
+    "TMAX_LA": "55000",
+    "TMAX_RA": "55000",
+    "ACTIVE_L0": "1.28",
+    "VISCOUS_ETA": "250",
+    "SELECTED_PARAMS": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/circuits/anchor_v2b_sv300pv50_rad0.7_csa1.5_params.json"
+   },
+   "decision_keys": [
+    "fch_coupling_volume_prescribed@fch",
+    "fch_rv_wall_stiffness@fch"
+   ],
+   "output_subdir": "arms/vc4-l01.28-lv480-sv300pv50-rad0.7-csa1.5-unlc287"
+  },
+  {
+   "index": 2,
+   "arm_id": "vc4-l01.28-lv416-sv300pv50-rad0.6-unlc287",
+   "axis_values": {
+    "dsv": 300,
+    "dpv": 50,
+    "rad": 0.6,
+    "csa": 1.0,
+    "tmax_lv": 416379
+   },
+   "env": {
+    "FCH_COUPLING": "volctrl4",
+    "TMAX_LV": "416379",
+    "TMAX_RV": "60000",
+    "TMAX_LA": "55000",
+    "TMAX_RA": "55000",
+    "ACTIVE_L0": "1.28",
+    "VISCOUS_ETA": "250",
+    "SELECTED_PARAMS": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/circuits/anchor_v2b_sv300pv50_rad0.6_params.json"
+   },
+   "decision_keys": [
+    "fch_coupling_volume_prescribed@fch",
+    "fch_rv_wall_stiffness@fch"
+   ],
+   "output_subdir": "arms/vc4-l01.28-lv416-sv300pv50-rad0.6-unlc287"
+  },
+  {
+   "index": 3,
+   "arm_id": "vc4-l01.28-lv480-sv300pv0-rad0.7-unlc287",
+   "axis_values": {
+    "dsv": 300,
+    "dpv": 0,
+    "rad": 0.7,
+    "csa": 1.0,
+    "tmax_lv": 480000
+   },
+   "env": {
+    "FCH_COUPLING": "volctrl4",
+    "TMAX_LV": "480000",
+    "TMAX_RV": "60000",
+    "TMAX_LA": "55000",
+    "TMAX_RA": "55000",
+    "ACTIVE_L0": "1.28",
+    "VISCOUS_ETA": "250",
+    "SELECTED_PARAMS": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/circuits/anchor_v2b_sv300pv0_rad0.7_params.json"
+   },
+   "decision_keys": [
+    "fch_coupling_volume_prescribed@fch",
+    "fch_rv_wall_stiffness@fch"
+   ],
+   "output_subdir": "arms/vc4-l01.28-lv480-sv300pv0-rad0.7-unlc287"
+  }
+ ]
+}

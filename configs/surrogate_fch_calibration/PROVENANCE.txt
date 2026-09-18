@@ -1,0 +1,98 @@
+Locked four-chamber (FCH) surrogate — CASE03_SURROGATE_FINAL
+============================================================
+
+Identity     : refine1/sample_0003  (4th point, index 3, of the material_doe
+               refinement campaign:  python -m material_doe sample-around
+               --frac 0.25 --n 6 --seed 1)
+Source dir   : /home/ubuntu/heart_pv_plots/case03_final/   (dev-box scratch;
+               promoted here so a clean checkout has the locked inputs)
+Promoted     : 2026-06-15
+
+Files (copied verbatim from the source dir)
+-------------------------------------------
+selected_params.json            = case03_final/params.json
+    The locked 0D closed-loop parameter set (calibration / 0D-surrogate schema).
+    For the FORWARD FE run (fch_fe coupling) only the VASCULAR subset + initial
+    compartment/chamber volumes + valve resistances/thresholds are consumed:
+      vascular   : Csa Cad Csv Cpa Cpv ; Rsa Rad Rav Rmv Rpa Rpv Rpvv Rtv Rsv
+      unstressed : Vsa0 Vsv0 Vad0 Vpa0 Vpv0
+      initial    : V_sa V_ad V_sv V_pa V_pv ; V_LV V_RV V_LA V_RA
+      valves     : valve_controls (open/close thresholds, sigmoid)
+    The closedloopparam.{Tmax_,Ees_,A_,B_,Cpass_,Pact_,Ecurv_,Eshift_,V0_}* keys
+    are the 0D LUMPED-CHAMBER PROXY law and are NOT used when the chamber is
+    FE-coupled (fch_fe=True) — they are kept only for provenance/round-trip.
+
+material_params.json            = case03_final/material_params_sample_0003.json
+    The 8 per-chamber DoE SAMPLING COORDINATES that DEFINE sample_0003, in the
+    burkhoff_guccione_scaled / guccione_reduced search convention:
+      Tmax_lv/rv/la/ra  = 416378.6 / 384059.2 / 54662.3 / 295774.4  Pa
+      Cparam_lv/rv/la/ra=    287.09 /   380.08 /  135.02 /  108.13   Pa
+    CONVENTION (critical — FCH per-chamber ABSOLUTE Tmax, NOT the LV-baseline band):
+      * PASSIVE Cparam_{lv,la,ra} ARE used as the forward FE passive stiffness
+        (apply_fch_material) and DEFINE the committed unloaded reference (the unload
+        keys on Cparam). RV passive uses the OPERATING soft 40 Pa, not the sampled 380.
+      * The active Tmax_{lv,rv,la,ra} here ARE the FCH per-chamber ABSOLUTE Burkhoff Tmax
+        the FE actually runs. The FCH path sets SimDet[Tmax_<ch>] directly
+        (scripts/fe_active_twitch_fch_legacy.py for the calibration twitch;
+        orchestrate/fch_baseline_config.py from material_params.json for the forward run)
+        and the additive active stress scales by fch_active_tmax_factor =
+        Tmax_<ch>/Tmax_fallback (src/mechanics/MEmodel3.py). So the SAME absolute Tmax_lv
+        (416378.6 Pa) drives BOTH the calibration FE twitch and the forward FE law — the
+        contractility surrogate's tmax_pa axis is in THIS absolute FCH convention
+        (~[200k,700k]). Substituting the LV-baseline band ~100k here UNDERDRIVES the FCH
+        FE ~4x (the LV band is the FE value only for the LV-baseline single-chamber path).
+        NOTE: even at this correct absolute Tmax the additive active-stress law folds the
+        full cycle at the active-stress ellipticity ceiling (~62-81 mmHg,
+        [[fch-activation-cap-ellipticity]]) — that is a STRUCTURAL limit needing an
+        active-strain/mesh fix, NOT a Tmax convention error.
+
+selected_params.json (FE active material blocks)
+    {lv,rv}_active_material_params.Tmax = 100000 / 90000 Pa is the canonical LV_ACTIVE base
+    (the LV-baseline single-chamber FE value); for the FCH forward run it is the 0D-lumped
+    base the FE does NOT read — the forward ventricular Tmax comes from material_params.json
+    (above, 416378.6 / 384059.2 Pa) via fch_baseline_config + fch_active_tmax_factor. Feeding
+    selected_params' 100000 to the FCH forward would underdrive the FE ~4x.
+    {lv,rv}_passive_material_params.Cparam = 100 Pa is the FE-effective passive; the forward
+    run keeps the material_params Cparam (above) to stay consistent with the committed
+    unloaded reference (changing it would force a re-unload).
+
+summary.json                    = case03_final/summary.json
+    The acceptance physiology the forward FE run is compared against. NOTE the locked LV
+    peak (112 mmHg) is the 0D LUMPED-PROXY result; the 3-D FE is bounded by the active-stress
+    ellipticity ceiling (~71 mmHg isovolumic, [[fch-activation-cap-ellipticity]]), so the FE
+    PV loop is a reduced-pressure realization — acceptance = converged + physiologically
+    plausible + SV-balanced, NOT bit-equality with the 0D proxy.
+fe_effective_search_params.json = case03_final/fe_effective_search_params.json
+    The FE-effective 0D search base (informational). Carries the same {lv,rv}_active_material_
+    params.Tmax = 100000 / 90000 Pa FE blocks.
+
+Locked 0D physiology (acceptance targets for the forward FE run)
+----------------------------------------------------------------
+  EF_LV            = 0.467          EF_RV          = 0.455
+  CO               = 5.39 L/min     SV_balance     = 0.090 mL
+  SV_LV / SV_RV    = 71.81 / 71.90 mL
+  LV peak P        = 112.4 mmHg     RV peak P      = 15.95 mmHg
+  systemic P_sa    = 82.9 / 68.3 mmHg (sys/dia)
+  ESV_LV           = 81.86 mL       pre-systolic EDP = 2.22 mmHg
+
+RV passive-stiffness reconciliation (operator decision, 2026-06-15)
+------------------------------------------------------------------
+material_params.json carries Cparam_rv = 380 Pa, a SAMPLING-convention value (the
+material DoE explored RV stiffness ~325-400). The four-chamber OPERATING convention
+deliberately uses the SOFT Cparam_rv = 40 Pa (canonical FCH_BASE_PASSIVE; thin
+near-indeterminate RV free wall, unloaded-reference convention) -- the stiff sampled
+RV will not de-load (the unload diverges on the RV ramp). The forward run therefore
+uses the OPERATING Cparam_rv = 40 Pa for both the unload and the loading
+(fch_baseline_config rv_cparam_operating=True, the default; job_fch_closedloop.sh
+passes it to the unload). The other 7 locked dims (Tmax_{lv,rv,la,ra}, Cparam_{lv,la,ra})
+are used EXACTLY. Override with --sampled-rv-cparam to use the locked 380 Pa.
+
+Notes
+-----
+- mechanics_support_params in selected_params.json (spring_scale 0.25, annulus/
+  dashpot) is the CALIBRATION FE-backend support convention; the forward run uses
+  the committed WS3-calibrated springparam_{epi,atrial,aorta} in base_config. The
+  block is retained for provenance only.
+- This set was calibrated on the case-03 big-RV remesh (scale 0.1, ED LV/RV ~198
+  mL). The forward run must load the UNLOADED case-03 reference (regenerated with
+  the updated unloading: ventricles at ED, atria at atrial end-systole).

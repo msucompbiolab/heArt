@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "provenance": "fch_events.refcheck",
+  "unloaded_mesh": "/mnt/gs21/scratch/ziaeirad/fch_coupled/case03/unload_rvwall_c287/fch_clregion_whole.hdf5",
+  "ed_mesh": "/mnt/gs21/scratch/ziaeirad/zenodo_val/03/fch_clregion_whole.hdf5",
+  "mesh_scale": 0.1,
+  "chambers": {
+    "lv": {
+      "v0_ml": 161.64236989759237,
+      "v_loaded_ml": 203.31819630957665,
+      "ratio_v0_over_loaded": 0.7950216598000517,
+      "change_pct": -20.49783401999483,
+      "unloads": true
+    },
+    "rv": {
+      "v0_ml": 158.8746812841899,
+      "v_loaded_ml": 184.48154632164116,
+      "ratio_v0_over_loaded": 0.8611955203757561,
+      "change_pct": -13.880447962424395,
+      "unloads": true
+    },
+    "la": {
+      "v0_ml": 71.21117335106256,
+      "v_loaded_ml": 85.40321470850549,
+      "ratio_v0_over_loaded": 0.8338231013213895,
+      "change_pct": -16.617689867861046,
+      "unloads": true
+    },
+    "ra": {
+      "v0_ml": 90.41385029142504,
+      "v_loaded_ml": 108.8236063596824,
+      "ratio_v0_over_loaded": 0.8308293881806336,
+      "change_pct": -16.917061181936642,
+      "unloads": true
+    }
+  },
+  "zero_d": {
+    "lv": {
+      "zero_d_v0_ml": 126.17405526795865
+    },
+    "rv": {
+      "zero_d_v0_ml": 139.02293487626366
+    },
+    "la": {
+      "zero_d_v0_ml": 45.55448738434691
+    },
+    "ra": {
+      "zero_d_v0_ml": 63.659683282148194
+    }
+  },
+  "verdict": {
+    "ok": true,
+    "chambers_that_did_not_unload": []
+  }
+}
